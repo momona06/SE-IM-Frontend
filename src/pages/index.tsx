@@ -9,6 +9,7 @@ const LoginScreen = () => {
     const router = useRouter();
     const [username, getUsername] = useState<string>("");
     const [password, getPassword] = useState<string>("");
+    const [email, getEmail] = useState<string>("");
 
     const [mouseOverLogin, setMouseOverLogin] = useState<boolean>(false);
     const [mouseOverRegister, setMouseOverRegister] = useState<boolean>(false);
@@ -32,6 +33,7 @@ const LoginScreen = () => {
                 <div style={{ display: "flex", flexDirection: "column", paddingLeft: "150px", paddingRight: "150px", paddingTop: "5px", paddingBottom: "25px", border: "2px solid #00BFFF", borderRadius: "20px", alignItems: "center", backgroundColor: "rgba(255,255,255,0.7)"}}>
                     <h1>登录</h1>
                     <input style={{ width: "400px", height: "50px", margin: "5px", borderRadius: "12px", borderColor: "#00BFFF"}} type="text" placeholder="请填写用户名" value={username} onChange={(e) => getUsername(e.target.value)}/>
+                    <input style={{ width: "400px", height: "50px", margin: "5px", borderRadius: "12px", borderColor: "#00BFFF"}} type="text" placeholder="请填写邮箱" value={email} onChange={(e) => getEmail(e.target.value)}/>
                     <input style={{ width: "400px", height: "50px", margin: "5px", borderRadius: "12px", borderColor: "#00BFFF"}} type="text" placeholder="请填写密码" value={password} onChange={(e) => getPassword(e.target.value)}/>
                     <div style={{ width: "400px", height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
                         <button style={mouseOverLogin? {width: "195px", marginRight: "5px", height: "50px", borderColor: "#00BFFF", backgroundColor: "white", color: "black", transitionDuration: "0.4s", cursor: "pointer", borderRadius: "12px"}: {width: "195px", marginRight: "5px", height: "50px", borderColor: "#00BFFF", backgroundColor: "#00BFFF", color: "white", transitionDuration: "0.4s", cursor: "pointer", borderRadius: "12px"}} onClick={login} onMouseOver={() => setMouseOverLogin(true)} onMouseOut={() => setMouseOverLogin(false)}>
