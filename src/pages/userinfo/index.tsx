@@ -11,7 +11,6 @@ interface UserScreenProps{
 
 const UserManagementScreen = (props: UserScreenProps) => {
     const router = useRouter();
-    const [username, getUsername] = useState<string>(props.Username ?? "");
     const [newUsername, getNewUsername] = useState<string>("");
     const [email, getEmail] = useState<string>("");
     const [newEmail, getNewEmail] = useState<string>("");
