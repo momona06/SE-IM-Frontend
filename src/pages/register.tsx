@@ -6,7 +6,6 @@ import { request } from "../utils/network";
 const RegisterScreen = () => {
     const router = useRouter();
     const [username, getUsername] = useState<string>("");
-    const [email, getEmail] = useState<string>("");
     const [password, getPassword] = useState<string>("");
     const [verification, getVerification] = useState<string>("");
 
@@ -47,12 +46,6 @@ const RegisterScreen = () => {
                         placeholder="请填写用户名" 
                         value={username} 
                         onChange={(e) => getUsername(e.target.value)}/>
-                    <input 
-                        style={{ width: "400px", height: "50px", margin: "5px", borderRadius: "12px", borderColor: "#00BFFF"}} 
-                        type="text" 
-                        placeholder="请填写邮箱" 
-                        value={email} 
-                        onChange={(e) => getEmail(e.target.value)}/>
                     <input 
                         style={{ width: "400px", height: "50px", margin: "5px", borderRadius: "12px", borderColor: "#00BFFF"}} 
                         type="text" 

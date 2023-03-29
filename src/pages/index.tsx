@@ -21,6 +21,7 @@ const LoginScreen = () => {
             {
                 username: username,
                 password: password,
+                email: email,
             },
         )
             .then(() => alert(LOGIN_SUCCESS))
