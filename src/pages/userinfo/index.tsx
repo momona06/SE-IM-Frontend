@@ -32,7 +32,7 @@ const UserManagementScreen = (props: UserScreenProps) => {
 
     const [changeUserInfo, setChangeUserInfo] = useState<number>(0);  //0=不修改，1=修改用户名，2=修改邮箱，3=修改密码
 
-    const someFunction = () => {}
+    const someFunction = () => {};
 
     return (
         <div style={{ width: "100%", height: "100%", position: "absolute", top: 0, left: 0, alignItems: "center", backgroundImage: "url(\"https://stu.cs.tsinghua.edu.cn/new/images/blur-light.jpg\")", backgroundSize: "1920px 1200px", backgroundPosition: "center", backgroundRepeat: "no-repeat"}}>
