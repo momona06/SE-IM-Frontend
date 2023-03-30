@@ -1,31 +1,15 @@
-import { useRouter } from "next/router";
-import { useState } from "react";
-import { LOGIN_SUCCESS, ISEMPTY, ILLEGAL, EXCEED_LENGTH } from "../constants/string";
-import { VALID, VALID_EMAIL, EMPTY, INVALID, LENGTH } from "../constants/constants";
-import { request } from "../utils/network";
-import { message } from "antd";
+import {useRouter} from "next/router";
+import {useState} from "react";
+import {EXCEED_LENGTH, ILLEGAL, LOGIN_SUCCESS} from "../constants/string";
+import {request} from "../utils/network";
+import {message} from "antd";
 
 
-export const isValid = (val : string) => {
-    if (val === ""){
-        return EMPTY;
-    }
-    else {
-        // 邮箱格式
-        if (/^[a-zA-Z0-9][a-zA-Z0-9_]+\@[a-zA-Z0-9]+\.[a-zA-Z]{2,5}(\.[a-zA-Z]{2,5})*$/i.test(val)) {
-            return VALID_EMAIL;
-        }
-        else if (val.length > 40){
-            return LENGTH;
-        }
-        else if (!(/^[A-Za-z0-9]+$/.test(val))){
-            return INVALID;
-        }
-        else{
-            return VALID;
-        }
-    }
+export const isEmail = (val : string) => {
+    //仅保留是否为邮件的判断，其余交给后端
+    return /^[a-zA-Z0-9][a-zA-Z0-9_]+\@[a-zA-Z0-9]+\.[a-zA-Z]{2,5}(\.[a-zA-Z]{2,5})*$/i.test(val);
 };
+
 
 //登录界面
 const LoginScreen = () => {
@@ -38,60 +22,41 @@ const LoginScreen = () => {
     const [mouseOverRegister, setMouseOverRegister] = useState<boolean>(false);
 
     const login = () => {
-        if (isValid(account) === EMPTY || isValid(password) === EMPTY){
-            message.warning(ISEMPTY, 1);
-            return;
+        if (isEmail(account)){
+            request(
+                "/api/login",
+                "POST",
+                {
+                    username: "",
+                    password: password,
+                    email: account,
+                },
+            )
+                .then((res) => {
+                    message.success(LOGIN_SUCCESS, 1);
+                    window.loginToken = res.token;
+                    router.push(`/userinfo/${res.username}`);
+                })
+                .catch((err) => {
+                    message.error(err.message, 1);
+                });
         }
         else{
-            if (isValid(account) === LENGTH || isValid(password) === LENGTH){
-                message.error(EXCEED_LENGTH, 1);
-                return;
-            }
-            else if (isValid(password) === VALID){
-                if (isValid(account) === VALID){
-                    request(
-                        "/api/login",
-                        "POST",
-                        {
-                            username: account,
-                            password: password,
-                            email: "",
-                        },
-                    )
-                        .then((res) => {
-                            message.success(LOGIN_SUCCESS, 1);
-                            window.loginToken = res.token;
-                            router.push(`/userinfo/${res.username}`);
-                        })
-                        .catch((err) => alert(err));
-                }
-                if (isValid(account) === VALID_EMAIL){
-                    request(
-                        "/api/login",
-                        "POST",
-                        {
-                            username: "",
-                            password: password,
-                            email: account,
-                        },
-                    )
-                        .then((res) => {
-                            message.success(LOGIN_SUCCESS, 1);
-                            window.loginToken = res.token;
-                            router.push(`/userinfo/${res.username}`);
-                        })
-                        .catch((err) => alert(err));
-                }
-                else{
-                    message.error(ILLEGAL, 1);
-                    return;
-                }
-                
-            }
-            else {
-                message.error(ILLEGAL, 1);
-                return;
-            }
+            request(
+                "/api/login",
+                "POST",
+                {
+                    username: "",
+                    password: password,
+                    email: account,
+                },
+            )
+                .then((res) => {
+                    message.success(LOGIN_SUCCESS, 1);
+                    window.loginToken = res.token;
+                    router.push(`/userinfo/${res.username}`);
+                })
+                .catch((err) => message.error(err.message, 1));
         }
     };
 

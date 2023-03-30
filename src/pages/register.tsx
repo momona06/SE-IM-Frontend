@@ -1,9 +1,7 @@
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { request } from "../utils/network";
-import { isValid } from "./index";
-import { ISEMPTY, ILLEGAL, EXCEED_LENGTH, REGISTER_SUCCESS, PASSWORD_INCONSISTANT } from "../constants/string";
-import { VALID, EMPTY, LENGTH } from "../constants/constants";
+import { REGISTER_SUCCESS, PASSWORD_INCONSISTANT } from "../constants/string";
 import { message } from "antd";
 
 const RegisterScreen = () => {
@@ -15,49 +13,30 @@ const RegisterScreen = () => {
     const [mouseOverRegister, setMouseOverRegister] = useState<boolean>(false);
     const [mouseOverReturn, setMouseOverReturn] = useState<boolean>(false);
 
+    const [messageApi, contextHolder] = message.useMessage();
+
     const register = () => {
-        if (isValid(username) === EMPTY || isValid(password) === EMPTY){
-            message.warning(ISEMPTY, 1);
-            return;
-        }
-        else{
-            if (isValid(username) === LENGTH || isValid(password) === LENGTH){
-                message.error(EXCEED_LENGTH, 1);
-                return;
-            }
-            else if (isValid(username) === VALID && isValid(password) === VALID){
-                request(
-                    "/api/register",
-                    "POST",
-                    {
-                        username: username,
-                        password: password,
-                    },
-                )
-                    .then(() => message.success(REGISTER_SUCCESS, 1))
-                    .catch((err) => alert(err));
-            }
-            else {
-                message.error(ILLEGAL, 1);
-                return;
-            }
-        }
+        request(
+            "/api/register",
+            "POST",
+            {
+                username: username,
+                password: password,
+            },
+        )
+            .then(() => {
+                message.success(REGISTER_SUCCESS, 1)
+                router.push("/");
+            })
+            .catch((err) => message.error(err.message, 1));
     };
 
     const verifyPassword = () => {
-        if (isValid(verification) === VALID){
-            if (verification === password){
-                register();
-            }
-            else{
-                message.warning(PASSWORD_INCONSISTANT, 1);
-            } 
-        }
-        else if(isValid(verification) === EMPTY){
-            message.warning(ISEMPTY, 1);
+        if (verification === password){
+            register();
         }
         else{
-            message.error(ILLEGAL, 1);
+            message.warning(PASSWORD_INCONSISTANT, 1);
         }
     };
 
@@ -96,7 +75,7 @@ const RegisterScreen = () => {
                         onClick={() => router.push("/")} 
                         onMouseOver={() => setMouseOverReturn(true)} 
                         onMouseOut={() => setMouseOverReturn(false)}>
-                        返回
+                        返回登录
                     </button>
                 </div>
             </div>
