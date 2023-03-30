@@ -5,6 +5,7 @@ import { VALID, VALID_EMAIL, EMPTY, INVALID, LENGTH } from "../constants/constan
 import { request } from "../utils/network";
 import { message } from "antd";
 
+
 export const isValid = (val : string) => {
     if (val === ""){
         return EMPTY;
@@ -49,7 +50,7 @@ const LoginScreen = () => {
             else if (isValid(password) === VALID){
                 if (isValid(account) === VALID){
                     request(
-                        "/api/user/login",
+                        "/api/login",
                         "POST",
                         {
                             username: account,
@@ -57,12 +58,16 @@ const LoginScreen = () => {
                             email: "",
                         },
                     )
-                        .then(() => message.success(LOGIN_SUCCESS, 1))
-                        .catch((err) => message.error(err, 1));
+                    .then((res) => {
+                        message.success(LOGIN_SUCCESS, 1);
+                        window.loginToken = res.token;
+                        router.push(`/userinfo/${res.username}`);
+                    })
+                    .catch((err) => alert(err));
                 }
                 if (isValid(account) === VALID_EMAIL){
                     request(
-                        "/api/user/login",
+                        "/api/login",
                         "POST",
                         {
                             username: "",
@@ -72,9 +77,10 @@ const LoginScreen = () => {
                     )
                         .then((res) => {
                             message.success(LOGIN_SUCCESS, 1);
+                            window.loginToken = res.token;
                             router.push(`/userinfo/${res.username}`);
                         })
-                        .catch((err) => message.error(err, 1));
+                        .catch((err) => alert(err));
                 }
                 else{
                     message.error(ILLEGAL, 1);
@@ -110,7 +116,7 @@ const LoginScreen = () => {
                         width: "400px", height: "50px", margin: "5px", borderRadius: "12px", borderColor: "#00BFFF"
                     }} 
                     type="text" 
-                    placeholder="请填写用户名或邮箱"
+                    placeholder="请填写用户名"
                     value={account} 
                     onChange={(e) => getAccount(e.target.value)}
                     />
