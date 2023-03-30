@@ -86,6 +86,7 @@ const LoginScreen = () => {
                     message.error(ILLEGAL, 1);
                     return;
                 }
+                
             }
             else {
                 message.error(ILLEGAL, 1);
