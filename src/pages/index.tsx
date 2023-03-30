@@ -58,12 +58,12 @@ const LoginScreen = () => {
                             email: "",
                         },
                     )
-                    .then((res) => {
-                        message.success(LOGIN_SUCCESS, 1);
-                        window.loginToken = res.token;
-                        router.push(`/userinfo/${res.username}`);
-                    })
-                    .catch((err) => alert(err));
+                        .then((res) => {
+                            message.success(LOGIN_SUCCESS, 1);
+                            window.loginToken = res.token;
+                            router.push(`/userinfo/${res.username}`);
+                        })
+                        .catch((err) => alert(err));
                 }
                 if (isValid(account) === VALID_EMAIL){
                     request(
