@@ -1,7 +1,10 @@
 import { useRouter } from "next/router";
-import { REGISTER_SUCCESS, PASSWORD_INCONSISTANT } from "../constants/string";
 import { useState } from "react";
 import { request } from "../utils/network";
+import { isValid } from "./index";
+import { ISEMPTY, ILLEGAL, EXCEED_LENGTH, REGISTER_SUCCESS, PASSWORD_INCONSISTANT } from "../constants/string";
+import { VALID, EMPTY, LENGTH } from "../constants/constants";
+import { message } from "antd";
 
 const RegisterScreen = () => {
     const router = useRouter();
@@ -12,65 +15,102 @@ const RegisterScreen = () => {
     const [mouseOverRegister, setMouseOverRegister] = useState<boolean>(false);
     const [mouseOverReturn, setMouseOverReturn] = useState<boolean>(false);
 
-
     const register = () => {
-        request(
-            "/api/user/register",
-            "POST",
-            {
-                username: username,
-                password: password,
-            },
-        )
-            .then(() => alert(REGISTER_SUCCESS))
-            .catch((err) => alert(err));
+        if (isValid(username) === EMPTY || isValid(password) === EMPTY){
+            message.warning(ISEMPTY, 1);
+            return;
+        }
+        else{
+            if (isValid(username) === LENGTH || isValid(password) === LENGTH){
+                message.error(EXCEED_LENGTH, 1);
+                return;
+            }
+            else if (isValid(username) === VALID && isValid(password) === VALID){
+                request(
+                    "/api/user/register",
+                    "POST",
+                    {
+                        username: username,
+                        password: password,
+                    },
+                )
+                    .then(() => message.success(REGISTER_SUCCESS, 1))
+                    .catch((err) => message.error(err, 1));
+            }
+            else {
+                message.error(ILLEGAL, 1);
+                return;
+            }
+        }
     };
 
     const verifyPassword = () => {
-        if (verification === password){
-            register();
+        if (isValid(verification) === VALID){
+            if (verification === password){
+                register();
+            }
+            else{
+                message.warning(PASSWORD_INCONSISTANT, 1);
+            } 
         }
         else{
-            alert(PASSWORD_INCONSISTANT);
-        } 
+            message.error(ILLEGAL, 1);
+        }
     };
 
     return (
-        <div style={{ width: "100%", height: "100%", position: "absolute", top: 0, left: 0, alignItems: "center", backgroundImage: "url(\"https://stu.cs.tsinghua.edu.cn/new/images/blur-light.jpg\")", backgroundSize: "1920px 1200px", backgroundPosition: "center", backgroundRepeat: "no-repeat"}}>
-            <div style={{ display: "flex", justifyContent: "center ", alignItems: "center", position: "absolute", top: 0, bottom: 0, left: 0, right: 0, margin: "auto" }}>
-                <div style={{ display: "flex", flexDirection: "column", paddingLeft: "150px", paddingRight: "150px", paddingTop: "5px", paddingBottom: "25px", border: "2px solid #00BFFF", borderRadius: "20px", alignItems: "center", backgroundColor: "rgba(255,255,255,0.7)"}}>
-                    <h1>用户注册</h1>
-                    <input 
-                        style={{ width: "400px", height: "50px", margin: "5px", borderRadius: "12px", borderColor: "#00BFFF"}} 
+        <div style={{ 
+                width: "100%", height: "100%", position: "absolute", top: 0, left: 0, alignItems: "center", 
+                backgroundImage: "url(\"https://stu.cs.tsinghua.edu.cn/new/images/blur-light.jpg\")", 
+                backgroundSize: "1920px 1200px", backgroundPosition: "center", backgroundRepeat: "no-repeat"
+            }}>
+            <div style={{ 
+                display: "flex", justifyContent: "center ", alignItems: "center", position: "absolute", 
+                top: 0, bottom: 0, left: 0, right: 0, margin: "auto" 
+            }}>
+                <div style={{ 
+                    display: "flex", flexDirection: "column", paddingLeft: "150px", paddingRight: "150px", 
+                    paddingTop: "5px", paddingBottom: "25px", border: "2px solid #00BFFF", borderRadius: "20px", 
+                    alignItems: "center", backgroundColor: "rgba(255,255,255,0.7)"
+                }}>
+                    <h1>
+                        用户注册
+                    </h1>
+                    <input style={{ 
+                            width: "400px", height: "50px", margin: "5px", borderRadius: "12px", borderColor: "#00BFFF"
+                        }} 
                         type="text" 
                         placeholder="请填写用户名" 
                         value={username} 
-                        onChange={(e) => getUsername(e.target.value)}/>
-                    <input 
-                        style={{ width: "400px", height: "50px", margin: "5px", borderRadius: "12px", borderColor: "#00BFFF"}} 
+                        onChange={(e) => getUsername(e.target.value)}
+                    />
+                    <input style={{ 
+                            width: "400px", height: "50px", margin: "5px", borderRadius: "12px", borderColor: "#00BFFF"
+                        }} 
                         type="text" 
                         placeholder="请填写密码" 
                         value={password} 
-                        onChange={(e) => getPassword(e.target.value)}/>
-                    <input 
-                        style={{ width: "400px", height: "50px", margin: "5px", borderRadius: "12px", borderColor: "#00BFFF"}} 
+                        onChange={(e) => getPassword(e.target.value)}
+                    />
+                    <input style={{ 
+                            width: "400px", height: "50px", margin: "5px", borderRadius: "12px", borderColor: "#00BFFF"
+                        }}  
                         type="text" 
                         placeholder="请确认密码" 
                         value={verification} 
-                        onChange={(e) => getVerification(e.target.value)}/>
-                    <button 
-                        style={ mouseOverRegister? { width: "200px", height: "50px", borderColor: "#00BFFF", backgroundColor: "white", color: "black", transitionDuration: "0.4s", cursor: "pointer", borderRadius: "12px", margin: "5px"}: { width: "200px", height: "50px", borderColor: "#00BFFF", backgroundColor: "#00BFFF", color: "white", transitionDuration: "0.4s", cursor: "pointer", borderRadius: "12px", margin: "5px"}} 
+                        onChange={(e) => getVerification(e.target.value)}
+                    />
+                    <button style={ mouseOverRegister? { width: "200px", height: "50px", borderColor: "#00BFFF", backgroundColor: "white", color: "black", transitionDuration: "0.4s", cursor: "pointer", borderRadius: "12px", margin: "5px"}: { width: "200px", height: "50px", borderColor: "#00BFFF", backgroundColor: "#00BFFF", color: "white", transitionDuration: "0.4s", cursor: "pointer", borderRadius: "12px", margin: "5px"}} 
                         onClick={verifyPassword} 
                         onMouseOver={() => setMouseOverRegister(true)} 
                         onMouseOut={() => setMouseOverRegister(false)}>
                         注册账户
                     </button>
-                    <button 
-                        style={ mouseOverReturn? { width: "66px", height: "20px", border: "none", margin: "5px", backgroundColor: "transparent", textDecoration: "underline", cursor: "pointer"}: { width: "66px", height: "20px", border: "none", margin: "5px", backgroundColor: "transparent", textDecoration: "none", cursor: "pointer"}} 
+                    <button style={ mouseOverReturn? { width: "66px", height: "20px", border: "none", margin: "5px", backgroundColor: "transparent", textDecoration: "underline", cursor: "pointer"}: { width: "66px", height: "20px", border: "none", margin: "5px", backgroundColor: "transparent", textDecoration: "none", cursor: "pointer"}} 
                         onClick={() => router.push("/")} 
                         onMouseOver={() => setMouseOverReturn(true)} 
                         onMouseOut={() => setMouseOverReturn(false)}>
-                        返回登陆
+                        返回
                     </button>
                 </div>
             </div>

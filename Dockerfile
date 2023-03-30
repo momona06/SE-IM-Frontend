@@ -15,6 +15,8 @@ RUN yarn next build
 
 RUN yarn next export
 
+RUN yarn add antd@^4.24.2
+
 FROM nginx:1.22
 
 ENV HOME=/opt/app
