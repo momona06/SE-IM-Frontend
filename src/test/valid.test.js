@@ -1,5 +1,5 @@
 import {isValid} from "../pages/index";
-import { VALID, VALID_EMAIL, INVALID } from "../constants/string";
+import { VALID, VALID_EMAIL, INVALID, LENGTH, EMPTY } from "../constants/constants";
 
 var wrong_email_1 = "^&*@qq.com";
 var wrong_email_2 = "zhanhc@@.cod";
@@ -13,8 +13,8 @@ it("Input isValid test", () => {
     expect(isValid(wrong_email_1)).toEqual(INVALID);
     expect(isValid(wrong_email_2)).toEqual(INVALID);
     expect(isValid(wrong_password)).toEqual(INVALID);
-    expect(isValid(exceed_length_account)).toEqual(INVALID);
-    expect(isValid(empty_input)).toEqual(INVALID);
+    expect(isValid(exceed_length_account)).toEqual(LENGTH);
+    expect(isValid(empty_input)).toEqual(EMPTY);
     expect(isValid(correct_email)).toEqual(VALID_EMAIL);
     expect(isValid(correct_input)).toEqual(VALID);
 });

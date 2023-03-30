@@ -11,20 +11,20 @@ export const isValid = (val : string) => {
     }
     else {
         // 邮箱格式
-        if (/^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/.test(val)) {
+        if (/^[a-zA-Z0-9][a-zA-Z0-9_]+\@[a-zA-Z0-9]+\.[a-zA-Z]{2,5}(\.[a-zA-Z]{2,5})*$/i.test(val)) {
             return VALID_EMAIL;
         }
         else if (val.length > 40){
             return LENGTH;
         }
-        else if (!(/^[a-zA-Z | 0-9]/g.test(val))){
+        else if (!(/^[A-Za-z0-9]+$/.test(val))){
             return INVALID;
         }
         else{
             return VALID;
         }
     }
-}
+};
 
 //登录界面
 const LoginScreen = () => {
