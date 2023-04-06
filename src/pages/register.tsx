@@ -13,7 +13,6 @@ const RegisterScreen = () => {
     const [mouseOverRegister, setMouseOverRegister] = useState<boolean>(false);
     const [mouseOverReturn, setMouseOverReturn] = useState<boolean>(false);
 
-    const [messageApi, contextHolder] = message.useMessage();
 
     const register = () => {
         request(

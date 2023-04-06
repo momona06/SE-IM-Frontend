@@ -1,6 +1,6 @@
 import {useRouter} from "next/router";
 import {useState} from "react";
-import {EXCEED_LENGTH, ILLEGAL, LOGIN_SUCCESS} from "../constants/string";
+import {LOGIN_SUCCESS} from "../constants/string";
 import {request} from "../utils/network";
 import {message} from "antd";
 
@@ -16,7 +16,6 @@ const LoginScreen = () => {
     const router = useRouter();
     const [account, getAccount] = useState<string>("");
     const [password, getPassword] = useState<string>("");
-    const [email, getEmail] = useState<string>("");
 
     const [mouseOverLogin, setMouseOverLogin] = useState<boolean>(false);
     const [mouseOverRegister, setMouseOverRegister] = useState<boolean>(false);
