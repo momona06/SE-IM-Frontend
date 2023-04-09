@@ -1,9 +1,8 @@
 import { useRouter } from "next/router";
 import { useState } from "react";
-import { USERNAME_CHANGE_SUCCESS, EMAIL_CHANGE_SUCCESS, PASSWORD_CHANGE_SUCCESS, ISEMPTY, PASSWORD_INCONSISTANT, ILLEGAL } from "../../constants/string";
+import { USERNAME_CHANGE_SUCCESS, EMAIL_CHANGE_SUCCESS, PASSWORD_CHANGE_SUCCESS, PASSWORD_INCONSISTANT} from "../../constants/string";
 import { request } from "../../utils/network";
 import { message } from "antd";
-import { isValid } from "..";
 
 //用户管理界面
 
