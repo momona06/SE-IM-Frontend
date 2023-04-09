@@ -1,7 +1,6 @@
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { USERNAME_CHANGE_SUCCESS, EMAIL_CHANGE_SUCCESS, PASSWORD_CHANGE_SUCCESS, ISEMPTY, PASSWORD_INCONSISTANT, ILLEGAL } from "../../constants/string";
-import { VALID, VALID_EMAIL, EMPTY, INVALID, LENGTH } from "../../constants/constants";
 import { request } from "../../utils/network";
 import { message } from "antd";
 import { isValid } from "..";
