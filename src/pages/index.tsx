@@ -89,7 +89,7 @@ const LoginScreen = () => {
                         placeholder="请填写密码"
                         prefix={<LockOutlined />}
                         value={password}
-                    onChange={(e) => getPassword(e.target.value)}
+                        onChange={(e) => getPassword(e.target.value)}
                     />
                     <br />
                     <div style={{ 
