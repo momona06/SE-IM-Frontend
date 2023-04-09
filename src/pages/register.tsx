@@ -1,8 +1,9 @@
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { request } from "../utils/network";
 import { REGISTER_SUCCESS, PASSWORD_INCONSISTANT } from "../constants/string";
-import { message } from "antd";
+import {Button, Input, message} from "antd";
+import {ArrowLeftOutlined, ContactsOutlined, LockOutlined, UserAddOutlined, UserOutlined} from "@ant-design/icons";
 
 const RegisterScreen = () => {
     const router = useRouter();
@@ -10,13 +11,10 @@ const RegisterScreen = () => {
     const [password, getPassword] = useState<string>("");
     const [verification, getVerification] = useState<string>("");
 
-    const [mouseOverRegister, setMouseOverRegister] = useState<boolean>(false);
-    const [mouseOverReturn, setMouseOverReturn] = useState<boolean>(false);
-
 
     const register = () => {
         request(
-            "/api/register",
+            "/api/user/register",
             "POST",
             {
                 username: username,
@@ -24,7 +22,7 @@ const RegisterScreen = () => {
             },
         )
             .then(() => {
-                message.success(REGISTER_SUCCESS, 1)
+                message.success(REGISTER_SUCCESS, 1);
                 router.push("/");
             })
             .catch((err) => message.error(err.message, 1));
@@ -41,41 +39,47 @@ const RegisterScreen = () => {
 
     return (
         <div style={{ width: "100%", height: "100%", position: "absolute", top: 0, left: 0, alignItems: "center", backgroundImage: "url(\"https://stu.cs.tsinghua.edu.cn/new/images/blur-light.jpg\")", backgroundSize: "1920px 1200px", backgroundPosition: "center", backgroundRepeat: "no-repeat"}}>
-            <div style={{ display: "flex", justifyContent: "center ", alignItems: "center", position: "absolute", top: 0, bottom: 0, left: 0, right: 0, margin: "auto" }}>
-                <div style={{ display: "flex", flexDirection: "column", paddingLeft: "150px", paddingRight: "150px", paddingTop: "5px", paddingBottom: "25px", border: "2px solid #00BFFF", borderRadius: "20px", alignItems: "center", backgroundColor: "rgba(255,255,255,0.7)"}}>
-                    <h1>
-                        用户注册
-                    </h1>
-                    <input style={{ width: "400px", height: "50px", margin: "5px", borderRadius: "12px", borderColor: "#00BFFF"}} 
+            <div style={{ display: "flex", flexDirection: "column", justifyContent: "center ", alignItems: "center", position: "absolute", top: 0, bottom: 0, left: 0, right: 0, margin: "auto" }}>
+                <h1>
+                    用户注册
+                </h1>
+                <div style={{ display: "flex", flexDirection: "column", paddingLeft: "150px", paddingRight: "150px", paddingTop: "40px", paddingBottom: "30px", border: "1px solid transparent", borderRadius: "20px", alignItems: "center", backgroundColor: "rgba(255,255,255,0.7)"}}>
+                    <Input size={"large"}
                         type="text" 
-                        placeholder="请填写用户名" 
+                        placeholder="请填写用户名"
+                        prefix={<UserOutlined />}
+                        maxLength={50}
                         value={username} 
                         onChange={(e) => getUsername(e.target.value)}
                     />
-                    <input style={{ width: "400px", height: "50px", margin: "5px", borderRadius: "12px", borderColor: "#00BFFF"}} 
+                    <br />
+                    <Input size={"large"}
+                        maxLength={50}
                         type="text" 
-                        placeholder="请填写密码" 
+                        placeholder="请填写密码"
+                        prefix={<LockOutlined />}
                         value={password} 
                         onChange={(e) => getPassword(e.target.value)}
                     />
-                    <input style={{ width: "400px", height: "50px", margin: "5px", borderRadius: "12px", borderColor: "#00BFFF"}}  
+                    <br />
+                    <Input size="large"
+                        maxLength={50}
                         type="text" 
-                        placeholder="请确认密码" 
+                        placeholder="请确认密码"
+                        prefix={<ContactsOutlined />}
                         value={verification} 
                         onChange={(e) => getVerification(e.target.value)}
                     />
-                    <button style={ mouseOverRegister? { width: "200px", height: "50px", borderColor: "#00BFFF", backgroundColor: "white", color: "black", transitionDuration: "0.4s", cursor: "pointer", borderRadius: "12px", margin: "5px"}: { width: "200px", height: "50px", borderColor: "#00BFFF", backgroundColor: "#00BFFF", color: "white", transitionDuration: "0.4s", cursor: "pointer", borderRadius: "12px", margin: "5px"}} 
-                        onClick={verifyPassword} 
-                        onMouseOver={() => setMouseOverRegister(true)} 
-                        onMouseOut={() => setMouseOverRegister(false)}>
-                        注册账户
-                    </button>
-                    <button style={ mouseOverReturn? { width: "66px", height: "20px", border: "none", margin: "5px", backgroundColor: "transparent", textDecoration: "underline", cursor: "pointer"}: { width: "66px", height: "20px", border: "none", margin: "5px", backgroundColor: "transparent", textDecoration: "none", cursor: "pointer"}} 
-                        onClick={() => router.push("/")} 
-                        onMouseOver={() => setMouseOverReturn(true)} 
-                        onMouseOut={() => setMouseOverReturn(false)}>
-                        返回登录
-                    </button>
+                    <br />
+                    <Button type={"primary"} shape={"round"} icon={<UserAddOutlined />}
+                        onClick={verifyPassword}>
+                            注册账户
+                    </Button>
+                    <br />
+                    <Button type={"link"} icon={<ArrowLeftOutlined />}
+                        onClick={() => router.push("/")}>
+                            返回登录
+                    </Button>
                 </div>
             </div>
         </div>
