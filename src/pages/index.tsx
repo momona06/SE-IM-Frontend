@@ -8,7 +8,7 @@ import {ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined} from "@an
 
 export const isEmail = (val : string) => {
     //仅保留是否为邮件的判断，其余交给后端
-    return /^[a-zA-Z0-9][a-zA-Z0-9_]+\@[a-zA-Z0-9]+\.[a-zA-Z]{2,5}(\.[a-zA-Z]{2,5})*$/i.test(val);
+    return /^[A-Za-z0-9\u4e00-\u9fa5]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/i.test(val);
 };
 
 
@@ -75,20 +75,20 @@ const LoginScreen = () => {
                     alignItems: "center", backgroundColor: "rgba(255,255,255,0.7)"
                 }}>
                     <Input size="large"
-                    type="text"
-                    placeholder="请填写用户名"
-                    prefix={<UserOutlined />}
-                    maxLength={50}
-                    value={account} 
-                    onChange={(e) => getAccount(e.target.value)}
+                        type="text"
+                        placeholder="请填写用户名"
+                        prefix={<UserOutlined />}
+                        maxLength={50}
+                        value={account}
+                        onChange={(e) => getAccount(e.target.value)}
                     />
                     <br />
                     <Input.Password size="large"
-                    type="text"
-                    maxLength={50}
-                    placeholder="请填写密码"
-                    prefix={<LockOutlined />}
-                    value={password}
+                        type="text"
+                        maxLength={50}
+                        placeholder="请填写密码"
+                        prefix={<LockOutlined />}
+                        value={password}
                     onChange={(e) => getPassword(e.target.value)}
                     />
                     <br />
