@@ -5,7 +5,7 @@
 
 export const LOGIN_SUCCESS = "登录成功 ";
 export const REGISTER_SUCCESS = "注册成功 ";
-export const PASSWORD_INCONSISTANT = "密码前后输入不一致 ";
+export const PASSWORD_INCONSISTENT = "密码前后输入不一致 ";
 export const EMAIL_BIND_SUCCESS = "邮箱绑定成功 ";
 export const USERNAME_CHANGE_SUCCESS = "用户名修改成功";
 export const EMAIL_CHANGE_SUCCESS = "邮箱修改成功";

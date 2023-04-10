@@ -1,16 +1,15 @@
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/router";
 import { useState } from "react";
 import { request } from "../utils/network";
-import { REGISTER_SUCCESS, PASSWORD_INCONSISTANT } from "../constants/string";
-import {Button, Input, message} from "antd";
-import {ArrowLeftOutlined, ContactsOutlined, LockOutlined, UserAddOutlined, UserOutlined} from "@ant-design/icons";
+import { REGISTER_SUCCESS, PASSWORD_INCONSISTENT } from "../constants/string";
+import { Button, Input, message } from "antd";
+import { ArrowLeftOutlined, ContactsOutlined, LockOutlined, UserAddOutlined, UserOutlined } from "@ant-design/icons";
 
 const RegisterScreen = () => {
     const router = useRouter();
     const [username, getUsername] = useState<string>("");
     const [password, getPassword] = useState<string>("");
     const [verification, getVerification] = useState<string>("");
-
 
     const register = () => {
         request(
@@ -33,7 +32,7 @@ const RegisterScreen = () => {
             register();
         }
         else{
-            message.warning(PASSWORD_INCONSISTANT, 1);
+            message.warning(PASSWORD_INCONSISTENT, 1);
         }
     };
 
@@ -71,12 +70,12 @@ const RegisterScreen = () => {
                         onChange={(e) => getVerification(e.target.value)}
                     />
                     <br />
-                    <Button type={"primary"} shape={"round"} icon={<UserAddOutlined />}
+                    <Button type={"primary"} shape={"round"} icon={<UserAddOutlined />} size={"large"}
                         onClick={verifyPassword}>
                             注册账户
                     </Button>
                     <br />
-                    <Button type={"link"} icon={<ArrowLeftOutlined />}
+                    <Button type={"link"} icon={<ArrowLeftOutlined />} size={"large"}
                         onClick={() => router.push("/")}>
                             返回登录
                     </Button>

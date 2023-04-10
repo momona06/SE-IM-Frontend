@@ -40,6 +40,7 @@
     "jest-environment-jsdom": "^29.3.1",
     "localforage": "^1.10.0",
     "match-sorter": "^6.3.1",
+    "next-router-mock": "^0.9.3",
     "react-scripts": "5.0.1",
     "sort-by": "^1.2.0",
     "ts-jest": "^29.0.3",
