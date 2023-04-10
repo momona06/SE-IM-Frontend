@@ -1,15 +1,25 @@
-import { useRouter } from "next/router";
-import { useState } from "react";
-import { USERNAME_CHANGE_SUCCESS, EMAIL_CHANGE_SUCCESS, PASSWORD_CHANGE_SUCCESS, PASSWORD_INCONSISTENT } from "../../constants/string";
-import { NO_REVISE, REVISE_USERNAME, REVISE_EMAIL, REVISE_PASSWORD, BIND_EMAIL, WRITE_OFF } from "../../constants/constants";
-import { request } from "../../utils/network";
-import {message, Input, Button, Space, Layout, Form} from "antd";
-import {ContactsOutlined, LockOutlined, UserOutlined} from "@ant-design/icons";
-import {Header} from "antd/es/layout/layout";
-import Sider from "antd/es/layout/Sider";
+import {useRouter} from "next/router";
+import {useState} from "react";
+import {
+    USERNAME_CHANGE_SUCCESS,
+    EMAIL_CHANGE_SUCCESS,
+    PASSWORD_CHANGE_SUCCESS,
+    PASSWORD_INCONSISTENT
+} from "../../constants/string";
+import {
+    NO_REVISE,
+    REVISE_USERNAME,
+    REVISE_EMAIL,
+    REVISE_PASSWORD,
+    BIND_EMAIL,
+    WRITE_OFF
+} from "../../constants/constants";
+import {request} from "../../utils/network";
+import {message, Input, Button} from "antd";
+import {ContactsOutlined, FormOutlined, LockOutlined, UserOutlined} from "@ant-design/icons";
 
 //用户管理界面
-interface UserScreenProps{
+interface UserScreenProps {
     Username?: string,
 }
 
@@ -24,6 +34,7 @@ const UserManagementScreen = (props: UserScreenProps) => {
     const [verification, getVerification] = useState<string>("");
     const [changeUserInfo, setChangeUserInfo] = useState<number>(0);
 
+    const [usernameDisabled, setUsernameDisabled] = useState<boolean>(true);
 
     /*const bindEmail = () => {
         request(
@@ -70,10 +81,9 @@ const UserManagementScreen = (props: UserScreenProps) => {
             .catch((err) => alert(err));
     };
     const verifyPassword = () => {
-        if (verification === newPassword){
+        if (verification === newPassword) {
             changePassword();
-        }
-        else{
+        } else {
             message.warning(PASSWORD_INCONSISTENT, 1);
         }
     };
@@ -121,14 +131,47 @@ const UserManagementScreen = (props: UserScreenProps) => {
     };
 
     return (
-        <div style={{ width: "100%", height: "100%", position: "absolute", top: 0, left: 0, alignItems: "center", backgroundImage: "url(\"https://stu.cs.tsinghua.edu.cn/new/images/blur-light.jpg\")", backgroundSize: "1920px 1200px", backgroundPosition: "center", backgroundRepeat: "no-repeat"}}>
-            <div style={{ display: "flex",flexDirection:"column", justifyContent: "center ", alignItems: "center", position: "absolute", top: 0, bottom: 0, left: 0, right: 0, margin: "auto" }}>
+        <div style={{
+            width: "100%",
+            height: "100%",
+            position: "absolute",
+            top: 0,
+            left: 0,
+            alignItems: "center",
+            backgroundImage: "url(\"https://stu.cs.tsinghua.edu.cn/new/images/blur-light.jpg\")",
+            backgroundSize: "1920px 1200px",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat"
+        }}>
+            <div style={{
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center ",
+                alignItems: "center",
+                position: "absolute",
+                top: 0,
+                bottom: 0,
+                left: 0,
+                right: 0,
+                margin: "auto"
+            }}>
                 <h1>
                     用户管理
                 </h1>
-                <div style={{ display: "flex", flexDirection: "column", paddingLeft: "150px", paddingRight: "150px", paddingTop: "5px", paddingBottom: "25px", border: "1px solid transparent", borderRadius: "20px", alignItems: "center", backgroundColor: "rgba(255,255,255,0.7)"}}>
-                    {props.Username? (<h3>当前用户：{username}</h3>): null}
-                    <div style={{ width: "400px", height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
+                <div style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    paddingLeft: "150px",
+                    paddingRight: "150px",
+                    paddingTop: "5px",
+                    paddingBottom: "25px",
+                    border: "1px solid transparent",
+                    borderRadius: "20px",
+                    alignItems: "center",
+                    backgroundColor: "rgba(255,255,255,0.7)"
+                }}>
+                    {props.Username ? (<h3>当前用户：{username}</h3>) : null}
+                    <div style={{width: "400px", height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
                         <Space size={50}>
                             <Button size={"large"} type={"primary"}
                                     onClick={() => ((changeUserInfo === REVISE_USERNAME) ? setChangeUserInfo(NO_REVISE) : setChangeUserInfo(REVISE_USERNAME))}>
@@ -138,27 +181,31 @@ const UserManagementScreen = (props: UserScreenProps) => {
                                     onClick={() => ((changeUserInfo === REVISE_PASSWORD) ? setChangeUserInfo(NO_REVISE) : setChangeUserInfo(REVISE_PASSWORD))}>
                                 修改密码
                             </Button>
+                            <Button size={"large"} type={"primary"}
+                                    onClick={() => ((changeUserInfo === REVISE_EMAIL) ? setChangeUserInfo(NO_REVISE) : setChangeUserInfo(REVISE_EMAIL))}>
+                                修改邮箱
+                            </Button>
                         </Space>
                     </div>
                     {changeUserInfo === REVISE_USERNAME ? (
-                        <div style={{ margin: "5px", display: "flex", flexDirection: "column", alignItems: "center"}}>
+                        <div style={{margin: "5px", display: "flex", flexDirection: "column", alignItems: "center"}}>
                             <Input size={"large"} maxLength={50}
-                                   prefix={<UserOutlined />}
+                                   prefix={<UserOutlined/>}
                                    type="text"
                                    placeholder="请填写新用户名"
                                    value={newUsername}
                                    onChange={(e) => getNewUsername(e.target.value)}
                             />
-                            <br />
+                            <br/>
                             <Input.Password
                                 size={"large"} maxLength={50}
                                 type="text"
-                                prefix={<LockOutlined />}
+                                prefix={<LockOutlined/>}
                                 placeholder="请填写密码"
                                 value={password}
                                 onChange={(e) => getPassword(e.target.value)}
                             />
-                            <br />
+                            <br/>
                             <Button size={"large"} type={"dashed"}
                                     onClick={changeUsername}>
                                 确认修改用户名
@@ -167,46 +214,83 @@ const UserManagementScreen = (props: UserScreenProps) => {
                     ) : null}
 
                     {changeUserInfo === REVISE_PASSWORD ? (
-                        <div style={{ margin: "5px", display: "flex", flexDirection: "column", alignItems: "center"}}>
+                        <div style={{margin: "5px", display: "flex", flexDirection: "column", alignItems: "center"}}>
                             <Input
                                 size={"large"} maxLength={50}
                                 type="text"
-                                prefix={<LockOutlined />}
+                                prefix={<LockOutlined/>}
                                 placeholder="请填写旧密码"
                                 value={password}
                                 onChange={(e) => getPassword(e.target.value)}
                             />
-                            <br />
+                            <br/>
                             <Input.Password
                                 size={"large"} maxLength={50}
                                 type="text"
-                                prefix={<LockOutlined />}
+                                prefix={<LockOutlined/>}
                                 placeholder="请填写新密码"
                                 value={newPassword}
                                 onChange={(e) => getNewPassword(e.target.value)}
                             />
-                            <br />
+                            <br/>
                             <Input.Password
                                 size={"large"} maxLength={50}
                                 type="text"
-                                prefix={<ContactsOutlined />}
+                                prefix={<ContactsOutlined/>}
                                 placeholder="请再次填写新密码"
                                 value={verification}
                                 onChange={(e) => getVerification(e.target.value)}
                             />
-                            <br />
+                            <br/>
                             <Button size={"large"} type={"dashed"}
                                     onClick={verifyPassword}>
                                 确认修改密码
                             </Button>
                         </div>
                     ) : null}
+
+                    {changeUserInfo === REVISE_PASSWORD ? (
+                        <div style={{margin: "5px", display: "flex", flexDirection: "column", alignItems: "center"}}>
+                            <Input
+                                size={"large"} maxLength={50}
+                                type="text"
+                                prefix={<LockOutlined/>}
+                                placeholder="请填写旧密码"
+                                value={password}
+                                onChange={(e) => getPassword(e.target.value)}
+                            />
+                            <br/>
+                            <Input.Password
+                                size={"large"} maxLength={50}
+                                type="text"
+                                prefix={<LockOutlined/>}
+                                placeholder="请填写新密码"
+                                value={newPassword}
+                                onChange={(e) => getNewPassword(e.target.value)}
+                            />
+                            <br/>
+                            <Input.Password
+                                size={"large"} maxLength={50}
+                                type="text"
+                                prefix={<ContactsOutlined/>}
+                                placeholder="请再次填写新密码"
+                                value={verification}
+                                onChange={(e) => getVerification(e.target.value)}
+                            />
+                            <br/>
+                            <Button size={"large"} type={"dashed"}
+                                    onClick={verifyPassword}>
+                                确认修改密码
+                            </Button>
+                        </div>
+                    ) : null}
+
                     {changeUserInfo === WRITE_OFF ? (
-                        <div style={{ margin: "5px", display: "flex", flexDirection: "column", alignItems: "center"}}>
+                        <div style={{margin: "5px", display: "flex", flexDirection: "column", alignItems: "center"}}>
                             <Input.Password size={"large"} maxLength={50}
                                             type="text"
                                             placeholder="请填写密码"
-                                            prefix={<LockOutlined />}
+                                            prefix={<LockOutlined/>}
                                             value={password}
                                             onChange={(e) => getPassword(e.target.value)}
                             />
@@ -216,7 +300,7 @@ const UserManagementScreen = (props: UserScreenProps) => {
                             </Button>
                         </div>
                     ) : null}
-                    <div style={{ width: "400px", height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
+                    <div style={{width: "400px", height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
                         <Space size={150}>
                             <Button size={"large"} shape={"round"} type={"primary"}
                                     onClick={logout}>
