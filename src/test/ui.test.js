@@ -4,7 +4,7 @@ import React from "react";
 import { render, screen } from "@testing-library/react";
 
 // 防止ui测试中的router unmounted
-jest.mock('next/router', () => require('next-router-mock'));
+jest.mock("next/router", () => require("next-router-mock"));
 
 describe("登录页面",()=>{
     it("正常渲染所有组件",()=>{
