@@ -61,6 +61,7 @@ const LoginScreen = () => {
                         .then((res) => {
                             message.success(LOGIN_SUCCESS, 1);
                             window.loginToken = res.token;
+                            window.username = account;
                             router.push(`/userinfo/${res.username}`);
                         })
                         .catch((err) => alert(err));

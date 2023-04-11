@@ -149,6 +149,10 @@ const UserManagementScreen = (props: UserScreenProps) => {
                 <div style={{ display: "flex", flexDirection: "column", paddingLeft: "150px", paddingRight: "150px", paddingTop: "5px", paddingBottom: "25px", border: "2px solid #00BFFF", borderRadius: "20px", alignItems: "center", backgroundColor: "rgba(255,255,255,0.7)"}}>
                     <h1>用户管理</h1>
                     {props.Username? (<h3>当前用户：{username}</h3>): null}
+                    <button
+                        onClick={() => router.push("/seacrh")}>
+                        搜索用户
+                    </button>
                     <div style={{ width: "400px", height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
                         <button 
                             style={mouseOverChangeUsername? {width: "195px", marginRight: "5px", height: "50px", borderColor: "#00BFFF", backgroundColor: "white", color: "black", transitionDuration: "0.4s", cursor: "pointer", borderRadius: "12px"}: {width: "195px", marginRight: "5px", height: "50px", borderColor: "#00BFFF", backgroundColor: "#00BFFF", color: "white", transitionDuration: "0.4s", cursor: "pointer", borderRadius: "12px"}} 
