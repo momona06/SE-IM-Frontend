@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { request } from "../../../utils/network";
 import { message } from "antd";
 import { FRIEND_REQUEST_SEND, FRIEND_DELETED, FRIEND_GROUP_ADDED } from "../../../constants/string";
-import { WebsocketBuilder } from 'websocket-ts';
+import { WebsocketBuilder } from "websocket-ts";
 
 interface PublicInfoProps{
     Username?: string,
