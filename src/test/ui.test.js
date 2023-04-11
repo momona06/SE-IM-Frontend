@@ -2,7 +2,7 @@ import LoginScreen from "../pages";
 import RegisterScreen from "../pages/register";
 import React from "react";
 import { render } from "@testing-library/react";
-import UserManagementScreen from "../pages/user/privateinfo"
+import UserManagementScreen from "../pages/user/privateinfo";
 import ChatScreen from "../pages/user";
 import PublicInfoScreen from "../pages/user/publicinfo";
 import PrivateInfoScreen from "../pages/user/privateinfo";
