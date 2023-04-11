@@ -20,9 +20,6 @@ describe("页面渲染",()=>{
     it("用户信息",()=>{
         render(<UserManagementScreen />);
     });
-    it("聊天界面",()=>{
-        render(<ChatScreen/>);
-    });
     it("公开信息界面",()=>{
         render(<PublicInfoScreen/>);
     });

@@ -3,10 +3,17 @@ import { useEffect, useState } from "react";
 import { request } from "../../../utils/network";
 import { message } from "antd";
 import { FRIEND_REQUEST_SEND, FRIEND_DELETED, FRIEND_GROUP_ADDED } from "../../../constants/string";
+import {func} from "prop-types";
 
 interface PublicInfoProps{
     Username?: string,
 }
+
+const ws = new WebSocket("ws://se-im-backend-overflowlab.app.secoder.net/");
+
+ws.onopen = function(event) {
+    console.log("Connection open ...");
+};
 
 const PublicInfoScreen = (props: PublicInfoProps) => {
     const router = useRouter();
@@ -14,7 +21,7 @@ const PublicInfoScreen = (props: PublicInfoProps) => {
     const [isFriend, setIsFriend] = useState<boolean>(false);
     const [friendGroup, setFriendGroup] = useState<string>("");
     const [info, setInfo] = useState<string>("");
-    
+
     const [mouseOverAdd, setMouseOverAdd] = useState<boolean>(false);
     const [mouseOverGroup, setMouseOverGroup] = useState<boolean>(false);
     const [mouseOverDelete, setMouseOverDelete] = useState<boolean>(false);
