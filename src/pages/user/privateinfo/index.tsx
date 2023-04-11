@@ -169,6 +169,10 @@ const PrivateInfoScreen = (props: InfoScreenProps) => {
                     backgroundColor: "rgba(255,255,255,0.7)"
                 }}>
                     {props.Username ? (<h3>当前用户：{username}</h3>) : null}
+                    <button
+                        onClick={() => router.push("/seacrh")}>
+                        搜索用户
+                    </button>
                     <div style={{width: "400px", height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
                         <Space size={50}>
                             <Button size={"large"} type={"primary"}

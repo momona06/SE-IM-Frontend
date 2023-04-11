@@ -10,3 +10,6 @@ export const EMAIL_BIND_SUCCESS = "邮箱绑定成功 ";
 export const USERNAME_CHANGE_SUCCESS = "用户名修改成功";
 export const EMAIL_CHANGE_SUCCESS = "邮箱修改成功";
 export const PASSWORD_CHANGE_SUCCESS = "密码修改成功";
+export const FRIEND_REQUEST_SEND = "好友请求已发送";
+export const FRIEND_DELETED = "好友已删除";
+export const FRIEND_GROUP_ADDED = "已添加至指定列表";
