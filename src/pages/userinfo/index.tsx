@@ -16,7 +16,7 @@ import {
 } from "../../constants/constants";
 import {request} from "../../utils/network";
 import {message, Input, Button, Space} from "antd";
-import {ContactsOutlined, FormOutlined, LockOutlined, MailOutlined, UserOutlined} from "@ant-design/icons";
+import {ContactsOutlined, LockOutlined, MailOutlined, UserOutlined} from "@ant-design/icons";
 
 //用户管理界面
 interface UserScreenProps {
@@ -41,7 +41,7 @@ const UserManagementScreen = (props: UserScreenProps) => {
             {
                 email: email,
             },
-        )
+        );
     };
 
     const changeUsername = () => {
@@ -60,7 +60,7 @@ const UserManagementScreen = (props: UserScreenProps) => {
                 message.success(USERNAME_CHANGE_SUCCESS, 1);
                 router.push(`/userinfo/${newUsername}`);
             })
-            .catch((err) => alert(err));
+            .catch((err) => message.error(err.message, 1));
     };
 
     const changeEmail = () => {
@@ -76,7 +76,7 @@ const UserManagementScreen = (props: UserScreenProps) => {
             },
         )
             .then(() => message.success(EMAIL_CHANGE_SUCCESS, 1))
-            .catch((err) => alert(err));
+            .catch((err) => message.error(err.message, 1));
     };
     const verifyPassword = () => {
         if (verification === newPassword) {
@@ -99,7 +99,7 @@ const UserManagementScreen = (props: UserScreenProps) => {
             },
         )
             .then(() => message.success(PASSWORD_CHANGE_SUCCESS, 1))
-            .catch((err) => (err) => message.error(err.message, 1));
+            .catch((err) => message.error(err.message, 1));
     };
 
     const logout = () => {
@@ -188,11 +188,11 @@ const UserManagementScreen = (props: UserScreenProps) => {
                     {changeUserInfo === REVISE_USERNAME ? (
                         <div style={{margin: "5px", display: "flex", flexDirection: "column", alignItems: "center"}}>
                             <Input size={"large"} maxLength={50}
-                               prefix={<UserOutlined/>}
-                               type="text"
-                               placeholder="请填写新用户名"
-                               value={newUsername}
-                               onChange={(e) => getNewUsername(e.target.value)}
+                                prefix={<UserOutlined/>}
+                                type="text"
+                                placeholder="请填写新用户名"
+                                value={newUsername}
+                                onChange={(e) => getNewUsername(e.target.value)}
                             />
                             <br/>
                             <Input.Password
@@ -259,7 +259,7 @@ const UserManagementScreen = (props: UserScreenProps) => {
                             />
                             <br/>
                             <Button size={"large"} type={"dashed"}
-                                    onClick={verifyPassword}>
+                                onClick={verifyPassword}>
                                 确认修改邮箱
                             </Button>
                         </div>
@@ -268,11 +268,11 @@ const UserManagementScreen = (props: UserScreenProps) => {
                     {changeUserInfo === WRITE_OFF ? (
                         <div style={{margin: "5px", display: "flex", flexDirection: "column", alignItems: "center"}}>
                             <Input.Password size={"large"} maxLength={50}
-                                            type="text"
-                                            placeholder="请填写密码"
-                                            prefix={<LockOutlined/>}
-                                            value={password}
-                                            onChange={(e) => getPassword(e.target.value)}
+                                type="text"
+                                placeholder="请填写密码"
+                                prefix={<LockOutlined/>}
+                                value={password}
+                                onChange={(e) => getPassword(e.target.value)}
                             />
                             <Button size={"large"} shape={"round"} type={"dashed"} danger={true}
                                 onClick={deleteUser}>

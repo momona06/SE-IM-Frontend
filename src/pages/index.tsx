@@ -30,7 +30,7 @@ const LoginScreen = () => {
                 .then((res) => {
                     message.success(LOGIN_SUCCESS, 1);
                     window.loginToken = res.token;
-                    router.push(`/userinfo/${res.username}`);
+                    router.push(`/user/${res.username}`);
                 })
                 .catch((err) => {
                     message.error(err.message, 1);
