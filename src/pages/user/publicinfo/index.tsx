@@ -9,7 +9,7 @@ interface PublicInfoProps{
     Username?: string,
 }
 
-const ws = new WebsocketBuilder("ws://se-im-backend-overflowlab.app.secoder.net/friend/addfriend").build();
+// const ws = new WebsocketBuilder("ws://se-im-backend-overflowlab.app.secoder.net/friend/addfriend").build();
 
 const PublicInfoScreen = (props: PublicInfoProps) => {
     const router = useRouter();
@@ -40,7 +40,7 @@ const PublicInfoScreen = (props: PublicInfoProps) => {
             token: window.loginToken,
             friend_name: props.Username,
         };
-        ws.send(JSON.stringify(data));
+        // ws.send(JSON.stringify(data));
     };
 
     const deleteFriend = () => {
