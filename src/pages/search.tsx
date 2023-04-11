@@ -32,14 +32,14 @@ const Search = (props: searchprops) => {
                 search_username: searchName,
             }
         )
-        .then((res) => {
-            setList(res.search_user_list);
-            setRefreshing(false);
-        })
-        .catch((err) => {
-            alert(err);
-            setRefreshing(false);
-        });
+            .then((res) => {
+                setList(res.search_user_list);
+                setRefreshing(false);
+            })
+            .catch((err) => {
+                alert(err);
+                setRefreshing(false);
+            });
     };
 
     return (
@@ -75,10 +75,12 @@ const Search = (props: searchprops) => {
                             <h3> 搜索结果 </h3>
                             <div style={{ display: "flex", flexDirection: "column" }}>{
                                 list.map((friend) => (
-                                    <button style={{width: "400px", height: "50px", borderColor: "#00BFFF", backgroundColor: "white", color: "black", cursor: "pointer", borderRadius: "12px"}} 
-                                        onClick={() => router.push(`/publicinfo/${friend}`)}>
-                                        {friend}
-                                    </button>
+                                    <div key={friend}>
+                                        <button style={{width: "400px", height: "50px", borderColor: "#00BFFF", backgroundColor: "white", color: "black", cursor: "pointer", borderRadius: "12px"}} 
+                                            onClick={() => router.push(`/publicinfo/${friend}`)}>
+                                            {friend}
+                                        </button>
+                                    </div>
                                 ))
                             }</div>
                         </div>
@@ -87,6 +89,6 @@ const Search = (props: searchprops) => {
             </div>
         </div>
     );
-}
+};
 
 export default Search;

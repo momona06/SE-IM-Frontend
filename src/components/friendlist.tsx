@@ -35,11 +35,11 @@ const FriendList = (props: friendlistprops) => {
             }
         )
             .then((res) => {
-                var temp: Friend[] = []
+                var temp: Friend[] = [];
                 for(var i = 0; i < res.friendlist.length; i++)
                 {
                     
-                    temp=temp.concat(res.friendlist[i][1].map((val: string) =>({username: val, group: res.friendlist[i][0]})))
+                    temp=temp.concat(res.friendlist[i][1].map((val: string) =>({username: val, group: res.friendlist[i][0]})));
                 }
                 setList(temp);
                 setRefreshing(false);
@@ -60,7 +60,15 @@ const FriendList = (props: friendlistprops) => {
             ) : (
                 <div style={{ display: "flex", flexDirection: "column" }}>{
                     list.map((friend) =>(
-                        <FriendSegment username={friend.username} group={friend.group}/>
+                        <div key={friend.username}>
+                            <div style={{
+                                height: "80px",
+                                width: "200px"
+                            }}>
+                                <h4>{friend.username}</h4>
+                                <h3>{friend.group}</h3>
+                            </div>
+                        </div>
                     ))
                 }</div>
             )}

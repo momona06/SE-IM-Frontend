@@ -58,7 +58,7 @@ const PublicInfoScreen = (props: PublicInfoProps) => {
             },
         )
             .then(() => {
-                message.success(FRIEND_DELETED, 1)
+                message.success(FRIEND_DELETED, 1);
             })
             .catch((err) => alert(err));
     };
@@ -158,6 +158,6 @@ const PublicInfoScreen = (props: PublicInfoProps) => {
             </div>
         </div>
     );
-}
+};
 
 export default PublicInfoScreen;
