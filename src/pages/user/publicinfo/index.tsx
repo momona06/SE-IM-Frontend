@@ -9,7 +9,7 @@ interface PublicInfoProps{
     Username?: string,
 }
 
-const ws = new WebSocket("ws://se-im-backend-overflowlab.app.secoder.net/friend/addfriend");
+const ws = new WebSocket("ws://se-im-backend-overflowlab.app.secoder/friend/addfriend");
 
 const PublicInfoScreen = (props: PublicInfoProps) => {
     const router = useRouter();
