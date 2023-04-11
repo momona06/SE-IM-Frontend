@@ -69,7 +69,7 @@ const UserManagementScreen = (props: UserScreenProps) => {
             "PUT",
             {
                 revise_field: "email",
-                revise_content: newEmail,
+                revise_content: email,
                 username: props.Username,
                 input_password: password,
                 token: window.loginToken,
@@ -259,7 +259,7 @@ const UserManagementScreen = (props: UserScreenProps) => {
                             />
                             <br/>
                             <Button size={"large"} type={"dashed"}
-                                onClick={verifyPassword}>
+                                onClick={changeEmail}>
                                 确认修改邮箱
                             </Button>
                         </div>

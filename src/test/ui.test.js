@@ -1,7 +1,7 @@
 import LoginScreen from "../pages";
 import RegisterScreen from "../pages/register";
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { render } from "@testing-library/react";
 import UserManagementScreen from "../pages/userinfo";
 
 // 防止ui测试中的router unmounted

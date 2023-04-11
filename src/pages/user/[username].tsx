@@ -1,6 +1,5 @@
 import { useRouter } from "next/router";
 import ChatScreen from ".";
-import UserManagementScreen from "../userinfo";
 
 //用户信息界面
 const Users = () => {
