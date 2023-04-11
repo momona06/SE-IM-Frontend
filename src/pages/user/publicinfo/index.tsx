@@ -3,13 +3,13 @@ import { useEffect, useState } from "react";
 import { request } from "../../../utils/network";
 import { message } from "antd";
 import { FRIEND_REQUEST_SEND, FRIEND_DELETED, FRIEND_GROUP_ADDED } from "../../../constants/string";
-import { WebsocketBuilder } from "websocket-ts";
+import { WebSocket } from "ws";
 
 interface PublicInfoProps{
     Username?: string,
 }
 
-// const ws = new WebsocketBuilder("ws://se-im-backend-overflowlab.app.secoder.net/friend/addfriend").build();
+ const ws = new WebSocket("ws://se-im-backend-overflowlab.app.secoder.net/friend/addfriend");
 
 const PublicInfoScreen = (props: PublicInfoProps) => {
     const router = useRouter();
@@ -40,7 +40,7 @@ const PublicInfoScreen = (props: PublicInfoProps) => {
             token: window.loginToken,
             friend_name: props.Username,
         };
-        // ws.send(JSON.stringify(data));
+        ws.send(JSON.stringify(data));
     };
 
     const deleteFriend = () => {
