@@ -170,7 +170,7 @@ const PrivateInfoScreen = (props: InfoScreenProps) => {
                 }}>
                     {props.Username ? (<h3>当前用户：{username}</h3>) : null}
                     <button
-                        onClick={() => router.push("/seacrh")}>
+                        onClick={() => router.push("../../seacrh")}>
                         搜索用户
                     </button>
                     <div style={{width: "400px", height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>

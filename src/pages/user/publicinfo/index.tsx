@@ -3,16 +3,19 @@ import { useEffect, useState } from "react";
 import { request } from "../../../utils/network";
 import { message } from "antd";
 import { FRIEND_REQUEST_SEND, FRIEND_DELETED, FRIEND_GROUP_ADDED } from "../../../constants/string";
-import {func} from "prop-types";
+
+declare var WebSocket: any;
 
 interface PublicInfoProps{
     Username?: string,
 }
 
-const ws = new WebSocket("ws://se-im-backend-overflowlab.app.secoder.net/");
-
-ws.onopen = function(event) {
-    console.log("Connection open ...");
+const ws = new WebSocket("ws://se-im-backend-overflowlab.app.secoder.net/friend/addfriend");
+ws.onopen = function (event: any){
+    console.log("connection open");
+};
+ws.onclose = function (event: any){
+    console.log("connection closed");
 };
 
 const PublicInfoScreen = (props: PublicInfoProps) => {
@@ -39,19 +42,12 @@ const PublicInfoScreen = (props: PublicInfoProps) => {
 
 
     const addFriend = () => {
-        request(
-            "/api/friend/addfriend",
-            "CONNECT",
-            {
-                username: window.username,
-                token: window.loginToken,
-                friend_name: props.Username,
-            },
-        )
-            .then(() => {
-                message.success(FRIEND_REQUEST_SEND, 1);
-            })
-            .catch((err) => alert(err));
+        const data = {
+            username: window.username,
+            token: window.loginToken,
+            friend_name: props.Username,
+        };
+        WebSocket&&WebSocket.send(data);
     };
 
     const deleteFriend = () => {
