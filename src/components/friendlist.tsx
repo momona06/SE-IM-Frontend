@@ -1,4 +1,3 @@
-import FriendSegment from "./friend";
 import { useEffect, useState } from "react";
 import Router, { useRouter } from "next/router";
 import { request } from "../utils/network";
