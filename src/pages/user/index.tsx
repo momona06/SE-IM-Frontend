@@ -13,14 +13,18 @@ const ChatScreen = (props: ChatScreenProps) => {
     const [collapsed, setCollapsed] = useState(false);
     const router = useRouter();
 
+    const handleClick = (e)=>{
+        console.log(e.key);
+    };
+
     return (
         <Layout style={{ minHeight: "100vh" }}>
             <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
                 <div style={{ height: 32, margin: 16, background: "rgba(255, 255, 255, 0.2)" }} />
                 <Menu theme={"dark"} defaultSelectedKeys={["1"]} mode="inline" >
-                    <Menu.Item title={"聊天"} icon={<MessageOutlined />} key={"1"}/>
-                    <Menu.Item title={"通讯录"} icon={<UsergroupAddOutlined />} key={"2"}/>
-                    <Menu.Item title={"设置"} icon={<SettingOutlined />} key={"3"} />
+                    <Menu.Item title={"聊天"} icon={<MessageOutlined />} key={"1"} onclick={handleClick}>聊天</Menu.Item>
+                    <Menu.Item title={"通讯录"} icon={<UsergroupAddOutlined />} key={"2"} onclick={handleClick}>通讯录</Menu.Item>
+                    <Menu.Item title={"设置"} icon={<SettingOutlined />} key={"3"} onclick={handleClick}>设置</Menu.Item>
                 </Menu>
             </Sider>
             <Layout className="site-layout">

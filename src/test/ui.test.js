@@ -2,7 +2,7 @@ import LoginScreen from "../pages";
 import RegisterScreen from "../pages/register";
 import React from "react";
 import { render } from "@testing-library/react";
-import UserManagementScreen from "../pages/userinfo";
+import UserManagementScreen from "../pages/user/privateinfo";
 
 // 防止ui测试中的router unmounted
 jest.mock("next/router", () => require("next-router-mock"));

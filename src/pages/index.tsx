@@ -5,7 +5,6 @@ import { message, Input, Button, Space } from "antd";
 import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined } from "@ant-design/icons";
 import { useRouter } from "next/router";
 
-
 export const isEmail = (val : string) => {
     //仅保留是否为邮件的判断，其余交给后端
     return /^[A-Za-z0-9\u4e00-\u9fa5]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/i.test(val);
@@ -31,6 +30,7 @@ const LoginScreen = () => {
                     message.success(LOGIN_SUCCESS, 1);
                     window.loginToken = res.token;
                     router.push(`/user/${res.username}`);
+
                 })
                 .catch((err) => {
                     message.error(err.message, 1);

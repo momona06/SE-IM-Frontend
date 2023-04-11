@@ -5,7 +5,7 @@ import {
     EMAIL_CHANGE_SUCCESS,
     PASSWORD_CHANGE_SUCCESS,
     PASSWORD_INCONSISTENT
-} from "../../constants/string";
+} from "../../../constants/string";
 import {
     NO_REVISE,
     REVISE_USERNAME,
@@ -13,17 +13,17 @@ import {
     REVISE_PASSWORD,
     BIND_EMAIL,
     WRITE_OFF
-} from "../../constants/constants";
-import {request} from "../../utils/network";
+} from "../../../constants/constants";
+import {request} from "../../../utils/network";
 import {message, Input, Button, Space} from "antd";
 import {ContactsOutlined, LockOutlined, MailOutlined, UserOutlined} from "@ant-design/icons";
 
 //用户管理界面
-interface UserScreenProps {
+interface InfoScreenProps {
     Username?: string,
 }
 
-const UserManagementScreen = (props: UserScreenProps) => {
+const PrivateInfoScreen = (props: InfoScreenProps) => {
     const router = useRouter();
     const [username, getUsername] = useState<string>(props.Username ?? "");
     const [newUsername, getNewUsername] = useState<string>("");
@@ -297,4 +297,4 @@ const UserManagementScreen = (props: UserScreenProps) => {
         </div>
     );
 };
-export default UserManagementScreen;
+export default PrivateInfoScreen;

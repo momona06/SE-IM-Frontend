@@ -52,21 +52,21 @@ const RegisterScreen = () => {
                         onChange={(e) => getUsername(e.target.value)}
                     />
                     <br />
-                    <Input size={"large"}
+                    <Input.Password size="large"
+                        type="text"
                         maxLength={50}
-                        type="text" 
                         placeholder="请填写密码"
                         prefix={<LockOutlined />}
-                        value={password} 
+                        value={password}
                         onChange={(e) => getPassword(e.target.value)}
                     />
                     <br />
-                    <Input size="large"
+                    <Input.Password size="large"
                         maxLength={50}
                         type="text" 
                         placeholder="请确认密码"
                         prefix={<ContactsOutlined />}
-                        value={verification} 
+                        value={verification}
                         onChange={(e) => getVerification(e.target.value)}
                     />
                     <br />
