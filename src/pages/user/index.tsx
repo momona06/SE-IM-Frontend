@@ -14,9 +14,9 @@ const ChatScreen = (props: ChatScreenProps) => {
     const router = useRouter();
 
     return (
-        <Layout style={{ minHeight: '100vh' }}>
+        <Layout style={{ minHeight: "100vh" }}>
             <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
-                <div style={{ height: 32, margin: 16, background: 'rgba(255, 255, 255, 0.2)' }} />
+                <div style={{ height: 32, margin: 16, background: "rgba(255, 255, 255, 0.2)" }} />
                 <Menu theme={"dark"} defaultSelectedKeys={["1"]} mode="inline" >
                     <Menu.Item title={"聊天"} icon={<MessageOutlined />} key={"1"}/>
                     <Menu.Item title={"通讯录"} icon={<UsergroupAddOutlined />} key={"2"}/>
@@ -24,7 +24,7 @@ const ChatScreen = (props: ChatScreenProps) => {
                 </Menu>
             </Sider>
             <Layout className="site-layout">
-                <Content style={{ margin: '0 16px' }}>
+                <Content style={{ margin: "0 16px" }}>
                     <Layout>
                         好友列表
                         <List>
