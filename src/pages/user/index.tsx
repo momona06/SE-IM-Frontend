@@ -14,7 +14,7 @@ const ChatScreen = (props: ChatScreenProps) => {
     const [collapsed, setCollapsed] = useState(false);
     const router = useRouter();
 
-    const handleClick = (key)=>{
+    const handleClick = (key: string)=>{
         console.log(key);
     };
 
