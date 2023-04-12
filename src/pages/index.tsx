@@ -44,7 +44,7 @@ const LoginScreen = () => {
                 });
         }
         else{
-            const ws = new WebSocket('ws://se-im-backend-test-overflowlab.app.secoder.net/user/login');
+            const ws = new WebSocket('ws://se-im-backend-test-overflowlab.app.secoder.net/wsconnect');
             var data = "{\"username\": \"" + account +"\" ,\"password\": \"" + password +"\" ,\"email\": \"\" }";
             ws.onopen = function () {
                 ws.send(data);

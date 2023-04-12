@@ -86,6 +86,7 @@ const Search = (props: searchprops) => {
                                     dataSource={list}
                                     renderItem={(item) => (
                                         <List.Item
+                                            key = {item.username}
                                             actions={[
                                                 <Button
                                                     type="primary"
