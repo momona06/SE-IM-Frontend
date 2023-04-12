@@ -3,13 +3,10 @@ import { useEffect, useState } from "react";
 import { request } from "../../../utils/network";
 import { message } from "antd";
 import { FRIEND_REQUEST_SEND, FRIEND_DELETED, FRIEND_GROUP_ADDED } from "../../../constants/string";
-import { WebSocket } from "ws";
 
 interface PublicInfoProps{
     Username?: string,
 }
-
-const ws = new WebSocket("ws://se-im-backend-overflowlab.app.secoder/friend/addfriend");
 
 const PublicInfoScreen = (props: PublicInfoProps) => {
     const router = useRouter();
@@ -40,7 +37,6 @@ const PublicInfoScreen = (props: PublicInfoProps) => {
             token: window.loginToken,
             friend_name: props.Username,
         };
-        ws.send(JSON.stringify(data));
     };
 
     const deleteFriend = () => {
@@ -56,7 +52,7 @@ const PublicInfoScreen = (props: PublicInfoProps) => {
             .then(() => {
                 message.success(FRIEND_DELETED, 1);
             })
-            .catch((err) => alert(err));
+            .catch((err) => message.error(err.message, 1));
     };
 
     const checkFriend = () => {
@@ -71,7 +67,7 @@ const PublicInfoScreen = (props: PublicInfoProps) => {
             .then((res) => {
                 setIsFriend(res.isFriend);
             })
-            .catch((err) => alert(err));
+            .catch((err) => message.error(err.message, 1));
     };
 
     const addToGroup = () => {
@@ -88,7 +84,7 @@ const PublicInfoScreen = (props: PublicInfoProps) => {
             .then((res) => {
                 message.success(FRIEND_GROUP_ADDED, 1);
             })
-            .catch((err) => alert(err));
+            .catch((err) => message.error(err.message, 1));
     };
 
     return (
