@@ -13,6 +13,10 @@ interface datatype {
     groupname: string;
 }
 
+interface grouping {
+    groupname: string;
+    userlist: string[];
+}
 
 
 
