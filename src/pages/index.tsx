@@ -44,15 +44,15 @@ const LoginScreen = () => {
                 });
         }
         else{
-            const ws = new WebSocket('ws://se-im-backend-test-overflowlab.app.secoder.net/wsconnect');
+            const ws = new WebSocket("ws://se-im-backend-test-overflowlab.app.secoder.net/wsconnect");
             var data = "{\"username\": \"" + account +"\" ,\"password\": \"" + password +"\" ,\"email\": \"\" }";
             ws.onopen = function () {
                 ws.send(data);
-            }
+            };
             ws.onmessage = function (event) {
                 var data = event.data;
                 console.log(data);
-            }
+            };
         }
     };
 

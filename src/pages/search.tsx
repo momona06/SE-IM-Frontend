@@ -86,9 +86,9 @@ const Search = (props: searchprops) => {
                                     dataSource={list}
                                     renderItem={(item) => (
                                         <List.Item
-                                            key = {item.username}
                                             actions={[
                                                 <Button
+                                                    key = {item.username}
                                                     type="primary"
                                                     onClick={() => router.push(`/user/publicinfo/${item.username}`)}
                                                 >
