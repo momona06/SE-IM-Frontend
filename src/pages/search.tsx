@@ -1,14 +1,19 @@
 import { request } from "../utils/network";
 import {useEffect, useState} from "react";
 import { useRouter } from "next/router";
+import { List, Button } from "antd";
 
 interface searchprops {
     username: string;
 }
 
+interface datatype {
+    username: string;
+}
+
 const Search = (props: searchprops) => {
     const [refreshing, setRefreshing] = useState<boolean>(true);
-    const [list, setList] = useState<string[]>([]);
+    const [list, setList] = useState<datatype[]>([]);
     const [searchName, setSearchName] = useState<string>("");
 
     const router = useRouter();
@@ -33,7 +38,7 @@ const Search = (props: searchprops) => {
             }
         )
             .then((res) => {
-                setList(res.search_user_list);
+                setList(res.search_user_list.map((val: any) =>({username: val})));
                 setRefreshing(false);
             })
             .catch((err) => {
@@ -60,6 +65,7 @@ const Search = (props: searchprops) => {
                     <h1>
                         搜素用户
                     </h1>
+                    <Button type="primary" onClick={search}> 搜索 </Button>
                     <input style={{ 
                         width: "400px", height: "50px", margin: "5px", borderRadius: "12px", borderColor: "#00BFFF"
                     }} 
@@ -72,17 +78,29 @@ const Search = (props: searchprops) => {
                         <p> 未搜索 </p>
                     ) : (
                         <div style={{ padding: 12}}>
-                            <h3> 搜索结果 </h3>
-                            <div style={{ display: "flex", flexDirection: "column" }}>{
-                                list.map((friend) => (
-                                    <div key={friend}>
-                                        <button style={{width: "400px", height: "50px", borderColor: "#00BFFF", backgroundColor: "white", color: "black", cursor: "pointer", borderRadius: "12px"}} 
-                                            onClick={() => router.push(`/user/publicinfo/${friend}`)}>
-                                            {friend}
-                                        </button>
-                                    </div>
-                                ))
-                            }</div>
+                            {list.length === 0 ? (
+                                <p> 未找到符合条件的用户 </p>
+                            ) : (
+                                <List
+                                    bordered
+                                    dataSource={list}
+                                    renderItem={(item) => (
+                                        <List.Item
+                                            actions={[
+                                                <Button
+                                                    type="primary"
+                                                    onClick={() => router.push(`/user/publicinfo/${item.username}`)}
+                                                >
+                                                    查看用户界面
+                                                </Button>
+                                            ]}
+                                        >
+                                            {item.username}
+                                        </List.Item>
+                                    )}
+                                />
+                            )}
+
                         </div>
                     )}
                 </div>

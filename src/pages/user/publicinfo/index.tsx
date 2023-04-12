@@ -80,6 +80,15 @@ const PublicInfoScreen = (props: PublicInfoProps) => {
 
     const addToGroup = () => {
         request(
+            "api/friend/creategroup",
+            "POST",
+            {
+                username: window.username,
+                token: window.loginToken,
+                fgroup_name: friendGroup,
+            },
+        );
+        request(
             "api/friend/addfgroup",
             "PUT",
             {
