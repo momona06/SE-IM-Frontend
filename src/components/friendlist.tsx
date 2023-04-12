@@ -8,12 +8,8 @@ interface friendlistprops {
     username?: string;
 }
 
-interface datatype {
-    username: string;
-    groupname: string;
-}
 
-interface grouping {
+interface datatype {
     groupname: string;
     userlist: string[];
 }
@@ -22,7 +18,6 @@ interface grouping {
 const FriendList = (props: friendlistprops) => {
     const [refreshing, setRefreshing] = useState<boolean>(true);
     const [list, setList] = useState<datatype[]>([]);
-    const [grouplist, setgrouplist] = useState<grouping[]>([]);
 
     const router = useRouter();
     const query = router.query;
@@ -55,6 +50,22 @@ const FriendList = (props: friendlistprops) => {
             });
     };
 
+    const deletegroup = (group:string) => {
+        request(
+            "/api/friend/deletefgroup",
+            "DELETE",
+            {
+                token: window.loginToken,
+                fgroup_name: group,
+            }
+        )
+            .then((res) => {
+                fetchList();
+            })
+            .catch((err) => {
+                alert(err);
+            });
+    };
 
     
     return refreshing ? (
@@ -72,15 +83,34 @@ const FriendList = (props: friendlistprops) => {
                         <List.Item
                             actions={[
                                 <Button
-                                    key={item.username}
+                                    key={item.groupname}
                                     type="primary"
-                                    onClick={() => router.push(`/user/publicinfo/${item.username}`)}
+                                    onClick={() => deletegroup(item.groupname)}
                                 >
-                                    查看用户界面
+                                    删除分组
                                 </Button>
                             ]}
                         >
-                            {item.username} 组别：{item.groupname}
+                            {item.groupname}
+                            <List
+                                bordered
+                                dataSource={item.userlist}
+                                renderItem={(subitem) => (
+                                    <List.Item
+                                        actions={[
+                                            <Button
+                                                key={subitem}
+                                                type="primary"
+                                                onClick={() => router.push(`/user/publicinfo/${subitem}`)}
+                                            >
+                                                查看用户界面
+                                            </Button>
+                                        ]}
+                                    >
+                                        {subitem}
+                                    </List.Item>
+                                )}
+                            />
                         </List.Item>
                     )}
                 />
