@@ -1,15 +1,30 @@
-import { useEffect, useState } from "react";
-import { useRouter } from "next/router";
+import React, { useEffect, useState } from "react";
+import Router, { useRouter } from "next/router";
 import { request } from "../utils/network";
 import { Friend } from "../utils/types";
+import { List, Button } from "antd";
 
 interface friendlistprops {
-    username: string;
+    username?: string;
 }
+
+interface datatype {
+    username: string;
+    groupname: string;
+}
+
+interface grouping {
+    groupname: string;
+    userlist: string[];
+}
+
+
+
 
 const FriendList = (props: friendlistprops) => {
     const [refreshing, setRefreshing] = useState<boolean>(true);
-    const [list, setList] = useState<Friend[]>([]);
+    const [list, setList] = useState<datatype[]>([]);
+    const [grouplist, setgrouplist] = useState<grouping[]>([]);
 
     const router = useRouter();
     const query = router.query;
@@ -33,13 +48,7 @@ const FriendList = (props: friendlistprops) => {
             }
         )
             .then((res) => {
-                var temp: Friend[] = [];
-                for(var i = 0; i < res.friendlist.length; i++)
-                {
-                    
-                    temp=temp.concat(res.friendlist[i][1].map((val: string) =>({username: val, group: res.friendlist[i][0]})));
-                }
-                setList(temp);
+                setList(res.friendlist.map((val: any) => ({...val})));
                 setRefreshing(false);
             })
             .catch((err) => {
@@ -47,6 +56,8 @@ const FriendList = (props: friendlistprops) => {
                 setRefreshing(false);
             });
     };
+
+
     
     return refreshing ? (
         <p> Loading... </p>
@@ -56,19 +67,25 @@ const FriendList = (props: friendlistprops) => {
             {list.length === 0 ? (
                 <p> 无好友 </p>
             ) : (
-                <div style={{ display: "flex", flexDirection: "column" }}>{
-                    list.map((friend) =>(
-                        <div key={friend.username}>
-                            <div style={{
-                                height: "80px",
-                                width: "200px"
-                            }}>
-                                <h4>{friend.username}</h4>
-                                <h3>{friend.group}</h3>
-                            </div>
-                        </div>
-                    ))
-                }</div>
+                <List
+                    bordered
+                    dataSource={list}
+                    renderItem={(item) => (
+                        <List.Item
+                            actions={[
+                                <Button
+                                    key={item.username}
+                                    type="primary"
+                                    onClick={() => router.push(`/user/publicinfo/${item.username}`)}
+                                >
+                                    查看用户界面
+                                </Button>
+                            ]}
+                        >
+                            {item.username} 组别：{item.groupname}
+                        </List.Item>
+                    )}
+                />
             )}
         </div>
     );

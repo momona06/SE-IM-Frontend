@@ -2,21 +2,18 @@ import React, {useState} from "react";
 import {Layout, List, Menu} from "antd";
 import {MessageOutlined, SettingOutlined, UsergroupAddOutlined} from "@ant-design/icons";
 import { useRouter } from "next/router";
+import FriendList  from "../../components/friendlist";
 
 //聊天主界面
 interface ChatScreenProps {
     Username?: string,
 }
 
-
 const ChatScreen = (props: ChatScreenProps) => {
     const { Content, Sider } = Layout;
     const [collapsed, setCollapsed] = useState(false);
     const router = useRouter();
 
-    // const handleClick = (key: string)=>{
-    //     console.log(key);
-    // };
 
     return (
         <Layout style={{ minHeight: "100vh" }}>
@@ -32,8 +29,9 @@ const ChatScreen = (props: ChatScreenProps) => {
                 <Content style={{ margin: "0 16px" }}>
                     <Layout>
                         好友列表
-                        <List>
-                        </List>
+
+                        <FriendList username={props.Username}/>
+                        
                     </Layout>
                     <Layout>
                         聊天页面

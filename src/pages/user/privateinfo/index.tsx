@@ -36,7 +36,7 @@ const PrivateInfoScreen = (props: InfoScreenProps) => {
 
     const bindEmail = () => {
         request(
-            "/api/email",
+            "/api/user/email",
             "POST",
             {
                 email: email,
@@ -65,7 +65,7 @@ const PrivateInfoScreen = (props: InfoScreenProps) => {
 
     const changeEmail = () => {
         request(
-            "/api/revise",
+            "/api/user/revise",
             "PUT",
             {
                 revise_field: "email",
@@ -88,7 +88,7 @@ const PrivateInfoScreen = (props: InfoScreenProps) => {
 
     const changePassword = () => {
         request(
-            "/api/revise",
+            "/api/user/revise",
             "PUT",
             {
                 revise_field: "password",
@@ -117,7 +117,7 @@ const PrivateInfoScreen = (props: InfoScreenProps) => {
 
     const deleteUser = () => {
         request(
-            "/api/cancel",
+            "/api/user/cancel",
             "DELETE",
             {
                 username: props.Username,

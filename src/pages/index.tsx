@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { LOGIN_SUCCESS } from "../constants/string";
 import { request } from "../utils/network";
 import { message, Input, Button, Space } from "antd";
 import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined } from "@ant-design/icons";
 import { useRouter } from "next/router";
+
 
 export const isEmail = (val : string) => {
     //仅保留是否为邮件的判断，其余交给后端
@@ -15,7 +16,12 @@ const LoginScreen = () => {
     const [account, getAccount] = useState<string>("");
     const [password, getPassword] = useState<string>("");
     const router = useRouter();
+
+
     const login = () => {
+        
+
+
         if (isEmail(account)){
             request(
                 "/api/user/login",
@@ -29,7 +35,7 @@ const LoginScreen = () => {
                 .then((res) => {
                     message.success(LOGIN_SUCCESS, 1);
                     window.loginToken = res.token;
-                    window.username = account;
+                    window.username = res.username;
                     router.push(`/user/${res.username}`);
 
                 })
@@ -38,22 +44,15 @@ const LoginScreen = () => {
                 });
         }
         else{
-            request(
-                "/api/user/login",
-                "POST",
-                {
-                    username: account,
-                    password: password,
-                    email: "",
-                },
-            )
-                .then((res) => {
-                    message.success(LOGIN_SUCCESS, 1);
-                    window.loginToken = res.token;
-                    window.username = account;
-                    router.push(`/userinfo/${res.username}`);
-                })
-                .catch((err) => message.error(err.message, 1));
+            const ws = new WebSocket("ws://se-im-backend-test-overflowlab.app.secoder.net/wsconnect");
+            var data = "{\"username\": \"" + account +"\" ,\"password\": \"" + password +"\" ,\"email\": \"\" }";
+            ws.onopen = function () {
+                ws.send(data);
+            };
+            ws.onmessage = function (event) {
+                var data = event.data;
+                console.log(data);
+            };
         }
     };
 
