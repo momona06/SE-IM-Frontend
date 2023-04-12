@@ -13,7 +13,6 @@ const PublicInfoScreen = (props: PublicInfoProps) => {
     const query = router.query;
     const [isFriend, setIsFriend] = useState<boolean>(false);
     const [friendGroup, setFriendGroup] = useState<string>("");
-    const [info, setInfo] = useState<string>("");
 
     const [mouseOverAdd, setMouseOverAdd] = useState<boolean>(false);
     const [mouseOverGroup, setMouseOverGroup] = useState<boolean>(false);
@@ -85,7 +84,6 @@ const PublicInfoScreen = (props: PublicInfoProps) => {
             "PUT",
             {
                 username: window.username,
-                info: info,
                 fgroup_name: friendGroup,
                 friend_name: props.Username,
             },
@@ -138,13 +136,6 @@ const PublicInfoScreen = (props: PublicInfoProps) => {
                                 placeholder="请填写小组名" 
                                 value={friendGroup} 
                                 onChange={(e) => setFriendGroup(e.target.value)}
-                            />
-                            <input 
-                                style={{ width: "400px", height: "50px", margin: "5px", borderRadius: "12px", borderColor: "#00BFFF"}} 
-                                type="text" 
-                                placeholder="请填写备注" 
-                                value={info} 
-                                onChange={(e) => setInfo(e.target.value)}
                             />
                             <button 
                                 style={ mouseOverSubmit? { width: "200px", height: "50px", borderColor: "#00BFFF", backgroundColor: "white", color: "black", transitionDuration: "0.4s", cursor: "pointer", borderRadius: "12px", margin: "5px"}: { width: "200px", height: "50px", borderColor: "#00BFFF", backgroundColor: "#00BFFF", color: "white", transitionDuration: "0.4s", cursor: "pointer", borderRadius: "12px", margin: "5px"}} 

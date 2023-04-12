@@ -1,17 +1,13 @@
 import { request } from "../utils/network";
 import {useEffect, useState} from "react";
 import { useRouter } from "next/router";
-import { List, Button } from "antd";
-
-interface searchprops {
-    username: string;
-}
+import {List, Button, message} from "antd";
 
 interface datatype {
     username: string;
 }
 
-const Search = (props: searchprops) => {
+const Search = () => {
     const [refreshing, setRefreshing] = useState<boolean>(true);
     const [list, setList] = useState<datatype[]>([]);
     const [searchName, setSearchName] = useState<string>("");
@@ -23,8 +19,6 @@ const Search = (props: searchprops) => {
         if(!router.isReady) {
             return;
         }
-
-        
     }, [router, query]);
 
     const search = () => {
@@ -42,7 +36,7 @@ const Search = (props: searchprops) => {
                 setRefreshing(false);
             })
             .catch((err) => {
-                alert(err);
+                message.error(err.message, 1);
                 setRefreshing(false);
             });
     };
@@ -66,9 +60,9 @@ const Search = (props: searchprops) => {
                         搜素用户
                     </h1>
                     <Button type="primary" onClick={search}> 搜索 </Button>
-                    <input style={{ 
+                    <input style={{
                         width: "400px", height: "50px", margin: "5px", borderRadius: "12px", borderColor: "#00BFFF"
-                    }} 
+                    }}
                     type="text" 
                     placeholder="请填写用户名"
                     value={searchName} 

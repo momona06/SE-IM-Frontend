@@ -58,6 +58,7 @@ const PrivateInfoScreen = (props: InfoScreenProps) => {
         )
             .then(() => {
                 message.success(USERNAME_CHANGE_SUCCESS, 1);
+                window.username = username;
                 router.push(`/userinfo/${newUsername}`);
             })
             .catch((err) => message.error(err.message, 1));
@@ -170,7 +171,7 @@ const PrivateInfoScreen = (props: InfoScreenProps) => {
                 }}>
                     {props.Username ? (<h3>当前用户：{username}</h3>) : null}
                     <button
-                        onClick={() => router.push("../../seacrh")}>
+                        onClick={() => router.push("../../search")}>
                         搜索用户
                     </button>
                     <div style={{width: "400px", height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>

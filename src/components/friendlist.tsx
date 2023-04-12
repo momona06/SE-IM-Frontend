@@ -19,8 +19,6 @@ interface grouping {
 }
 
 
-
-
 const FriendList = (props: friendlistprops) => {
     const [refreshing, setRefreshing] = useState<boolean>(true);
     const [list, setList] = useState<datatype[]>([]);

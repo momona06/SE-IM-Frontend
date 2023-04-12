@@ -19,9 +19,16 @@ const LoginScreen = () => {
 
 
     const login = () => {
-        
-
-
+        const ws = new WebSocket("ws://se-im-backend-test-overflowlab.app.secoder.net/wsconnect");
+        window.ws = ws;
+        ws.onopen = function () {
+            console.log("websocket open");
+            ws.send(JSON.stringify("websocket open"));
+        };
+        ws.onmessage = function (event) {
+            var data = event.data;
+            console.log(data);
+        };
         if (isEmail(account)){
             request(
                 "/api/user/login",
@@ -44,15 +51,26 @@ const LoginScreen = () => {
                 });
         }
         else{
-            const ws = new WebSocket("ws://se-im-backend-test-overflowlab.app.secoder.net/wsconnect");
-            var data = "{\"username\": \"" + account +"\" ,\"password\": \"" + password +"\" ,\"email\": \"\" }";
-            ws.onopen = function () {
-                ws.send(data);
-            };
-            ws.onmessage = function (event) {
-                var data = event.data;
-                console.log(data);
-            };
+            request(
+                "/api/user/login",
+                "POST",
+                {
+                    username: account,
+                    password: password,
+                    email: "",
+                },
+            )
+                .then((res) => {
+                    message.success(LOGIN_SUCCESS, 1);
+                    window.loginToken = res.token;
+                    window.username = res.username;
+
+                    router.push(`/user/${res.username}`);
+
+                })
+                .catch((err) => {
+                    message.error(err.message, 1);
+                });
         }
     };
 
