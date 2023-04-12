@@ -24,6 +24,7 @@ interface grouping {
 const FriendList = (props: friendlistprops) => {
     const [refreshing, setRefreshing] = useState<boolean>(true);
     const [list, setList] = useState<datatype[]>([]);
+    const [grouplist, setgrouplist] = useState<grouping[]>([]);
 
     const router = useRouter();
     const query = router.query;
@@ -55,6 +56,8 @@ const FriendList = (props: friendlistprops) => {
                 setRefreshing(false);
             });
     };
+
+
     
     return refreshing ? (
         <p> Loading... </p>
