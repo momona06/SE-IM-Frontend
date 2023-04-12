@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Router, { useRouter } from "next/router";
 import { request } from "../utils/network";
 import { Friend } from "../utils/types";
-import { List, Button } from "antd";
+import {List, Button, message} from "antd";
 
 interface friendlistprops {
     username?: string;
@@ -45,7 +45,7 @@ const FriendList = (props: friendlistprops) => {
                 setRefreshing(false);
             })
             .catch((err) => {
-                alert(err);
+                message.error(err.message, 1);
                 setRefreshing(false);
             });
     };
