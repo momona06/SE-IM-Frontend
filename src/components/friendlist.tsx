@@ -67,7 +67,7 @@ const FriendList = (props: friendlistprops) => {
                         <List.Item
                             actions={[
                                 <Button
-                                key={item.username}
+                                    key={item.username}
                                     type="primary"
                                     onClick={() => router.push(`/user/publicinfo/${item.username}`)}
                                 >
