@@ -1,7 +1,16 @@
-//常数文件
-//isValid 返回值
-export const LENGTH = 3; //超长输入
-export const VALID_EMAIL = 2; //合法邮件
-export const VALID = 1; //合法输入
-export const EMPTY = 0; //空输入
-export const INVALID = -1; //包含非法输入
+//0=不修改，1=修改用户名，2=修改邮箱，3=修改密码，4=绑定邮箱，5=注销
+export const NO_REVISE = 0;
+export const REVISE_USERNAME = 1;
+export const REVISE_EMAIL = 2;
+export const REVISE_PASSWORD = 3;
+export const BIND_EMAIL = 4;
+export const WRITE_OFF = 5;
+
+export const LOGIN = 0;
+export const REGISTER = 1;
+export const MAIN = 2;
+export const SEARCH = 3;
+export const PRIVATEINFO = 4;
+export const PUBLICINFO = 5;
+export const RECEIVELISTPAGE = 6;
+export const APPLYLISTPAGE = 7;

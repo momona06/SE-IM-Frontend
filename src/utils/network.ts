@@ -34,7 +34,7 @@ export class NetworkError extends Error {
 
 export const request = async (
     url: string,
-    method: "GET" | "POST" | "PUT" | "DELETE",
+    method: "GET" | "POST" | "PUT" | "DELETE" | "CONNECT",
     data?: any,
 ) => {
     const response = await network.request({ method, url, data })
