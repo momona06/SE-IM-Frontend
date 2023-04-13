@@ -403,7 +403,7 @@ const LoginScreen = () => {
             .then((res) => {
                 setIsFriend(res.is_friend);
             })
-            // .catch((err) => message.error(err.message, 1));
+            .catch((err) => console.log(err));
     };
 
     const addToGroup = () => {
@@ -769,7 +769,7 @@ const LoginScreen = () => {
                             <div style={{width: "400px", height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
                                 <Space size={150}>
                                     <Button size={"large"} shape={"round"} type={"primary"}
-                                        onClick={()=>logout}>
+                                        onClick={()=>logout()}>
                                         登出
                                     </Button>
                                     <Button size={"large"} shape={"round"} type={"primary"} danger={true}
