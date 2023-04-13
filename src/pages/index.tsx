@@ -93,7 +93,7 @@ const LoginScreen = () => {
             console.log("websocket open");
         };
         window.ws.onmessage = function (event) {
-            message.success("received something", 1)
+            message.success("received something", 1);
             var data = JSON.parse(event.data);
             console.log(JSON.stringify(data));
             if (data.function === "receivelist") {
@@ -116,9 +116,6 @@ const LoginScreen = () => {
             console.log(data);
 
         };
-        window.ws.onclose = function () {
-            window.ws
-        }
         if (isEmail(account)){
             request(
                 "/api/user/login",
@@ -133,6 +130,7 @@ const LoginScreen = () => {
                     message.success(STRINGS.LOGIN_SUCCESS, 1);
                     setToken(res.token);
                     setUsername(res.username);
+                    fetchFriendlist();
                     setCurrentPage(PAGES.MAIN);
                 })
                 .catch((err) => {
@@ -357,6 +355,7 @@ const LoginScreen = () => {
             "direction": "/friend/client2server"
         };
         window.ws.send(JSON.stringify(data));
+        console.log(other);
     };
 
     const decline = (other: string) => {
@@ -926,7 +925,7 @@ const LoginScreen = () => {
                                                         disabled={item.make_sure}
                                                         key = {item.username + "1"}
                                                         type="primary"
-                                                        onClick={() => accept(item.username)}
+                                                        onClick={(e) => accept(item.username)}
                                                     >
                                                         接受申请
                                                     </Button>,
@@ -934,7 +933,7 @@ const LoginScreen = () => {
                                                         disabled={item.make_sure}
                                                         key={item.username + "2"}
                                                         type="primary"
-                                                        onClick={() => decline(item.username)}
+                                                        onClick={(e) => decline(item.username)}
                                                     >
                                                         拒绝申请
                                                     </Button>
