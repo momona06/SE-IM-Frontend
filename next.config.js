@@ -6,7 +6,7 @@ const nextConfig = {
     async rewrites() {
         return [{
             source: "/api/:path*",
-            destination: "https://se-im-backend-overflowlab.app.secoder.net/:path*",
+            destination: "https://se-im-backend-test-overflowlab.app.secoder.net/:path*",
         }];
     }
 };
