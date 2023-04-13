@@ -199,7 +199,7 @@ const LoginScreen = () => {
                 setFriendlistRefreshing(false);
             })
             .catch((err) => {
-                message.error(err.message, 1);
+                // message.error(err.message, 1);
                 setFriendlistRefreshing(false);
             });
     };
@@ -403,7 +403,7 @@ const LoginScreen = () => {
             .then((res) => {
                 setIsFriend(res.is_friend);
             })
-            .catch((err) => message.error(err.message, 1));
+            // .catch((err) => message.error(err.message, 1));
     };
 
     const addToGroup = () => {
