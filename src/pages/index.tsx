@@ -100,17 +100,11 @@ const LoginScreen = () => {
                 setReceivelist(data.receivelist.map((val: any) =>({...val})));
                 setReceiveRefreshing(false);    
 
-                if (currentPage != PAGES.RECEIVELISTPAGE) {
-                    message.success(STRINGS.NEW_FRIEND_REQUEST, 1);
-                }
             }
             if (data.function === "applylist") {
                 setApplylist(data.applylist.map((val: any) => ({...val})));
                 setApplyRefreshing(false);
 
-                if (currentPage === PAGES.APPLYLISTPAGE) {
-                    message.success("", 1);
-                }
             }
                                                 
             console.log(data);
