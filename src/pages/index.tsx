@@ -88,10 +88,10 @@ const LoginScreen = () => {
         window.ws = new WebSocket("wss://se-im-backend-overflowlab.app.secoder.net/wsconnect");
         window.ws.onclose = function () {
             WSonclose();
-        }
+        };
         window.ws.onerror = function () {
             WSonerror();
-        }
+        };
     };
 
     const WSonerror = () => {
@@ -113,7 +113,7 @@ const LoginScreen = () => {
             console.log("重置心跳");
             const data = {
                 "function": "heartbeat"
-            }
+            };
             window.ws.send(JSON.stringify(data));
             window.serverTimeoutObj = setTimeout(() => {
                 window.heartBeat = true;
@@ -130,7 +130,7 @@ const LoginScreen = () => {
         };
         clearInterval(window.timeoutObj);
         clearTimeout(window.serverTimeoutObj);
-    }
+    };
 
     const login = () => {
         WSconnect();
