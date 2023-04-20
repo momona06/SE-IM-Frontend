@@ -67,55 +67,59 @@ const FriendList = (props: friendlistprops) => {
     };
 
     
-    return refreshing ? (
-        <p> Loading... </p>
-    ) : (
-        <div style={{ padding: 12}}>
-            <h5> 好友列表 </h5>
-            {list.length === 0 ? (
-                <p> 无好友 </p>
+    return (
+        <div>
+            {refreshing ? (
+                <p> Loading... </p>
             ) : (
-                <List
-                    bordered
-                    dataSource={list}
-                    renderItem={(item) => (
-                        <List.Item
-                            actions={[
-                                <Button
-                                    key={item.groupname}
-                                    type="primary"
-                                    onClick={() => deletegroup(item.groupname)}
+                <div style={{ padding: 12}}>
+                    <h5> 好友列表 </h5>
+                    {list.length === 0 ? (
+                        <p> 无好友 </p>
+                    ) : (
+                        <List
+                            bordered
+                            dataSource={list}
+                            renderItem={(item) => (
+                                <List.Item
+                                    actions={[
+                                        <Button
+                                            key={item.groupname}
+                                            type="primary"
+                                            onClick={() => deletegroup(item.groupname)}
+                                        >
+                                            删除分组
+                                        </Button>
+                                    ]}
                                 >
-                                    删除分组
-                                </Button>
-                            ]}
-                        >
-                            {item.groupname}
-                            <List
-                                bordered
-                                dataSource={item.userlist}
-                                renderItem={(subitem) => (
-                                    <List.Item
-                                        actions={[
-                                            <Button
-                                                key={subitem}
-                                                type="primary"
-                                                onClick={() => router.push(`/user/publicinfo/${subitem}`)}
+                                    {item.groupname}
+                                    <List
+                                        bordered
+                                        dataSource={item.userlist}
+                                        renderItem={(subitem) => (
+                                            <List.Item
+                                                actions={[
+                                                    <Button
+                                                        key={subitem}
+                                                        type="primary"
+                                                        onClick={() => router.push(`/user/publicinfo/${subitem}`)}
+                                                    >
+                                                        查看用户界面
+                                                    </Button>
+                                                ]}
                                             >
-                                                查看用户界面
-                                            </Button>
-                                        ]}
-                                    >
-                                        {subitem}
-                                    </List.Item>
-                                )}
-                            />
-                        </List.Item>
+                                                {subitem}
+                                            </List.Item>
+                                        )}
+                                    />
+                                </List.Item>
+                            )}
+                        />
                     )}
-                />
+                </div>
             )}
         </div>
-    );
+    )
 };
 
 export default FriendList;

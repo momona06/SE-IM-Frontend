@@ -28,10 +28,13 @@ describe("页面渲染",()=>{
     it("私人信息界面",()=>{
         render(<PrivateInfoScreen/>);
     });
-    //it("好友列表",()=>{
-    //    render(<FriendList />);
-    //});
+    it("好友列表",()=>{
+        render(<FriendList />);
+    });
     it("搜索结果",()=>{
         render(<Search />);
+    });
+    it("主页面",()=>{
+        render(<ChatScreen/>);
     });
 });
