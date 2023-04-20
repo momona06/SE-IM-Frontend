@@ -119,7 +119,7 @@ const FriendList = (props: friendlistprops) => {
                 </div>
             )}
         </div>
-    )
+    );
 };
 
 export default FriendList;
