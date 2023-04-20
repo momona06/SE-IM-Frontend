@@ -5,5 +5,8 @@ declare global {
         loginToken?: number
         username?: string
         ws: WebSocket
+        timeoutObj: NodeJS.Timer
+        serverTimeoutObj: NodeJS.Timeout
+        heartBeat: boolean
     }
 }

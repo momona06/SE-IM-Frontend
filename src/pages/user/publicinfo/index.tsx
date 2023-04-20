@@ -2,7 +2,7 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { request } from "../../../utils/network";
 import { message } from "antd";
-import { FRIEND_REQUEST_SEND, FRIEND_DELETED, FRIEND_GROUP_ADDED } from "../../../constants/string";
+import { FRIEND_DELETED, FRIEND_GROUP_ADDED } from "../../../constants/string";
 
 interface PublicInfoProps{
     Username?: string,
@@ -28,15 +28,6 @@ const PublicInfoScreen = (props: PublicInfoProps) => {
 
         checkFriend();
     }, [router, query]);
-
-
-    const addFriend = () => {
-        const data = {
-            username: window.username,
-            token: window.loginToken,
-            friend_name: props.Username,
-        };
-    };
 
     const deleteFriend = () => {
         request(
@@ -121,7 +112,6 @@ const PublicInfoScreen = (props: PublicInfoProps) => {
                         <div style={{ width: "200px", height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
                             <button 
                                 style={mouseOverAdd? {width: "195px", marginRight: "5px", height: "50px", borderColor: "#00BFFF", backgroundColor: "white", color: "black", transitionDuration: "0.4s", cursor: "pointer", borderRadius: "12px"}: {width: "195px", marginRight: "5px", height: "50px", borderColor: "#00BFFF", backgroundColor: "#00BFFF", color: "white", transitionDuration: "0.4s", cursor: "pointer", borderRadius: "12px"}} 
-                                onClick={() => (addFriend)} 
                                 onMouseOver={() => setMouseOverAdd(true)} 
                                 onMouseOut={() => setMouseOverAdd(false)}>
                                 添加好友

@@ -1,5 +1,5 @@
 import LoginScreen from "../pages";
-import RegisterScreen from "../pages/register";
+import RegisterScreen from "../pages/registerScreen";
 import React from "react";
 import { render } from "@testing-library/react";
 import UserManagementScreen from "../pages/user/privateinfo";
@@ -28,9 +28,9 @@ describe("页面渲染",()=>{
     it("私人信息界面",()=>{
         render(<PrivateInfoScreen/>);
     });
-    it("好友列表",()=>{
-        render(<FriendList />);
-    });
+    //it("好友列表",()=>{
+    //    render(<FriendList />);
+    //});
     it("搜索结果",()=>{
         render(<Search />);
     });

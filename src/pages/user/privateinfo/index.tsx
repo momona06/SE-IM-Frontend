@@ -11,7 +11,6 @@ import {
     REVISE_USERNAME,
     REVISE_EMAIL,
     REVISE_PASSWORD,
-    BIND_EMAIL,
     WRITE_OFF
 } from "../../../constants/constants";
 import {request} from "../../../utils/network";

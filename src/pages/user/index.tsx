@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import {Layout, List, Menu} from "antd";
+import {Layout, Menu} from "antd";
 import {MessageOutlined, SettingOutlined, UsergroupAddOutlined} from "@ant-design/icons";
 import { useRouter } from "next/router";
 import FriendList  from "../../components/friendlist";

@@ -1,10 +1,11 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import * as STRINGS from "../constants/string";
 import { request } from "../utils/network";
 import { message, Input, Button, Space, Layout, List, Menu } from "antd";
 import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined, ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined } from "@ant-design/icons";
 import { useRouter } from "next/router";
 import * as PAGES from "../constants/constants";
+
 
 interface friendlistdata {
     groupname: string;
@@ -83,16 +84,62 @@ const LoginScreen = () => {
         }
     }, [router, query]);
 
+    const WSconnect = () => {
+        window.ws = new WebSocket("wss://se-im-backend-overflowlab.app.secoder.net/wsconnect");
+        window.ws.onclose = function () {
+            WSonclose();
+        }
+        window.ws.onerror = function () {
+            WSonerror();
+        }
+    };
 
+    const WSonerror = () => {
+        console.log("Websocket断开");
+        WSconnect();
+    };
 
+    const WSonclose = () => {
+        console.log("Websocket断开连接");
+        if (window.heartBeat) {
+            WSconnect();
+        };
+    };
+
+    const WSheartbeat = () => {
+        clearInterval(window.timeoutObj);
+        clearTimeout(window.serverTimeoutObj);
+        window.timeoutObj = setInterval(() => {
+            console.log("重置心跳");
+            const data = {
+                "function": "heartbeat"
+            }
+            window.ws.send(JSON.stringify(data));
+            window.serverTimeoutObj = setTimeout(() => {
+                window.heartBeat = true;
+                console.log("服务器宕机中");
+                window.ws.close();
+            }, 2000);
+        }, 30000);
+    };
+
+    const WSclose = () => {
+        window.heartBeat = false;
+        if (window.ws) {
+            window.ws.close();
+        };
+        clearInterval(window.timeoutObj);
+        clearTimeout(window.serverTimeoutObj);
+    }
 
     const login = () => {
-        const ws = new WebSocket("ws://se-im-backend-test-overflowlab.app.secoder.net/wsconnect");
-        window.ws = ws;
+        WSconnect();
+        
         window.ws.onopen = function () {
-            console.log("websocket open");
+            console.log("websocket connected");
+            WSheartbeat();
         };
-        window.ws.onmessage = function (event) {
+        window.ws.onmessage = async function (event) {
             message.success("received something", 1);
             var data = JSON.parse(event.data);
             console.log(JSON.stringify(data));
@@ -105,6 +152,9 @@ const LoginScreen = () => {
                 setApplylist(data.applylist.map((val: any) => ({...val})));
                 setApplyRefreshing(false);
 
+            }
+            if (data.function === "heartbeatconfirm") {
+                WSheartbeat();
             }
                                                 
             console.log(data);
