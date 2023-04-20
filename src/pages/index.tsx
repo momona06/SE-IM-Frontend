@@ -103,7 +103,7 @@ const LoginScreen = () => {
         console.log("Websocket断开连接");
         if (window.heartBeat) {
             WSconnect();
-        };
+        }
     };
 
     const WSheartbeat = () => {
@@ -127,7 +127,7 @@ const LoginScreen = () => {
         window.heartBeat = false;
         if (window.ws) {
             window.ws.close();
-        };
+        }
         clearInterval(window.timeoutObj);
         clearTimeout(window.serverTimeoutObj);
     };
@@ -331,7 +331,10 @@ const LoginScreen = () => {
                 username: username,
             },
         )
-            .then(() => setCurrentPage(PAGES.LOGIN))
+            .then(() => {
+                setCurrentPage(PAGES.LOGIN);
+                WSclose();
+            })
             .catch((err) => message.error(err.message, 1));
     };
 
