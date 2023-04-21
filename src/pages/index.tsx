@@ -81,7 +81,7 @@ const LoginScreen = () => {
         if(currentPage === PAGES.PUBLICINFO) {
             checkFriend();
         }
-    }, [router, query]);
+    }, [router, query, currentPage]);
 
 
     const WSconnect = () => {
@@ -359,23 +359,29 @@ const LoginScreen = () => {
     };
 
     const search = () => {
-        setSearchRefreshing(true);
-        request(
-            "/api/friend/searchuser",
-            "POST",
-            {
-                my_username: username,
-                search_username: searchName,
-            }
-        )
-            .then((res) => {
-                setSearchlist(res.search_user_list.map((val: any) =>({username: val})));
-                setSearchRefreshing(false);
-            })
-            .catch((err) => {
-                message.error(err.message, 1);
-                setSearchRefreshing(false);
-            });
+        if(searchName === "") {
+            message.error("搜索的用户名不能为空", 1);
+        }
+        else {
+            setSearchRefreshing(true);
+            request(
+                "/api/friend/searchuser",
+                "POST",
+                {
+                    my_username: username,
+                    search_username: searchName,
+                }
+            )
+                .then((res) => {
+                    setSearchlist(res.search_user_list.map((val: any) =>({username: val})));
+                    setSearchRefreshing(false);
+                })
+                .catch((err) => {
+                    message.error(err.message, 1);
+                    setSearchRefreshing(false);
+                });
+        }
+        
     };
 
     const fetchReceivelist = () => {
