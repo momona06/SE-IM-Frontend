@@ -667,21 +667,26 @@ const LoginScreen = () => {
                                                                     ]}
                                                                 >
                                                                     {item.groupname}
-                                                                    {item.userlist.map((val, index) => (
-                                                                        <div key={val.username}>
-                                                                            <p>{val.username}</p>
-                                                                            <Button
-                                                                                type="primary"
-                                                                                onClick={() => {
-                                                                                    setOtherUsername(val.username);
-                                                                                    checkFriend();
-                                                                                    setCurrentPage(PAGES.PUBLICINFO);
-                                                                                }}
-                                                                            >
-                                                                                查看好友
-                                                                            </Button>
-                                                                        </div>
-                                                                    ))}
+                                                                    {item.userlist.length === 0 ? (
+                                                                        <p>该分组为空</p>
+                                                                    ) : (
+                                                                        item.userlist.map((val) => (
+                                                                            <div key={val.username}>
+                                                                                <p>{val.username}</p>
+                                                                                <Button
+                                                                                    type="primary"
+                                                                                    onClick={() => {
+                                                                                        setOtherUsername(val.username);
+                                                                                        checkFriend();
+                                                                                        setCurrentPage(PAGES.PUBLICINFO);
+                                                                                    }}
+                                                                                >
+                                                                                    查看好友
+                                                                                </Button>
+                                                                            </div>
+                                                                        ))
+    
+                                                                    )}
                                                                 </List.Item>
                                                             )}
                                                         />
