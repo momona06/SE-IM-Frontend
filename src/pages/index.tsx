@@ -667,10 +667,10 @@ const LoginScreen = () => {
                                                                     ]}
                                                                 >
                                                                     {item.groupname}
-                                                                    {item.userlist.length === 0 ? (
+                                                                    {item.userlist?.length === 0 ? (
                                                                         <p>该分组为空</p>
                                                                     ) : (
-                                                                        item.userlist.map((val) => (
+                                                                        item.userlist?.map((val) => (
                                                                             <div key={val.username}>
                                                                                 <p>{val.username}</p>
                                                                                 <Button
