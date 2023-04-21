@@ -84,6 +84,15 @@ const LoginScreen = () => {
     }, [router, query, currentPage]);
 
 
+    const getIndex = (groupname: string) => {
+        friendlist.forEach((val, idx, arr) => {
+            if (val.groupname === groupname) {
+                return(idx);
+            }
+        })
+        return(-1);
+    };
+
     const WSconnect = () => {
         window.ws = new WebSocket("wss://se-im-backend-overflowlab.app.secoder.net/wsconnect");
         console.log("开始连接");
@@ -481,18 +490,22 @@ const LoginScreen = () => {
                 token: token,
                 fgroup_name: friendGroup,
             },
-        );
-        request(
-            "api/friend/addfgroup",
-            "PUT",
-            {
-                username: username,
-                fgroup_name: friendGroup,
-                friend_name: otherUsername,
-            },
         )
             .then((res) => {
-                message.success(STRINGS.FRIEND_GROUP_ADDED, 1);
+                request(
+                    "api/friend/addfgroup",
+                    "PUT",
+                    {
+                        username: username,
+                        fgroup_name: friendGroup,
+                        friend_name: otherUsername,
+                    },
+                )
+                    .then((res) => {
+                        message.success(STRINGS.FRIEND_GROUP_ADDED, 1);
+                    })
+                    .catch((err) => message.error(err.message, 1));
+        
             })
             .catch((err) => message.error(err.message, 1));
     };
@@ -656,7 +669,7 @@ const LoginScreen = () => {
                                                                     {item.groupname}
                                                                     <List
                                                                         bordered
-                                                                        dataSource={item.userlist}
+                                                                        dataSource={friendlist[getIndex(item.groupname)].userlist}
                                                                         renderItem={(subitem) => (
                                                                             <List.Item
                                                                                 actions={[
