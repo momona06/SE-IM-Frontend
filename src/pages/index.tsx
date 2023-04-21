@@ -668,10 +668,9 @@ const LoginScreen = () => {
                                                                 >
                                                                     {item.groupname}
                                                                     {item.userlist.map((val, index) => (
-                                                                        <div>
+                                                                        <div key={val.username}>
                                                                             <p>{val.username}</p>
                                                                             <Button
-                                                                                key={val.username}
                                                                                 type="primary"
                                                                                 onClick={() => {
                                                                                     setOtherUsername(val.username);
