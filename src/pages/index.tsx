@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import * as STRINGS from "../constants/string";
 import { request } from "../utils/network";
 import { message, Input, Button, Space, Layout, List, Menu } from "antd";
 import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined, ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined } from "@ant-design/icons";
 import { useRouter } from "next/router";
 import * as PAGES from "../constants/constants";
-
 
 interface friendlistdata {
     groupname: string;
@@ -84,6 +83,7 @@ const LoginScreen = () => {
         }
     }, [router, query]);
 
+
     const WSconnect = () => {
         window.ws = new WebSocket("wss://se-im-backend-overflowlab.app.secoder.net/wsconnect");
         console.log("开始连接");
@@ -136,6 +136,7 @@ const LoginScreen = () => {
         clearInterval(window.timeoutObj);
         clearTimeout(window.serverTimeoutObj);
     };
+
 
     const login = () => {
         WSconnect();
@@ -380,6 +381,7 @@ const LoginScreen = () => {
     const fetchReceivelist = () => {
         setReceiveRefreshing(true);
         const data = {
+            "direction": "/friend/client2server",
             "function": "fetchreceivelist",
             "username": username
         };
@@ -389,6 +391,7 @@ const LoginScreen = () => {
     const fetchApplylist = () => {
         setApplyRefreshing(true);
         const data = {
+            "direction": "/friend/client2server",
             "function": "fetchapplylist",
             "username": username
         };
@@ -402,7 +405,8 @@ const LoginScreen = () => {
             "function": "confirm",
             "from": other,
             "to": username,
-            "username": username
+            "username": username,
+            "direction": "/friend/client2server"
         };
         window.ws.send(JSON.stringify(data));
         console.log(other);
@@ -413,13 +417,15 @@ const LoginScreen = () => {
             "function": "decline",
             "from": other,
             "to": username,
-            "username": username
+            "username": username,
+            "direction": "/friend/client2server"
         };
         window.ws.send(JSON.stringify(data));
     };
 
     const addFriend = () => {
         const data = {
+            "direction": "/friend/client2server",
             "from": username,
             "to": otherUsername,
             "function": "apply",
