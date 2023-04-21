@@ -124,7 +124,7 @@ const LoginScreen = () => {
                 console.log("服务器宕机中");
                 window.ws.close();
             }, 2000);
-        }, 2000);
+        }, 10000);
     };
 
     const WSclose = () => {
