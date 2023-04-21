@@ -101,7 +101,8 @@ const LoginScreen = () => {
 
     const WSonclose = () => {
         console.log("Websocket断开连接");
-        if (window.heartBeat) {
+        WSconnect();
+        if (false) {
             WSconnect();
         }
     };
@@ -112,7 +113,8 @@ const LoginScreen = () => {
         window.timeoutObj = setInterval(() => {
             console.log("重置心跳");
             const data = {
-                "function": "heartbeat"
+                "function": "heartbeat",
+                "direction" : "/friend/client2server"
             };
             window.ws.send(JSON.stringify(data));
             window.serverTimeoutObj = setTimeout(() => {
