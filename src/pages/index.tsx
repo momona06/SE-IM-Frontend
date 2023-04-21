@@ -101,8 +101,7 @@ const LoginScreen = () => {
 
     const WSonclose = () => {
         console.log("Websocket断开连接");
-        WSconnect();
-        if (false) {
+        if (window.heartBeat) {
             WSconnect();
         }
     };
@@ -114,7 +113,6 @@ const LoginScreen = () => {
             console.log("重置心跳");
             const data = {
                 "function": "heartbeat",
-                "direction" : "/friend/client2server"
             };
             window.ws.send(JSON.stringify(data));
             window.serverTimeoutObj = setTimeout(() => {
@@ -376,7 +374,6 @@ const LoginScreen = () => {
     const fetchReceivelist = () => {
         setReceiveRefreshing(true);
         const data = {
-            "direction": "/friend/client2server",
             "function": "fetchreceivelist",
             "username": username
         };
@@ -386,7 +383,6 @@ const LoginScreen = () => {
     const fetchApplylist = () => {
         setApplyRefreshing(true);
         const data = {
-            "direction": "/friend/client2server",
             "function": "fetchapplylist",
             "username": username
         };
@@ -400,8 +396,7 @@ const LoginScreen = () => {
             "function": "confirm",
             "from": other,
             "to": username,
-            "username": username,
-            "direction": "/friend/client2server"
+            "username": username
         };
         window.ws.send(JSON.stringify(data));
         console.log(other);
@@ -412,15 +407,13 @@ const LoginScreen = () => {
             "function": "decline",
             "from": other,
             "to": username,
-            "username": username,
-            "direction": "/friend/client2server"
+            "username": username
         };
         window.ws.send(JSON.stringify(data));
     };
 
     const addFriend = () => {
         const data = {
-            "direction": "/friend/client2server",
             "from": username,
             "to": otherUsername,
             "function": "apply",
