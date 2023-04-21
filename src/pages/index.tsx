@@ -667,29 +667,22 @@ const LoginScreen = () => {
                                                                     ]}
                                                                 >
                                                                     {item.groupname}
-                                                                    <List
-                                                                        bordered
-                                                                        dataSource={friendlist[getIndex(item.groupname)].userlist}
-                                                                        renderItem={(subitem) => (
-                                                                            <List.Item
-                                                                                actions={[
-                                                                                    <Button
-                                                                                        key={subitem.username}
-                                                                                        type="primary"
-                                                                                        onClick={() => {
-                                                                                            setOtherUsername(subitem.username);
-                                                                                            checkFriend();
-                                                                                            setCurrentPage(PAGES.PUBLICINFO);
-                                                                                        }}
-                                                                                    >
-                                                                                        查看用户界面
-                                                                                    </Button>
-                                                                                ]}
+                                                                    {item.userlist.map((val, index) => (
+                                                                        <div>
+                                                                            <p>{val.username}</p>
+                                                                            <Button
+                                                                                key={val.username}
+                                                                                type="primary"
+                                                                                onClick={() => {
+                                                                                    setOtherUsername(val.username);
+                                                                                    checkFriend();
+                                                                                    setCurrentPage(PAGES.PUBLICINFO);
+                                                                                }}
                                                                             >
-                                                                                {subitem.username}
-                                                                            </List.Item>
-                                                                        )}
-                                                                    />
+                                                                                查看好友
+                                                                            </Button>
+                                                                        </div>
+                                                                    ))}
                                                                 </List.Item>
                                                             )}
                                                         />
