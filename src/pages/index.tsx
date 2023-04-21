@@ -651,45 +651,20 @@ const LoginScreen = () => {
                                                     {friendlist.length === 0 ? (
                                                         <p> 无好友 </p>
                                                     ) : (
-                                                        <List
-                                                            bordered
-                                                            dataSource={friendlist}
-                                                            renderItem={(item) => (
-                                                                <List.Item
-                                                                    actions={[
-                                                                        <Button
-                                                                            key={item.groupname}
-                                                                            type="primary"
-                                                                            onClick={() => deletegroup(item.groupname)}
-                                                                        >
-                                                                            删除分组
+                                                        friendlist.map((val) =>(
+                                                            <div key={val.groupname}>
+                                                                <p>{val.groupname}</p>
+                                                                {val.userlist.length === 0 ? (
+                                                                    <p>该分组为空</p>
+                                                                ) : (
+                                                                    val.userlist.map((user) => (
+                                                                        <Button key={user.username}>
+                                                                            {user.username}
                                                                         </Button>
-                                                                    ]}
-                                                                >
-                                                                    {item.groupname}
-                                                                    {item.userlist?.length === 0 ? (
-                                                                        <p>该分组为空</p>
-                                                                    ) : (
-                                                                        item.userlist?.map((val) => (
-                                                                            <div key={val.username}>
-                                                                                <p>{val.username}</p>
-                                                                                <Button
-                                                                                    type="primary"
-                                                                                    onClick={() => {
-                                                                                        setOtherUsername(val.username);
-                                                                                        checkFriend();
-                                                                                        setCurrentPage(PAGES.PUBLICINFO);
-                                                                                    }}
-                                                                                >
-                                                                                    查看好友
-                                                                                </Button>
-                                                                            </div>
-                                                                        ))
-    
-                                                                    )}
-                                                                </List.Item>
-                                                            )}
-                                                        />
+                                                                    ))
+                                                                )}
+                                                            </div>
+                                                        ))                                                                                                                    
                                                     )}
                                                 </div>
                                             </div>
