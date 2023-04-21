@@ -89,7 +89,7 @@ const LoginScreen = () => {
             if (val.groupname === groupname) {
                 return(idx);
             }
-        })
+        });
         return(-1);
     };
 
