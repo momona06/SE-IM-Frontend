@@ -101,7 +101,7 @@ const LoginScreen = () => {
 
     const WSonclose = () => {
         console.log("Websocket断开连接");
-        if (window.heartBeat) {
+        if (window.heartBeat === true) {
             WSconnect();
         }
     };
@@ -137,6 +137,7 @@ const LoginScreen = () => {
         
         window.ws.onopen = function () {
             console.log("websocket connected");
+            window.heartBeat = true;
             WSheartbeat();
         };
         window.ws.onmessage = async function (event) {
