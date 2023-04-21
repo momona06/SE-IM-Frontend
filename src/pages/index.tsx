@@ -474,7 +474,7 @@ const LoginScreen = () => {
 
     const addToGroup = () => {
         request(
-            "api/friend/creategroup",
+            "api/friend/createfgroup",
             "POST",
             {
                 username: username,
