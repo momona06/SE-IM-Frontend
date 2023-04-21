@@ -142,7 +142,6 @@ const LoginScreen = () => {
         
         window.ws.onopen = function () {
             console.log("websocket connected");
-            window.heartBeat = true;
             WSheartbeat();
         };
         window.ws.onmessage = async function (event) {
@@ -251,6 +250,7 @@ const LoginScreen = () => {
             }
         )
             .then((res) => {
+                console.log(res.friendlist);
                 setFriendlist(res.friendlist.map((val: any) => ({...val})));
                 setFriendlistRefreshing(false);
             })
