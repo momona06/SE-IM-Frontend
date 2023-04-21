@@ -86,6 +86,7 @@ const LoginScreen = () => {
 
     const WSconnect = () => {
         window.ws = new WebSocket("wss://se-im-backend-overflowlab.app.secoder.net/wsconnect");
+        console.log("开始连接");
         window.ws.onclose = function () {
             WSonclose();
         };
@@ -96,12 +97,14 @@ const LoginScreen = () => {
 
     const WSonerror = () => {
         console.log("Websocket断开");
+        console.log("error重接");
         WSconnect();
     };
 
     const WSonclose = () => {
         console.log("Websocket断开连接");
         if (window.heartBeat === true) {
+            console.log("close重接");
             WSconnect();
         }
     };
@@ -115,6 +118,7 @@ const LoginScreen = () => {
                 "function": "heartbeat",
             };
             window.ws.send(JSON.stringify(data));
+            console.log("发送心跳");
             window.serverTimeoutObj = setTimeout(() => {
                 window.heartBeat = true;
                 console.log("服务器宕机中");
@@ -125,6 +129,7 @@ const LoginScreen = () => {
 
     const WSclose = () => {
         window.heartBeat = false;
+        console.log("关闭");
         if (window.ws) {
             window.ws.close();
         }
