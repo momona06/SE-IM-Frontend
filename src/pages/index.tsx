@@ -230,7 +230,7 @@ const Screen = () => {
             if (currentPage === CONS.REGISTER) {
                 register();
             }
-            if (currentPage === CONS.PRIVATEINFO) {
+            if (currentPage === CONS.MAIN && menuItem === CONS.SETTINGS) {
                 changePassword();
             }
         }
@@ -612,25 +612,17 @@ const Screen = () => {
                         <Layout style={{ minHeight: "100vh" }}>
                             <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
                                 <Menu theme={"dark"} defaultSelectedKeys={["1"]} mode="inline">
-                                    <Menu.Item title={"聊天"} icon={<MessageOutlined/>} onClick={()=>setMecuItem(CONS.CHATFRAME)}> 聊天 </Menu.Item>
+                                    <Menu.Item title={"聊天"} icon={<MessageOutlined/>} key={1} onClick={()=>setMecuItem(CONS.CHATFRAME)}> 聊天 </Menu.Item>
 
-                                    <Menu.Item title={"通讯录"} icon={<UsergroupAddOutlined />} onClick={()=>setMecuItem(CONS.ADDRESSBOOK)}> 通讯录 </Menu.Item>
+                                    <Menu.Item title={"通讯录"} icon={<UsergroupAddOutlined />} key={2} onClick={()=>setMecuItem(CONS.ADDRESSBOOK)}> 通讯录 </Menu.Item>
 
-                                    <Menu.Item title={"设置"} icon={<SettingOutlined />} onClick={()=> setMecuItem(CONS.SETTINGS)}> 设置 </Menu.Item>
-
-                                    <Menu.Item title={"好友申请"} onClick={() => {
-                                        setCurrentPage(CONS.RECEIVELISTPAGE);
-                                        fetchReceivelist();
-                                    }}> 好友申请 </Menu.Item>
-
-                                    <Menu.Item title={"发送的好友申请"} onClick={() => {
-                                        setCurrentPage(CONS.APPLYLISTPAGE);
-                                        fetchApplylist();
-                                    }}> 已发送的好友申请 </Menu.Item>
+                                    <Menu.Item title={"设置"} icon={<SettingOutlined />} key={3} onClick={()=> setMecuItem(CONS.SETTINGS)}> 设置 </Menu.Item>
                                 </Menu>
                             </Sider>
 
                             <Content className="site-layout">
+
+                                { /*聊天组件*/}
                                 {menuItem === CONS.CHATFRAME ? (
                                     <div style={{ display: "flex", flexDirection: "row" }}>
                                         <div style={{ padding: "0 24px", backgroundColor:"#FAF0E6",  width:"20%", minHeight:"100vh" }}>
@@ -642,11 +634,13 @@ const Screen = () => {
                                     </div>
                                 ) : null}
 
+                                { /*通讯录组件*/}
                                 {menuItem === CONS.ADDRESSBOOK ? (
                                     <div style={{ display: "flex", flexDirection: "row" }}>
                                         <div style={{ padding: "0 24px", backgroundColor:"#FAF0E6",  width:"20%", minHeight:"100vh" }}>
-                                            <Button type="default" shape={"round"} onClick={search} icon={<SearchOutlined/>} block> 搜索 </Button>
-                                            <Button type="default" shape={"round"} block icon={<UserAddOutlined />}> 新的朋友 </Button>
+                                            <Button type="default" shape={"round"} onClick={()=>{search(); setAddressItem(CONS.SEARCH);}} icon={<SearchOutlined/>} block> 搜索 </Button>
+                                            <Button type="default" shape={"round"} block icon={<UserAddOutlined />} onClick={() => {setAddressItem(CONS.NEWFRIEND); fetchReceivelist(); fetchApplylist();}}> 新的朋友 </Button>
+
                                             <h3> 好友列表 </h3>
                                             {friendListRefreshing ? (
                                                 <p> Loading... </p>
@@ -686,7 +680,7 @@ const Screen = () => {
                                                                                             onClick={() => {
                                                                                                 setOtherUsername(subitem.username);
                                                                                                 checkFriend();
-                                                                                                setCurrentPage(CONS.PUBLICINFO);
+                                                                                                setAddressItem(CONS.PUBLICINFO);
                                                                                             }}>
                                                                                             查看好友
                                                                                         </Button>
@@ -702,8 +696,169 @@ const Screen = () => {
                                                 </div>
                                             )}
                                         </div>
+
                                         <div style={{ padding: "24px", backgroundColor:"#FFF5EE",  width:"80%", minHeight:"100vh" }}>
-                                            {}
+                                            {addressItem === CONS.NEWFRIEND ? (
+                                                <div>
+                                                    {receiveRefreshing ? (
+                                                        <p> Loading... </p>
+                                                    ) : (
+                                                        <div style={{ padding: 12}}>
+                                                            {receiveList.length === 0 ? (
+                                                                <p> 无好友申请 </p>
+                                                            ) : (
+                                                                <List
+                                                                    bordered
+                                                                    dataSource={receiveList}
+                                                                    renderItem={(item) => (
+                                                                        <List.Item
+                                                                            actions={[
+                                                                                <Button
+                                                                                    disabled={item.make_sure}
+                                                                                    key = {item.username + "1"}
+                                                                                    type="primary"
+                                                                                    onClick={() => accept(item.username)}
+                                                                                >
+                                                                                    接受申请
+                                                                                </Button>,
+                                                                                <Button
+                                                                                    disabled={item.make_sure}
+                                                                                    key={item.username + "2"}
+                                                                                    type="primary"
+                                                                                    onClick={() => decline(item.username)}
+                                                                                >
+                                                                                    拒绝申请
+                                                                                </Button>
+                                                                            ]}
+                                                                        >
+                                                                            {item.username} {(item.make_sure && item.is_confirmed) ? ("已接受") : null}{(item.make_sure && !item.is_confirmed) ? ("已拒绝") : null}
+                                                                        </List.Item>
+                                                                    )}
+                                                                />
+                                                            )}
+                                                        </div>
+                                                    )}
+
+                                                    {applyRefreshing ? (
+                                                        <p> Loading... </p>
+                                                    ) : (
+                                                        <div style={{ padding: 12}}>
+                                                            {applyList.length === 0 ? (
+                                                                <p> 无发送的好友申请 </p>
+                                                            ) : (
+                                                                <List
+                                                                    bordered
+                                                                    dataSource={applyList}
+                                                                    renderItem={(item) => (
+                                                                        <List.Item key={item.username}>
+                                                                            {item.username} {(item.make_sure && item.is_confirmed) ? ("对方已接受") : null}
+                                                                            {(item.make_sure && !item.is_confirmed) ? ("对方已拒绝") : null}
+                                                                            {(!item.make_sure) ? ("对方未回复") : null}
+                                                                        </List.Item>
+                                                                    )}
+                                                                />
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ) : null}
+
+                                            {addressItem === CONS.SEARCH ? (
+                                                <div style={{
+                                                    display: "flex", flexDirection: "column", border: "1px solid transparent", borderRadius: "20px",
+                                                    alignItems: "center", backgroundColor: "rgba(255,255,255,0.7)"
+                                                }}>
+                                                    <h1>
+                                                        搜素用户
+                                                    </h1>
+                                                    <Button type="primary" onClick={search}> 搜索 </Button>
+                                                    <input style={{ width: "400px", height: "50px", margin: "5px", borderRadius: "12px", borderColor: "#00BFFF" }}
+                                                        type="text"
+                                                        placeholder="请填写用户名"
+                                                        value={searchName}
+                                                        onChange={(e) => setSearchName(e.target.value)}
+                                                    />
+                                                    {searchRefreshing ? (
+                                                        <p> 未搜索 </p>
+                                                    ) : (
+                                                        <div style={{ padding: 12}}>
+                                                            {searchList.length === 0 ? (
+                                                                <p> 未找到符合条件的用户 </p>
+                                                            ) : (
+                                                                <List
+                                                                    bordered
+                                                                    dataSource={searchList}
+                                                                    renderItem={(item) => (
+                                                                        <List.Item
+                                                                            actions={[
+                                                                                <Button
+                                                                                    key = {item.username}
+                                                                                    type="primary"
+                                                                                    onClick={() => {
+                                                                                        setOtherUsername(item.username);
+                                                                                        checkFriend();
+                                                                                        setMecuItem(CONS.PUBLICINFO);
+                                                                                    }}
+                                                                                >
+                                                                                    查看用户界面
+                                                                                </Button>
+                                                                            ]}>
+                                                                            {item.username}
+                                                                        </List.Item>
+                                                                    )}
+                                                                />
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ) : null}
+
+                                            {addressItem === CONS.PUBLICINFO ? (
+                                                <div style={{
+                                                    display: "flex", flexDirection: "column", paddingLeft: "150px", paddingRight: "150px",
+                                                    paddingTop: "5px", paddingBottom: "25px", border: "2px solid #00BFFF", borderRadius: "20px",
+                                                    alignItems: "center", backgroundColor: "rgba(255,255,255,0.7)"
+                                                }}>
+                                                    <h1>{otherUsername}</h1>
+                                                    {isFriend ? (
+                                                        <div style={{ width: "400px", height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
+                                                            <Button
+                                                                type="primary"
+                                                                onClick={() => ((box === 1) ? setBox(0) : setBox(1))}
+                                                            >
+                                                                添加至小组
+                                                            </Button>
+                                                            <Button
+                                                                type="primary"
+                                                                onClick={() => (deleteFriend())}
+                                                            >
+                                                                删除好友
+                                                            </Button>
+                                                        </div>
+                                                    ) : (
+                                                        <div style={{ width: "200px", height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
+                                                            <Button type="primary" onClick={() => (addFriend())} >
+                                                                添加好友
+                                                            </Button>
+                                                        </div>
+                                                    )}
+                                                    {box === 1 ? (
+                                                        <div style={{ margin: "5px", display: "flex", flexDirection: "column", alignItems: "center"}}>
+                                                            <Input size={"large"} maxLength={50}
+                                                                prefix={<UserOutlined/>}
+                                                                type="text"
+                                                                placeholder="请填写小组名"
+                                                                value={friendGroup}
+                                                                onChange={(e) => setFriendGroup(e.target.value)}
+                                                            />
+                                                            <Button type="primary" onClick={()=>addToGroup()} >
+                                                                确认添加至小组
+                                                            </Button>
+                                                        </div>
+                                                    ) : null}
+                                                    <Button type="primary" onClick={() => setMecuItem(CONS.SEARCH)}> 返回搜索 </Button>
+                                                </div>
+                                            ) : null}
                                         </div>
                                     </div>
                                 ) : null}
@@ -863,187 +1018,8 @@ const Screen = () => {
                                         </div>
                                     </div>
                                 ) : null}
-
-                                {addressItem === CONS.SEARCH ? (
-                                    <div style={{
-                                        display: "flex", flexDirection: "column", paddingLeft: "150px", paddingRight: "150px",
-                                        paddingTop: "5px", paddingBottom: "25px", border: "1px solid transparent", borderRadius: "20px",
-                                        alignItems: "center", backgroundColor: "rgba(255,255,255,0.7)"
-                                    }}>
-                                        <h1>
-                                            搜素用户
-                                        </h1>
-                                        <Button type="primary" onClick={search}> 搜索 </Button>
-                                        <Button type="primary" onClick={() => setCurrentPage(CONS.PRIVATEINFO)}> 返回设置 </Button>
-                                        <input style={{ width: "400px", height: "50px", margin: "5px", borderRadius: "12px", borderColor: "#00BFFF" }}
-                                            type="text"
-                                            placeholder="请填写用户名"
-                                            value={searchName}
-                                            onChange={(e) => setSearchName(e.target.value)}
-                                        />
-                                        {searchRefreshing ? (
-                                            <p> 未搜索 </p>
-                                        ) : (
-                                            <div style={{ padding: 12}}>
-                                                {searchList.length === 0 ? (
-                                                    <p> 未找到符合条件的用户 </p>
-                                                ) : (
-                                                    <List
-                                                        bordered
-                                                        dataSource={searchList}
-                                                        renderItem={(item) => (
-                                                            <List.Item
-                                                                actions={[
-                                                                    <Button
-                                                                        key = {item.username}
-                                                                        type="primary"
-                                                                        onClick={() => {
-                                                                            setOtherUsername(item.username);
-                                                                            checkFriend();
-                                                                            setMecuItem(CONS.PUBLICINFO);
-                                                                        }}
-                                                                    >
-                                                                        查看用户界面
-                                                                    </Button>
-                                                                ]}>
-                                                                {item.username}
-                                                            </List.Item>
-                                                        )}
-                                                    />
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
-                                ) : null}
-
-                                {menuItem === CONS.PUBLICINFO ? (
-                                    <div style={{
-                                        display: "flex", flexDirection: "column", paddingLeft: "150px", paddingRight: "150px",
-                                        paddingTop: "5px", paddingBottom: "25px", border: "2px solid #00BFFF", borderRadius: "20px",
-                                        alignItems: "center", backgroundColor: "rgba(255,255,255,0.7)"
-                                    }}>
-                                        <h1>{otherUsername}</h1>
-                                        {isFriend ? (
-                                            <div style={{ width: "400px", height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
-                                                <Button
-                                                    type="primary"
-                                                    onClick={() => ((box === 1) ? setBox(0) : setBox(1))}
-                                                >
-                                                    添加至小组
-                                                </Button>
-                                                <Button
-                                                    type="primary"
-                                                    onClick={() => (deleteFriend())}
-                                                >
-                                                    删除好友
-                                                </Button>
-                                            </div>
-
-                                        ) : (
-                                            <div style={{ width: "200px", height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
-                                                <Button type="primary" onClick={() => (addFriend())} >
-                                                    添加好友
-                                                </Button>
-                                            </div>
-                                        )}
-                                        {box === 1 ? (
-                                            <div style={{ margin: "5px", display: "flex", flexDirection: "column", alignItems: "center"}}>
-                                                <Input size={"large"} maxLength={50}
-                                                    prefix={<UserOutlined/>}
-                                                    type="text"
-                                                    placeholder="请填写小组名"
-                                                    value={friendGroup}
-                                                    onChange={(e) => setFriendGroup(e.target.value)}
-                                                />
-                                                <Button type="primary" onClick={()=>addToGroup()} >
-                                                    确认添加至小组
-                                                </Button>
-                                            </div>
-                                        ) : null}
-                                        <Button type="primary" onClick={() => setMecuItem(CONS.SEARCH)}> 返回搜索 </Button>
-                                    </div>
-                                ) : null}
                             </Content>
                         </Layout>
-                    </div>
-                ) : null}
-
-
-                {currentPage === CONS.RECEIVELISTPAGE ? (
-                    <div>
-                        <Button type="primary" onClick={() => {
-                            setCurrentPage(CONS.MAIN);
-                            fetchFriendList();
-                        }}> 返回主页面 </Button>
-                        {receiveRefreshing ? (
-                            <p> Loading... </p>
-                        ) : (
-                            <div style={{ padding: 12}}>
-                                {receiveList.length === 0 ? (
-                                    <p> 无好友申请 </p>
-                                ) : (
-                                    <List
-                                        bordered
-                                        dataSource={receiveList}
-                                        renderItem={(item) => (
-                                            <List.Item 
-                                                actions={[
-                                                    <Button
-                                                        disabled={item.make_sure}
-                                                        key = {item.username + "1"}
-                                                        type="primary"
-                                                        onClick={() => accept(item.username)}
-                                                    >
-                                                        接受申请
-                                                    </Button>,
-                                                    <Button
-                                                        disabled={item.make_sure}
-                                                        key={item.username + "2"}
-                                                        type="primary"
-                                                        onClick={() => decline(item.username)}
-                                                    >
-                                                        拒绝申请
-                                                    </Button>
-                                                ]}
-                                            >
-                                                {item.username} {(item.make_sure && item.is_confirmed) ? ("已接受") : null}{(item.make_sure && !item.is_confirmed) ? ("已拒绝") : null}
-                                            </List.Item>  
-                                        )}
-                                    />
-                                )}
-                            </div>
-                        )}
-                    </div>
-                ) : null}
-
-
-                {currentPage === CONS.APPLYLISTPAGE ? (
-                    <div>
-                        <Button type="primary" onClick={() => {
-                            setCurrentPage(CONS.MAIN);
-                            fetchFriendList();
-                        }}> 返回主页面 </Button>
-                        {applyRefreshing ? (
-                            <p> Loading... </p>
-                        ) : (
-                            <div style={{ padding: 12}}>
-                                {applyList.length === 0 ? (
-                                    <p> 无发送的好友申请 </p>
-                                ) : (
-                                    <List
-                                        bordered
-                                        dataSource={applyList}
-                                        renderItem={(item) => (
-                                            <List.Item key={item.username}>
-                                                {item.username} {(item.make_sure && item.is_confirmed) ? ("对方已接受") : null}
-                                                {(item.make_sure && !item.is_confirmed) ? ("对方已拒绝") : null}
-                                                {(!item.make_sure) ? ("对方未回复") : null}
-                                            </List.Item>  
-                                        )}
-                                    />
-                                )}
-                            </div>
-                        )}
                     </div>
                 ) : null}
             </div>

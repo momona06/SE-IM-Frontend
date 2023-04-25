@@ -14,12 +14,9 @@ export const MAIN = 2;
 export const CHATFRAME = 0;
 export const ADDRESSBOOK = 1;
 export const SETTINGS = 2;
-export const SEARCH = 3;
-export const PRIVATEINFO = 4;
 
 
-//通讯录项目：newfriend publicinfo
+//通讯录项目：newfriend publicinfo search
 export const NEWFRIEND = 0;
-export const PUBLICINFO = 5;
-export const RECEIVELISTPAGE = 6;
-export const APPLYLISTPAGE = 7;
+export const PUBLICINFO = 1;
+export const SEARCH = 3;
