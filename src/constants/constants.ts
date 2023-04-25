@@ -16,6 +16,10 @@ export const ADDRESSBOOK = 1;
 export const SETTINGS = 2;
 export const SEARCH = 3;
 export const PRIVATEINFO = 4;
+
+
+//通讯录项目：newfriend publicinfo
+export const NEWFRIEND = 0;
 export const PUBLICINFO = 5;
 export const RECEIVELISTPAGE = 6;
 export const APPLYLISTPAGE = 7;

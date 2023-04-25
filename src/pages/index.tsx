@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import * as STRINGS from "../constants/string";
 import { request } from "../utils/network";
 import {message, Input, Button, Space, Layout, List, Menu} from "antd";
-import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined, ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined } from "@ant-design/icons";
+import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined, ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined } from "@ant-design/icons";
 import { useRouter } from "next/router";
 import * as CONS from "../constants/constants";
 
@@ -20,7 +20,6 @@ interface receiveData {
     is_confirmed: boolean;
     make_sure: boolean;
 }
-
 
 export const isEmail = (val : string) => {
     //仅保留是否为邮件的判断，其余交给后端
@@ -45,8 +44,8 @@ const Screen = () => {
     const { Content, Sider } = Layout;
     const [collapsed, setCollapsed] = useState(false);
 
-    const [friendlistRefreshing, setFriendlistRefreshing] = useState<boolean>(true);
-    const [friendlist, setFriendlist] = useState<friendListData[]>([]);
+    const [friendListRefreshing, setFriendListRefreshing] = useState<boolean>(true);
+    const [friendList, setFriendList] = useState<friendListData[]>([]);
 
     const [newUsername, getNewUsername] = useState<string>("");
     const [newPassword, setNewPassword] = useState<string>("");
@@ -55,11 +54,12 @@ const Screen = () => {
     const [searchRefreshing, setSearchRefreshing] = useState<boolean>(false);
     const [searchList, setSearchList] = useState<searchData[]>([]);
     const [searchName, setSearchName] = useState<string>("");
+    const [addressItem, setAddressItem] = useState<number>();
 
-    const [receivelist, setReceivelist] = useState<receiveData[]>([]);
+    const [receiveList, setReceiveList] = useState<receiveData[]>([]);
     const [receiveRefreshing, setReceiveRefreshing] = useState<boolean>(false);
 
-    const [applylist, setApplylist] = useState<receiveData[]>([]);
+    const [applyList, setApplyList] = useState<receiveData[]>([]);
     const [applyRefreshing, setApplyRefreshing] = useState<boolean>(false);
 
 
@@ -77,7 +77,7 @@ const Screen = () => {
         }
 
         if(currentPage === CONS.MAIN) {
-            fetchFriendlist();
+            fetchFriendList();
         }
         if(currentPage === CONS.SEARCH) {
             search();
@@ -87,42 +87,32 @@ const Screen = () => {
         }
     }, [router, query, currentPage]);
 
-
-    const getIndex = (groupname: string) => {
-        friendlist.forEach((val, idx, arr) => {
-            if (val.groupname === groupname) {
-                return(idx);
-            }
-        });
-        return(-1);
-    };
-
-    const WSconnect = () => {
+    const WSConnect = () => {
         window.ws = new WebSocket("wss://se-im-backend-overflowlab.app.secoder.net/wsconnect");
         console.log("开始连接");
         window.ws.onclose = function () {
-            WSonclose();
+            WSOnclose();
         };
         window.ws.onerror = function () {
-            WSonerror();
+            WSOnerror();
         };
     };
 
-    const WSonerror = () => {
+    const WSOnerror = () => {
         console.log("Websocket断开");
         console.log("error重接");
-        WSconnect();
+        WSConnect();
     };
 
-    const WSonclose = () => {
+    const WSOnclose = () => {
         console.log("Websocket断开连接");
         if (window.heartBeat) {
             console.log("close重接");
-            WSconnect();
+            WSConnect();
         }
     };
 
-    const WSheartbeat = () => {
+    const WSHeartBeat = () => {
         clearInterval(window.timeoutObj);
         clearTimeout(window.serverTimeoutObj);
         window.timeoutObj = setInterval(() => {
@@ -140,7 +130,7 @@ const Screen = () => {
         }, 10000);
     };
 
-    const WSclose = () => {
+    const WSClose = () => {
         window.heartBeat = false;
         console.log("关闭");
         if (window.ws) {
@@ -152,27 +142,27 @@ const Screen = () => {
 
 
     const login = () => {
-        WSconnect();
+        WSConnect();
         
         window.ws.onopen = function () {
             console.log("websocket connected");
-            WSheartbeat();
+            WSHeartBeat();
         };
         window.ws.onmessage = async function (event) {
             const data = JSON.parse(event.data);
             console.log(JSON.stringify(data));
             if (data.function === "receivelist") {
-                setReceivelist(data.receivelist.map((val: any) =>({...val})));
+                setReceiveList(data.receivelist.map((val: any) =>({...val})));
                 setReceiveRefreshing(false);    
 
             }
             if (data.function === "applylist") {
-                setApplylist(data.applylist.map((val: any) => ({...val})));
+                setApplyList(data.applylist.map((val: any) => ({...val})));
                 setApplyRefreshing(false);
 
             }
             if (data.function === "heartbeatconfirm") {
-                WSheartbeat();
+                WSHeartBeat();
             }
         };
         if (isEmail(account)){
@@ -189,7 +179,7 @@ const Screen = () => {
                     message.success(STRINGS.LOGIN_SUCCESS, 1);
                     setToken(res.token);
                     setUsername(res.username);
-                    fetchFriendlist();
+                    fetchFriendList();
                     setCurrentPage(CONS.MAIN);
                 })
                 .catch((err) => {
@@ -210,7 +200,7 @@ const Screen = () => {
                     message.success(STRINGS.LOGIN_SUCCESS, 1);
                     setToken(res.token);
                     setUsername(res.username);
-                    fetchFriendlist();
+                    fetchFriendList();
                     setCurrentPage(CONS.MAIN);
                 })
                 .catch((err) => {
@@ -249,8 +239,8 @@ const Screen = () => {
         }
     };
 
-    const fetchFriendlist = () => {
-        setFriendlistRefreshing(true);
+    const fetchFriendList = () => {
+        setFriendListRefreshing(true);
         request(
             "/api/friend/getfriendlist",
             "POST",
@@ -261,16 +251,16 @@ const Screen = () => {
         )
             .then((res) => {
                 console.log(res.friendlist);
-                setFriendlist(res.friendlist.map((val: any) => ({...val})));
-                setFriendlistRefreshing(false);
+                setFriendList(res.friendlist.map((val: any) => ({...val})));
+                setFriendListRefreshing(false);
             })
             .catch((err) => {
                 console.log(err);
-                setFriendlistRefreshing(false);
+                setFriendListRefreshing(false);
             });
     };
 
-    const deletegroup = (group:string) => {
+    const deleteGroup = (group:string) => {
         request(
             "/api/friend/deletefgroup",
             "DELETE",
@@ -279,7 +269,7 @@ const Screen = () => {
                 fgroup_name: group,
             }
         )
-            .then(() => fetchFriendlist())
+            .then(() => fetchFriendList())
             .catch((err) => message.error(err.message, 1));
     };
 
@@ -328,7 +318,6 @@ const Screen = () => {
             .catch(() => message.error("验证失败", 1));
     };
 
-
     const changePassword = () => {
         request(
             "/api/user/revise",
@@ -356,7 +345,7 @@ const Screen = () => {
         )
             .then(() => {
                 setCurrentPage(CONS.LOGIN);
-                WSclose();
+                WSClose();
             })
             .catch((err) => message.error(err.message, 1));
     };
@@ -464,9 +453,7 @@ const Screen = () => {
                 friend_name: otherUsername,
             },
         )
-            .then(() => {
-                message.success(STRINGS.FRIEND_DELETED, 1);
-            })
+            .then(() => message.success(STRINGS.FRIEND_DELETED, 1))
             .catch((err) => message.error(err.message, 1));
     };
 
@@ -611,7 +598,7 @@ const Screen = () => {
                                     注册账户
                             </Button>
                             <br />
-                            <Button type={"link"} icon={<ArrowLeftOutlined />} size={"large"}
+                            <Button type={"link"} icon={<ArrowLeftOutlined/>} size={"large"}
                                 onClick={() => setCurrentPage(CONS.LOGIN)}>
                                     返回登录
                             </Button>
@@ -627,7 +614,7 @@ const Screen = () => {
                                 <Menu theme={"dark"} defaultSelectedKeys={["1"]} mode="inline">
                                     <Menu.Item title={"聊天"} icon={<MessageOutlined/>} onClick={()=>setMecuItem(CONS.CHATFRAME)}> 聊天 </Menu.Item>
 
-                                    <Menu.Item title={"通讯录"} icon={<UsergroupAddOutlined />}> 通讯录 </Menu.Item>
+                                    <Menu.Item title={"通讯录"} icon={<UsergroupAddOutlined />} onClick={()=>setMecuItem(CONS.ADDRESSBOOK)}> 通讯录 </Menu.Item>
 
                                     <Menu.Item title={"设置"} icon={<SettingOutlined />} onClick={()=> setMecuItem(CONS.SETTINGS)}> 设置 </Menu.Item>
 
@@ -647,34 +634,76 @@ const Screen = () => {
                                 {menuItem === CONS.CHATFRAME ? (
                                     <div style={{ display: "flex", flexDirection: "row" }}>
                                         <div style={{ padding: "0 24px", backgroundColor:"#FAF0E6",  width:"20%", minHeight:"100vh" }}>
+                                            <h3> 会话列表 </h3>
+                                        </div>
+                                        <div style={{ padding: "24px", backgroundColor:"#FFF5EE",  width:"80%", minHeight:"100vh" }}>
+                                            聊天页面
+                                        </div>
+                                    </div>
+                                ) : null}
+
+                                {menuItem === CONS.ADDRESSBOOK ? (
+                                    <div style={{ display: "flex", flexDirection: "row" }}>
+                                        <div style={{ padding: "0 24px", backgroundColor:"#FAF0E6",  width:"20%", minHeight:"100vh" }}>
+                                            <Button type="default" shape={"round"} onClick={search} icon={<SearchOutlined/>} block> 搜索 </Button>
+                                            <Button type="default" shape={"round"} block icon={<UserAddOutlined />}> 新的朋友 </Button>
                                             <h3> 好友列表 </h3>
-                                            {friendlistRefreshing ? (
+                                            {friendListRefreshing ? (
                                                 <p> Loading... </p>
                                             ) : (
-                                                <div>
-                                                    {friendlist ? (
-                                                        friendlist.map((val) => (
-                                                            <div key={val.groupname}>
-                                                                <p>{val.groupname}</p>
-                                                                {val.username ? (
-                                                                    val.username.map((user) => (
-                                                                        <Button key={user.username}>
-                                                                            {user.username}
-                                                                        </Button>
-                                                                    ))
-                                                                ) : (
-                                                                    <p> 该分组为空 </p>
-                                                                )}
-                                                            </div>
-                                                        ))
-                                                    ) : (
+                                                <div style={{ padding: 12}}>
+                                                    <h5> 好友列表 </h5>
+                                                    {friendList.length === 0 ? (
                                                         <p> 无好友 </p>
+                                                    ) : (
+                                                        <List
+                                                            bordered
+                                                            dataSource={friendList}
+                                                            renderItem={(item) => (
+                                                                <List.Item
+                                                                    actions={[
+                                                                        <Button
+                                                                            key={item.groupname}
+                                                                            type="primary"
+                                                                            onClick={() => deleteGroup(item.groupname)}>
+                                                                            删除分组
+                                                                        </Button>
+                                                                    ]}
+                                                                >
+                                                                    {item.groupname}
+                                                                    {item.username.length === 0 ? (
+                                                                        <p>该分组为空</p>
+                                                                    ) : (
+                                                                        <List
+                                                                            bordered
+                                                                            dataSource={item.username}
+                                                                            renderItem={(subitem) => (
+                                                                                <List.Item
+                                                                                    actions={[
+                                                                                        <Button
+                                                                                            key={subitem.username}
+                                                                                            type="primary"
+                                                                                            onClick={() => {
+                                                                                                setOtherUsername(subitem.username);
+                                                                                                checkFriend();
+                                                                                                setCurrentPage(CONS.PUBLICINFO);
+                                                                                            }}>
+                                                                                            查看好友
+                                                                                        </Button>
+                                                                                    ]}
+                                                                                />
+                                                                            )}
+                                                                        />
+                                                                    )}
+                                                                </List.Item>
+                                                            )}
+                                                        />
                                                     )}
                                                 </div>
                                             )}
                                         </div>
                                         <div style={{ padding: "24px", backgroundColor:"#FFF5EE",  width:"80%", minHeight:"100vh" }}>
-                                            聊天页面
+                                            {}
                                         </div>
                                     </div>
                                 ) : null}
@@ -699,10 +728,6 @@ const Screen = () => {
                                             backgroundColor: "rgba(255,255,255,0.7)"
                                         }}>
                                             <h3>当前用户：{username}</h3>
-                                            <button
-                                                onClick={() => setMecuItem(CONS.SEARCH)}>
-                                                搜索用户
-                                            </button>
                                             <div style={{width: "400px", height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
                                                 <Space size={50}>
                                                     <Button size={"large"} type={"primary"}
@@ -744,7 +769,6 @@ const Screen = () => {
                                                 </div>
                                             ) : null}
 
-
                                             {changeUserInfo === CONS.REVISE_PASSWORD ? (
                                                 <div style={{margin: "5px", display: "flex", flexDirection: "column", alignItems: "center"}}>
                                                     <Input
@@ -780,7 +804,6 @@ const Screen = () => {
                                                     </Button>
                                                 </div>
                                             ) : null}
-
 
                                             {changeUserInfo === CONS.REVISE_EMAIL ? (
                                                 <div style={{margin: "5px", display: "flex", flexDirection: "column", alignItems: "center"}}>
@@ -841,7 +864,7 @@ const Screen = () => {
                                     </div>
                                 ) : null}
 
-                                {menuItem === CONS.SEARCH ? (
+                                {addressItem === CONS.SEARCH ? (
                                     <div style={{
                                         display: "flex", flexDirection: "column", paddingLeft: "150px", paddingRight: "150px",
                                         paddingTop: "5px", paddingBottom: "25px", border: "1px solid transparent", borderRadius: "20px",
@@ -950,18 +973,18 @@ const Screen = () => {
                     <div>
                         <Button type="primary" onClick={() => {
                             setCurrentPage(CONS.MAIN);
-                            fetchFriendlist();
+                            fetchFriendList();
                         }}> 返回主页面 </Button>
                         {receiveRefreshing ? (
                             <p> Loading... </p>
                         ) : (
                             <div style={{ padding: 12}}>
-                                {receivelist.length === 0 ? (
+                                {receiveList.length === 0 ? (
                                     <p> 无好友申请 </p>
                                 ) : (
                                     <List
                                         bordered
-                                        dataSource={receivelist}
+                                        dataSource={receiveList}
                                         renderItem={(item) => (
                                             <List.Item 
                                                 actions={[
@@ -998,18 +1021,18 @@ const Screen = () => {
                     <div>
                         <Button type="primary" onClick={() => {
                             setCurrentPage(CONS.MAIN);
-                            fetchFriendlist();
+                            fetchFriendList();
                         }}> 返回主页面 </Button>
                         {applyRefreshing ? (
                             <p> Loading... </p>
                         ) : (
                             <div style={{ padding: 12}}>
-                                {applylist.length === 0 ? (
+                                {applyList.length === 0 ? (
                                     <p> 无发送的好友申请 </p>
                                 ) : (
                                     <List
                                         bordered
-                                        dataSource={applylist}
+                                        dataSource={applyList}
                                         renderItem={(item) => (
                                             <List.Item key={item.username}>
                                                 {item.username} {(item.make_sure && item.is_confirmed) ? ("对方已接受") : null}
