@@ -1,4 +1,4 @@
-import LoginScreen from "../pages";
+import Screen from "../pages";
 import RegisterScreen from "../pages/registerScreen";
 import React from "react";
 import { render } from "@testing-library/react";
@@ -14,7 +14,7 @@ jest.mock("next/router", () => require("next-router-mock"));
 
 describe("页面渲染",()=>{
     it("登录",()=>{
-        render(<LoginScreen />);
+        render(<Screen />);
     });
     it("注册",()=>{
         render(<RegisterScreen />);

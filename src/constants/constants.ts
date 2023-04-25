@@ -3,12 +3,17 @@ export const NO_REVISE = 0;
 export const REVISE_USERNAME = 1;
 export const REVISE_EMAIL = 2;
 export const REVISE_PASSWORD = 3;
-export const BIND_EMAIL = 4;
-export const WRITE_OFF = 5;
+export const WRITE_OFF = 4;
 
+//页面： login register main
 export const LOGIN = 0;
 export const REGISTER = 1;
 export const MAIN = 2;
+
+//主页面菜单： chatFrame settings addressBook
+export const CHATFRAME = 0;
+export const ADDRESSBOOK = 1;
+export const SETTINGS = 2;
 export const SEARCH = 3;
 export const PRIVATEINFO = 4;
 export const PUBLICINFO = 5;
