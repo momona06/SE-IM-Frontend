@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import * as STRINGS from "../constants/string";
 import { request } from "../utils/network";
-import {message, Input, Button, Space, Layout, List, Menu} from "antd";
+import {message, Input, Button, Space, Layout, List, Menu, Spin} from "antd";
 import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined, ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined } from "@ant-design/icons";
 import { useRouter } from "next/router";
 import * as CONS from "../constants/constants";
@@ -28,10 +28,10 @@ interface roomListData {
 }
 
 interface messageListData {
-    id: string;
-    notice: string;
+    body: string;
     sender: string;
     time: string;
+    id: string;
 }
 
 export const isEmail = (val : string) => {
@@ -675,6 +675,27 @@ const Screen = () => {
                                     <div style={{ display: "flex", flexDirection: "row" }}>
                                         <div style={{ padding: "0 24px", backgroundColor:"#FAF0E6",  width:"20%", minHeight:"100vh" }}>
                                             <h3> 会话列表 </h3>
+                                            {roomListRefreshing ? (
+                                                <Spin />
+                                            ) : (
+                                                <div style={{padding: 12}}>
+                                                    {roomList.length === 0 ? (
+                                                        <p>暂无会话</p>
+                                                    ) : (
+                                                        <List
+                                                            bordered
+                                                            dataSource={roomList}
+                                                            renderItem={(item) => (
+                                                                <List.Item key={item.id}>
+                                                                    <List.Item.Meta
+                                                                        title={<Button onClick={()=>{fetchMessage(item.id); }}>{item.name}</Button>}
+                                                                    />
+                                                                </List.Item>
+                                                            )}
+                                                        />
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
                                         <div style={{ padding: "24px", backgroundColor:"#FFF5EE",  width:"80%", minHeight:"100vh" }}>
                                             聊天页面
@@ -694,7 +715,6 @@ const Screen = () => {
                                                 <p> Loading... </p>
                                             ) : (
                                                 <div style={{ padding: 12}}>
-                                                    <h5> 好友列表 </h5>
                                                     {friendList.length === 0 ? (
                                                         <p> 无好友 </p>
                                                     ) : (
@@ -724,7 +744,7 @@ const Screen = () => {
                                                                                     actions={[
                                                                                         <Button
                                                                                             key={subitem.username}
-                                                                                            type="primary"
+                                                                                            type="dashed"
                                                                                             onClick={() => {
                                                                                                 setOtherUsername(subitem.username);
                                                                                                 checkFriend();
@@ -845,7 +865,7 @@ const Screen = () => {
                                                                                     onClick={() => {
                                                                                         setOtherUsername(item.username);
                                                                                         checkFriend();
-                                                                                        setMenuItem(CONS.PUBLICINFO);
+                                                                                        setAddressItem(CONS.PUBLICINFO);
                                                                                     }}
                                                                                 >
                                                                                     查看用户界面
@@ -899,12 +919,11 @@ const Screen = () => {
                                                                 value={friendGroup}
                                                                 onChange={(e) => setFriendGroup(e.target.value)}
                                                             />
-                                                            <Button type="primary" onClick={()=>addToGroup()} >
+                                                            <Button type="primary" onClick={()=>addToGroup()}>
                                                                 确认添加至小组
                                                             </Button>
                                                         </div>
                                                     ) : null}
-                                                    <Button type="primary" onClick={() => setMenuItem(CONS.SEARCH)}> 返回搜索 </Button>
                                                 </div>
                                             ) : null}
                                         </div>
