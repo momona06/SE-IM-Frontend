@@ -177,14 +177,24 @@ const Screen = () => {
             }
             if (data.function === "fetchroom"){
                 setRoomList(data.roomlist.map((val: any) => ({...val})));
-
+                setRoomListRefreshing(false);
             }
             if (data.function === "fetchmessage"){
                 setMessageList(data.noticelist.map((val: any) => ({...val})));
-
+                setMessageListRefreshing(false);
             }
             if (data.function === "heartbeatconfirm") {
                 WSHeartBeat();
+            }
+            // 握手
+            if (data.function === "ack_message"){
+                setMessageList(data.noticelist.map((val: any) => ({...val})));
+                setMessageListRefreshing(false);
+            }
+            if (data.function === "send_message"){
+                setMessageList(data.noticelist.map((val: any) => ({...val})));
+                setMessageListRefreshing(false);
+
             }
         };
         if (isEmail(account)){
@@ -642,7 +652,7 @@ const Screen = () => {
                             />
                             <br />
                             <Button type={"primary"} shape={"round"} icon={<UserAddOutlined />} size={"large"}
-                                onClick={verifyPassword}>
+                                onClick={()=>{verifyPassword(); }}>
                                     注册账户
                             </Button>
                             <br />
@@ -707,7 +717,7 @@ const Screen = () => {
                                 {menuItem === CONS.ADDRESSBOOK ? (
                                     <div style={{ display: "flex", flexDirection: "row" }}>
                                         <div style={{ padding: "0 24px", backgroundColor:"#FAF0E6",  width:"20%", minHeight:"100vh" }}>
-                                            <Button type="default" shape={"round"} onClick={()=>{search(); setAddressItem(CONS.SEARCH);}} icon={<SearchOutlined/>} block> 搜索 </Button>
+                                            <Button type="default" shape={"round"} onClick={()=>setAddressItem(CONS.SEARCH)} icon={<SearchOutlined/>} block> 搜索 </Button>
                                             <Button type="default" shape={"round"} onClick={() => {setAddressItem(CONS.NEWFRIEND); fetchReceiveList(); fetchApplyList();}} block icon={<UserAddOutlined />}> 新的朋友 </Button>
 
                                             <h3> 好友列表 </h3>
@@ -871,7 +881,7 @@ const Screen = () => {
                                                                                     查看用户界面
                                                                                 </Button>
                                                                             ]}>
-                                                                            {item.username}
+                                                                            <div>{item.username}</div>
                                                                         </List.Item>
                                                                     )}
                                                                 />
@@ -884,7 +894,7 @@ const Screen = () => {
                                             {addressItem === CONS.PUBLICINFO ? (
                                                 <div style={{
                                                     display: "flex", flexDirection: "column", paddingLeft: "150px", paddingRight: "150px",
-                                                    paddingTop: "5px", paddingBottom: "25px", border: "2px solid #00BFFF", borderRadius: "20px",
+                                                    paddingTop: "5px", paddingBottom: "25px", border: "1px solid transparent", borderRadius: "20px",
                                                     alignItems: "center", backgroundColor: "rgba(255,255,255,0.7)"
                                                 }}>
                                                     <h1>{otherUsername}</h1>
