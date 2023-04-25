@@ -5,6 +5,7 @@ import {message, Input, Button, Space, Layout, List, Menu} from "antd";
 import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined, ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined } from "@ant-design/icons";
 import { useRouter } from "next/router";
 import * as CONS from "../constants/constants";
+import moment from "moment";
 
 interface friendListData {
     groupname: string;
@@ -19,6 +20,18 @@ interface receiveData {
     username: string;
     is_confirmed: boolean;
     make_sure: boolean;
+}
+
+interface roomListData {
+    name: string;
+    id: string;
+}
+
+interface messageListData {
+    id: string;
+    notice: string;
+    sender: string;
+    time: string;
 }
 
 export const isEmail = (val : string) => {
@@ -37,7 +50,7 @@ const Screen = () => {
     const [sms, setSms] = useState<string>("");
 
     const [currentPage, setCurrentPage] = useState<number>(CONS.LOGIN);
-    const [menuItem, setMecuItem] = useState<number>(CONS.CHATFRAME);
+    const [menuItem, setMenuItem] = useState<number>(CONS.CHATFRAME);
 
     const [token, setToken] = useState<number>(0);
 
@@ -62,6 +75,10 @@ const Screen = () => {
     const [applyList, setApplyList] = useState<receiveData[]>([]);
     const [applyRefreshing, setApplyRefreshing] = useState<boolean>(false);
 
+    const [roomList, setRoomList] = useState<roomListData[]>([]);
+    const [roomListRefreshing, setRoomListRefreshing] = useState<boolean>(true);
+    const [messageList, setMessageList] = useState<messageListData[]>([]);
+    const [messageListRefreshing, setMessageListRefreshing] = useState<boolean>(false);
 
     const [otherUsername, setOtherUsername] = useState<string>("");
     const [isFriend, setIsFriend] = useState<boolean>(false);
@@ -75,7 +92,6 @@ const Screen = () => {
         if(!router.isReady) {
             return;
         }
-
         if(currentPage === CONS.MAIN) {
             fetchFriendList();
         }
@@ -153,12 +169,18 @@ const Screen = () => {
             console.log(JSON.stringify(data));
             if (data.function === "receivelist") {
                 setReceiveList(data.receivelist.map((val: any) =>({...val})));
-                setReceiveRefreshing(false);    
-
+                setReceiveRefreshing(false);
             }
             if (data.function === "applylist") {
                 setApplyList(data.applylist.map((val: any) => ({...val})));
                 setApplyRefreshing(false);
+            }
+            if (data.function === "fetchroom"){
+                setRoomList(data.roomlist.map((val: any) => ({...val})));
+
+            }
+            if (data.function === "fetchmessage"){
+                setMessageList(data.noticelist.map((val: any) => ({...val})));
 
             }
             if (data.function === "heartbeatconfirm") {
@@ -386,10 +408,9 @@ const Screen = () => {
                     setSearchRefreshing(false);
                 });
         }
-        
     };
 
-    const fetchReceivelist = () => {
+    const fetchReceiveList = () => {
         setReceiveRefreshing(true);
         const data = {
             "direction": "/friend/client2server",
@@ -399,7 +420,7 @@ const Screen = () => {
         window.ws.send(JSON.stringify(data));
     };
 
-    const fetchApplylist = () => {
+    const fetchApplyList = () => {
         setApplyRefreshing(true);
         const data = {
             "direction": "/friend/client2server",
@@ -498,6 +519,33 @@ const Screen = () => {
         
             })
             .catch((err) => message.error(err.message, 1));
+    };
+
+    const fetchRoom = () => {
+        setRoomListRefreshing(true);
+        const data = {
+            "username": username,
+        };
+        window.ws.send(JSON.stringify(data));
+    };
+
+    const fetchMessage = (id: string) => {
+        setMessageListRefreshing(true);
+        const data = {
+            "id": id,
+            "username": username,
+        };
+        window.ws.send(JSON.stringify((data)));
+    };
+
+    const sendMessage = (id: string) => {
+        const date = new Date();
+        const data = {
+            "id": id,
+            "username": username,
+            "time": moment(date).format("YYYY-MM-DD hh:mm:ss"),
+        };
+        window.ws.send(JSON.stringify(data));
     };
 
     return (
@@ -612,11 +660,11 @@ const Screen = () => {
                         <Layout style={{ minHeight: "100vh" }}>
                             <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
                                 <Menu theme={"dark"} defaultSelectedKeys={["1"]} mode="inline">
-                                    <Menu.Item title={"聊天"} icon={<MessageOutlined/>} key={"1"} onClick={()=>setMecuItem(CONS.CHATFRAME)}> 聊天 </Menu.Item>
+                                    <Menu.Item title={"聊天"} icon={<MessageOutlined/>} key={"1"} onClick={()=>setMenuItem(CONS.CHATFRAME)}> 聊天 </Menu.Item>
 
-                                    <Menu.Item title={"通讯录"} icon={<UsergroupAddOutlined />} key={"2"} onClick={()=>setMecuItem(CONS.ADDRESSBOOK)}> 通讯录 </Menu.Item>
+                                    <Menu.Item title={"通讯录"} icon={<UsergroupAddOutlined />} key={"2"} onClick={()=>setMenuItem(CONS.ADDRESSBOOK)}> 通讯录 </Menu.Item>
 
-                                    <Menu.Item title={"设置"} icon={<SettingOutlined />} key={"3"} onClick={()=> setMecuItem(CONS.SETTINGS)}> 设置 </Menu.Item>
+                                    <Menu.Item title={"设置"} icon={<SettingOutlined />} key={"3"} onClick={()=> setMenuItem(CONS.SETTINGS)}> 设置 </Menu.Item>
                                 </Menu>
                             </Sider>
 
@@ -639,7 +687,7 @@ const Screen = () => {
                                     <div style={{ display: "flex", flexDirection: "row" }}>
                                         <div style={{ padding: "0 24px", backgroundColor:"#FAF0E6",  width:"20%", minHeight:"100vh" }}>
                                             <Button type="default" shape={"round"} onClick={()=>{search(); setAddressItem(CONS.SEARCH);}} icon={<SearchOutlined/>} block> 搜索 </Button>
-                                            <Button type="default" shape={"round"} onClick={() => {setAddressItem(CONS.NEWFRIEND); fetchReceivelist(); fetchApplylist();}} block icon={<UserAddOutlined />}> 新的朋友 </Button>
+                                            <Button type="default" shape={"round"} onClick={() => {setAddressItem(CONS.NEWFRIEND); fetchReceiveList(); fetchApplyList();}} block icon={<UserAddOutlined />}> 新的朋友 </Button>
 
                                             <h3> 好友列表 </h3>
                                             {friendListRefreshing ? (
@@ -797,7 +845,7 @@ const Screen = () => {
                                                                                     onClick={() => {
                                                                                         setOtherUsername(item.username);
                                                                                         checkFriend();
-                                                                                        setMecuItem(CONS.PUBLICINFO);
+                                                                                        setMenuItem(CONS.PUBLICINFO);
                                                                                     }}
                                                                                 >
                                                                                     查看用户界面
@@ -856,7 +904,7 @@ const Screen = () => {
                                                             </Button>
                                                         </div>
                                                     ) : null}
-                                                    <Button type="primary" onClick={() => setMecuItem(CONS.SEARCH)}> 返回搜索 </Button>
+                                                    <Button type="primary" onClick={() => setMenuItem(CONS.SEARCH)}> 返回搜索 </Button>
                                                 </div>
                                             ) : null}
                                         </div>
