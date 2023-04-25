@@ -612,11 +612,11 @@ const Screen = () => {
                         <Layout style={{ minHeight: "100vh" }}>
                             <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
                                 <Menu theme={"dark"} defaultSelectedKeys={["1"]} mode="inline">
-                                    <Menu.Item title={"聊天"} icon={<MessageOutlined/>} key={1} onClick={()=>setMecuItem(CONS.CHATFRAME)}> 聊天 </Menu.Item>
+                                    <Menu.Item title={"聊天"} icon={<MessageOutlined/>} key={"1"} onClick={()=>setMecuItem(CONS.CHATFRAME)}> 聊天 </Menu.Item>
 
-                                    <Menu.Item title={"通讯录"} icon={<UsergroupAddOutlined />} key={2} onClick={()=>setMecuItem(CONS.ADDRESSBOOK)}> 通讯录 </Menu.Item>
+                                    <Menu.Item title={"通讯录"} icon={<UsergroupAddOutlined />} key={"2"} onClick={()=>setMecuItem(CONS.ADDRESSBOOK)}> 通讯录 </Menu.Item>
 
-                                    <Menu.Item title={"设置"} icon={<SettingOutlined />} key={3} onClick={()=> setMecuItem(CONS.SETTINGS)}> 设置 </Menu.Item>
+                                    <Menu.Item title={"设置"} icon={<SettingOutlined />} key={"3"} onClick={()=> setMecuItem(CONS.SETTINGS)}> 设置 </Menu.Item>
                                 </Menu>
                             </Sider>
 
@@ -639,7 +639,7 @@ const Screen = () => {
                                     <div style={{ display: "flex", flexDirection: "row" }}>
                                         <div style={{ padding: "0 24px", backgroundColor:"#FAF0E6",  width:"20%", minHeight:"100vh" }}>
                                             <Button type="default" shape={"round"} onClick={()=>{search(); setAddressItem(CONS.SEARCH);}} icon={<SearchOutlined/>} block> 搜索 </Button>
-                                            <Button type="default" shape={"round"} block icon={<UserAddOutlined />} onClick={() => {setAddressItem(CONS.NEWFRIEND); fetchReceivelist(); fetchApplylist();}}> 新的朋友 </Button>
+                                            <Button type="default" shape={"round"} onClick={() => {setAddressItem(CONS.NEWFRIEND); fetchReceivelist(); fetchApplylist();}} block icon={<UserAddOutlined />}> 新的朋友 </Button>
 
                                             <h3> 好友列表 </h3>
                                             {friendListRefreshing ? (
