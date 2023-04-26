@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import * as STRINGS from "../constants/string";
 import { request } from "../utils/network";
-import {message, Input, Button, Space, Layout, List, Menu, Spin} from "antd";
+import {message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar} from "antd";
 import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined, ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined } from "@ant-design/icons";
 import { useRouter } from "next/router";
 import * as CONS from "../constants/constants";
@@ -9,7 +9,7 @@ import moment from "moment";
 
 interface friendListData {
     groupname: string;
-    username: searchData[];
+    username: string[];
 }
 
 interface searchData {
@@ -446,7 +446,6 @@ const Screen = () => {
             "from": other,
             "to": username,
             "username": username,
-            "direction": "/friend/client2server"
         };
         window.ws.send(JSON.stringify(data));
         console.log(other);
@@ -458,14 +457,12 @@ const Screen = () => {
             "from": other,
             "to": username,
             "username": username,
-            "direction": "/friend/client2server"
         };
         window.ws.send(JSON.stringify(data));
     };
 
     const addFriend = () => {
         const data = {
-            "direction": "/friend/client2server",
             "from": username,
             "to": otherUsername,
             "function": "apply",
@@ -729,7 +726,6 @@ const Screen = () => {
                                                         <p> 无好友 </p>
                                                     ) : (
                                                         <List
-                                                            bordered
                                                             dataSource={friendList}
                                                             renderItem={(item) => (
                                                                 <List.Item
@@ -747,23 +743,30 @@ const Screen = () => {
                                                                         <p>该分组为空</p>
                                                                     ) : (
                                                                         <List
-                                                                            bordered
                                                                             dataSource={item.username}
-                                                                            renderItem={(subitem) => (
+                                                                            renderItem={(subItem) => (
                                                                                 <List.Item
-                                                                                    actions={[
-                                                                                        <Button
-                                                                                            key={subitem.username}
-                                                                                            type="dashed"
-                                                                                            onClick={() => {
-                                                                                                setOtherUsername(subitem.username);
-                                                                                                checkFriend();
-                                                                                                setAddressItem(CONS.PUBLICINFO);
-                                                                                            }}>
-                                                                                            查看好友
-                                                                                        </Button>
-                                                                                    ]}
-                                                                                />
+                                                                                    actions={[<Button
+                                                                                        key={subItem}
+                                                                                        type="text"
+                                                                                        onClick={() => {
+                                                                                            setOtherUsername(subItem);
+                                                                                            console.log(subItem);
+                                                                                            checkFriend();
+                                                                                            setAddressItem(CONS.PUBLICINFO);
+                                                                                        }}>
+                                                                                        查看好友
+                                                                                    </Button>]}>
+
+                                                                                    <List.Item.Meta
+                                                                                        title={subItem}
+                                                                                        avatar={
+                                                                                            <Badge count={1}>
+                                                                                                <Avatar icon={<UserOutlined />}/>
+                                                                                            </Badge>
+                                                                                        }
+                                                                                    />
+                                                                                </List.Item>
                                                                             )}
                                                                         />
                                                                     )}
