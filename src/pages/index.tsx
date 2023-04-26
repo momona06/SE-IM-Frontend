@@ -102,6 +102,7 @@ const Screen = () => {
             console.log(JSON.stringify(data));
             if (data.function === "receivelist") {
                 setReceiveList(data.receivelist.map((val: any) =>({...val})));
+
                 setReceiveRefreshing(false);
             }
             if (data.function === "applylist") {
@@ -260,6 +261,7 @@ const Screen = () => {
             {
                 token: token,
                 fgroup_name: group,
+                username: username,
             }
         )
             .then(() => fetchFriendList())
@@ -782,7 +784,7 @@ const Screen = () => {
                                                                                     disabled={item.make_sure}
                                                                                     key = {item.username + "1"}
                                                                                     type="primary"
-                                                                                    onClick={() => accept(item.username)}
+                                                                                    onClick={() => {accept(item.username); fetchApplyList(); fetchReceiveList();}}
                                                                                 >
                                                                                     接受申请
                                                                                 </Button>,
@@ -790,7 +792,7 @@ const Screen = () => {
                                                                                     disabled={item.make_sure}
                                                                                     key={item.username + "2"}
                                                                                     type="primary"
-                                                                                    onClick={() => decline(item.username)}
+                                                                                    onClick={() => {decline(item.username); fetchApplyList(); fetchReceiveList();}}
                                                                                 >
                                                                                     拒绝申请
                                                                                 </Button>
@@ -916,7 +918,7 @@ const Screen = () => {
                                                                 value={friendGroup}
                                                                 onChange={(e) => setFriendGroup(e.target.value)}
                                                             />
-                                                            <Button type="primary" onClick={()=>addToGroup()}>
+                                                            <Button type="primary" onClick={()=> {addToGroup(); fetchFriendList();}}>
                                                                 确认添加至小组
                                                             </Button>
                                                         </div>
