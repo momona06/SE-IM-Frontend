@@ -1,10 +1,11 @@
 import React, {useRef, useState } from "react";
 import * as STRINGS from "../constants/string";
 import { request } from "../utils/network";
-import {message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar } from "antd";
+import {message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar} from "antd";
 import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined, ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined } from "@ant-design/icons";
 import * as CONS from "../constants/constants";
 import moment from "moment";
+import TextArea from "antd/lib/input/TextArea";
 
 interface friendListData {
     groupname: string;
@@ -81,9 +82,39 @@ const Screen = () => {
     const [messageListRefreshing, setMessageListRefreshing] = useState<boolean>(false);
 
     const otherUsername = useRef("");
+
+    const [messageBody, setMessageBody] = useState<string>("");
+    const [roomID, setRoomID] = useState<string>("");
+
     const [isFriend, setIsFriend] = useState<boolean>(false);
     const [friendGroup, setFriendGroup] = useState<string>("");
     const [box, setBox] = useState<number>(0);
+
+    useEffect(() => {
+        if(currentPage === CONS.MAIN)
+        {
+            if(menuItem === CONS.ADDRESSBOOK)
+            {
+                fetchFriendList();
+            }
+            if(menuItem === CONS.CHATFRAME)
+            {
+                fetchRoom();
+                fetchMessageList();
+            }
+        }
+    }, [currentPage, menuItem]);
+
+    const querygroup = (groupname: string) => {
+        for(var i = 0; i < friendList.length; i++)
+        {
+            if(friendList[i].groupname === groupname)
+            {
+                return i;
+            }
+        }
+        return -1;
+    }
 
     const WSConnect = () => {
         window.ws = new WebSocket("wss://se-im-backend-overflowlab.app.secoder.net/wsconnect");
@@ -376,7 +407,6 @@ const Screen = () => {
                 .then((res) => {
                     setSearchList(res.search_user_list.map((val: any) =>({username: val})));
                     setSearchRefreshing(false);
-
                 })
                 .catch((err) => {
                     message.error(err.message, 1);
@@ -461,7 +491,6 @@ const Screen = () => {
     };
 
     const checkFriend = () => {
-        console.log("checkname：", otherUsername.current);
         request(
             "api/friend/checkuser",
             "POST",
@@ -538,7 +567,8 @@ const Screen = () => {
         const data = {
             "function": "sendmessage",
             "id": id,
-            "username": username,
+            "body": messageBody,
+            "sender": username,
             "time": moment(date).format("YYYY-MM-DD hh:mm:ss"),
         };
         window.ws.send(JSON.stringify(data));
@@ -656,9 +686,9 @@ const Screen = () => {
                         <Layout style={{ minHeight: "100vh" }}>
                             <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
                                 <Menu theme={"dark"} defaultSelectedKeys={["1"]} mode="inline">
-                                    <Menu.Item title={"聊天"} icon={<MessageOutlined/>} key={"1"} onClick={()=> {fetchRoom(); setMenuItem(CONS.CHATFRAME);}}> 聊天 </Menu.Item>
+                                    <Menu.Item title={"聊天"} icon={<MessageOutlined/>} key={"1"} onClick={()=> setMenuItem(CONS.CHATFRAME)}> 聊天 </Menu.Item>
 
-                                    <Menu.Item title={"通讯录"} icon={<UsergroupAddOutlined />} key={"2"} onClick={()=> {fetchFriendList(); setMenuItem(CONS.ADDRESSBOOK);}}> 通讯录 </Menu.Item>
+                                    <Menu.Item title={"通讯录"} icon={<UsergroupAddOutlined />} key={"2"} onClick={()=> setMenuItem(CONS.ADDRESSBOOK)}> 通讯录 </Menu.Item>
 
                                     <Menu.Item title={"设置"} icon={<SettingOutlined />} key={"3"} onClick={()=> setMenuItem(CONS.SETTINGS)}> 设置 </Menu.Item>
                                 </Menu>
@@ -692,9 +722,59 @@ const Screen = () => {
                                                 </div>
                                             )}
                                         </div>
-                                        <div style={{ padding: "24px", backgroundColor:"#FFF5EE",  width:"80%", minHeight:"100vh" }}>
-                                            聊天页面
-                                        </div>
+                                        <div style={{ backgroundColor:"#FFF5EE",  width:"80%", minHeight:"100vh" }}>
+                                            <div style={{padding: "24px", height: "10vh"}}>
+                                                <h1> *用户/群聊名 </h1>
+                                            </div>
+                                            <div style={{padding: "24px", position: "relative", height: "74vh", left: 0, right: 0, overflow: "auto"}}>
+                                                <List
+                                                    dataSource={messageList}
+                                                    renderItem={(item) => (
+                                                        <List.Item
+                                                            key={item.id}
+                                                        >
+                                                            {item.sender === username ? (
+                                                                <div style={{ display: "flex", flexDirection: "row-reverse", justifyContent: "flex-start", marginLeft: "auto"}}>
+                                                                    <div style={{display: "flex", flexDirection: "column"}}>
+                                                                        <List.Item.Meta avatar={<Avatar src={"https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxgeticon?seq=239472774&username=@c8ef32eea4f34c3becfba86e70bd5320e33c7eba9d35d382ed6185b9c3efbfe0&skey=@crypt_6df0f029_14c4f0a85beaf972ec58feb5ca7dc0e0"}/>}/>
+                                                                        <h6>{item.sender}</h6>
+                                                                    </div>
+                                                                    <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#66B7FF"}}>
+                                                                        <p>{item.body}</p>
+                                                                        <h6>{item.time}</h6>
+                                                                    </div>
+                                                                </div>
+                                                            ) : (
+                                                                <div style={{ display: "flex", flexDirection: "row"}}>
+                                                                    <div style={{display: "flex", flexDirection: "column"}}>
+                                                                        <List.Item.Meta avatar={<Avatar src={"https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxgeticon?seq=239472774&username=@c8ef32eea4f34c3becfba86e70bd5320e33c7eba9d35d382ed6185b9c3efbfe0&skey=@crypt_6df0f029_14c4f0a85beaf972ec58feb5ca7dc0e0"}/>}/>
+                                                                        <h6>{item.sender}</h6>
+                                                                    </div>
+                                                                    <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF"}}>
+                                                                        <p>{item.body}</p>
+                                                                        <h6>{item.time}</h6>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </List.Item>
+                                                    )}
+                                                />
+                                            </div>
+                                            <div style={{ padding: "24px", position: "relative", display: "flex", flexDirection: "row", bottom: 0, left: 0, right: 0, height: "16vh" }}>
+                                                <TextArea
+                                                    bordered
+                                                    allowClear
+                                                    style={{left: 0, right: 0}}
+                                                    value={messageBody}
+                                                    onChange={(e) => setMessageBody(e.target.value)}
+                                                />
+                                                <Button
+                                                    type="primary"
+                                                    onClick={() => sendMessage(roomID)}
+                                                >
+                                                    发送
+                                                </Button>
+                                            </div>                                        </div>
                                     </div>
                                 ) : null}
 
@@ -721,7 +801,7 @@ const Screen = () => {
                                                                         <Button
                                                                             key={item.groupname}
                                                                             type="text"
-                                                                            onClick={() => {deleteGroup(item.groupname); fetchFriendList();}}>
+                                                                            onClick={() => deleteGroup(item.groupname)}>
                                                                             删除分组
                                                                         </Button>
                                                                     ]}
@@ -784,7 +864,7 @@ const Screen = () => {
                                                                                     disabled={item.make_sure}
                                                                                     key = {item.username + "1"}
                                                                                     type="primary"
-                                                                                    onClick={() => {accept(item.username); fetchApplyList(); fetchReceiveList();}}
+                                                                                    onClick={() => accept(item.username)}
                                                                                 >
                                                                                     接受申请
                                                                                 </Button>,
@@ -792,7 +872,7 @@ const Screen = () => {
                                                                                     disabled={item.make_sure}
                                                                                     key={item.username + "2"}
                                                                                     type="primary"
-                                                                                    onClick={() => {decline(item.username); fetchApplyList(); fetchReceiveList();}}
+                                                                                    onClick={() => decline(item.username)}
                                                                                 >
                                                                                     拒绝申请
                                                                                 </Button>
