@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import * as STRINGS from "../constants/string";
 import { request } from "../utils/network";
-import {message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar} from "antd";
+import {message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar } from "antd";
 import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined, ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined } from "@ant-design/icons";
 import * as CONS from "../constants/constants";
 import moment from "moment";
@@ -234,6 +234,7 @@ const Screen = () => {
             .then(() => {
                 message.success(STRINGS.REGISTER_SUCCESS, 1);
                 setCurrentPage(CONS.LOGIN);
+                getPassword("");
             })
             .catch((err) => message.error(err.message, 1));
     };
@@ -393,6 +394,7 @@ const Screen = () => {
                 .then((res) => {
                     setSearchList(res.search_user_list.map((val: any) =>({username: val})));
                     setSearchRefreshing(false);
+
                 })
                 .catch((err) => {
                     message.error(err.message, 1);
@@ -833,8 +835,8 @@ const Screen = () => {
                                                     alignItems: "center", backgroundColor: "rgba(255,255,255,0.7)"
                                                 }}>
                                                     <h1> 搜索用户 </h1>
-                                                    <Space.Compact>
-                                                        <Input style={{ width: "400px", height: "50px", margin: "5px", borderRadius: "12px", borderColor: "#00BFFF" }}
+                                                    <Space.Compact style={{ width: "80%" }}>
+                                                        <Input
                                                             type="text"
                                                             placeholder="请填写用户名"
                                                             value={searchName}
