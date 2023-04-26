@@ -1,4 +1,4 @@
-import React, {useRef, useState } from "react";
+import React, {useEffect, useRef, useState } from "react";
 import * as STRINGS from "../constants/string";
 import { request } from "../utils/network";
 import {message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar} from "antd";
@@ -51,7 +51,7 @@ const Screen = () => {
     const [sms, setSms] = useState<string>("");
 
     const [currentPage, setCurrentPage] = useState<number>(CONS.LOGIN);
-    const [menuItem, setMenuItem] = useState<number>(CONS.CHATFRAME);
+    const [menuItem, setMenuItem] = useState<number>(CONS.EMPTY);
     const [addressItem, setAddressItem] = useState<number>(CONS.EMPTY);
 
     const [token, setToken] = useState<number>(0);
@@ -100,41 +100,30 @@ const Screen = () => {
             if(menuItem === CONS.CHATFRAME)
             {
                 fetchRoom();
-                fetchMessageList();
+                // todo: messageList
             }
         }
     }, [currentPage, menuItem]);
 
-    const querygroup = (groupname: string) => {
-        for(var i = 0; i < friendList.length; i++)
-        {
-            if(friendList[i].groupname === groupname)
-            {
-                return i;
-            }
-        }
-        return -1;
-    }
-
     const WSConnect = () => {
         window.ws = new WebSocket("wss://se-im-backend-overflowlab.app.secoder.net/wsconnect");
         console.log("开始连接");
+        window.ws.onopen = function () {
+            console.log("websocket connected");
+            setMenuItem(CONS.CHATFRAME);
+            WSHeartBeat();
+        };
         window.ws.onclose = function () {
             WSOnclose();
         };
         window.ws.onerror = function () {
             WSOnerror();
         };
-        window.ws.onopen = function () {
-            console.log("websocket connected");
-            WSHeartBeat();
-        };
         window.ws.onmessage = async function (event) {
             const data = JSON.parse(event.data);
             console.log(JSON.stringify(data));
             if (data.function === "receivelist") {
                 setReceiveList(data.receivelist.map((val: any) =>({...val})));
-
                 setReceiveRefreshing(false);
             }
             if (data.function === "applylist") {
@@ -544,6 +533,7 @@ const Screen = () => {
     };
 
     const fetchRoom = () => {
+        console.log("发送fetchroom请求");
         setRoomListRefreshing(true);
         const data = {
             "function": "fetchroom",
@@ -713,7 +703,7 @@ const Screen = () => {
                                                             renderItem={(item) => (
                                                                 <List.Item key={item.id}>
                                                                     <List.Item.Meta
-                                                                        title={<Button onClick={()=>{fetchMessage(item.id); }}>{item.name}</Button>}
+                                                                        title={<Button type={"text"} onClick={()=>{ fetchMessage(item.id); }}> {item.name} </Button>}
                                                                     />
                                                                 </List.Item>
                                                             )}
@@ -774,7 +764,8 @@ const Screen = () => {
                                                 >
                                                     发送
                                                 </Button>
-                                            </div>                                        </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 ) : null}
 
@@ -801,7 +792,7 @@ const Screen = () => {
                                                                         <Button
                                                                             key={item.groupname}
                                                                             type="text"
-                                                                            onClick={() => deleteGroup(item.groupname)}>
+                                                                            onClick={() => {deleteGroup(item.groupname); fetchFriendList();}}>
                                                                             删除分组
                                                                         </Button>
                                                                     ]}
@@ -813,19 +804,17 @@ const Screen = () => {
                                                                         <List
                                                                             dataSource={item.username}
                                                                             renderItem={(subItem) => (
-                                                                                <List.Item
-                                                                                    actions={[<Button
-                                                                                        key={subItem}
-                                                                                        type="text"
-                                                                                        onClick={() => {
-                                                                                            otherUsername.current = subItem;
-                                                                                            checkFriend();
-                                                                                        }}>
-                                                                                        查看
-                                                                                    </Button>]}>
-
+                                                                                <List.Item>
                                                                                     <List.Item.Meta
-                                                                                        title={subItem}
+                                                                                        title={<Button
+                                                                                            key={subItem}
+                                                                                            type="text"
+                                                                                            onClick={() => {
+                                                                                                otherUsername.current = subItem;
+                                                                                                checkFriend();
+                                                                                            }}>
+                                                                                            { subItem }
+                                                                                        </Button>}
                                                                                         avatar={
                                                                                             <Badge count={1}>
                                                                                                 <Avatar icon={<UserOutlined />}/>
@@ -864,7 +853,7 @@ const Screen = () => {
                                                                                     disabled={item.make_sure}
                                                                                     key = {item.username + "1"}
                                                                                     type="primary"
-                                                                                    onClick={() => accept(item.username)}
+                                                                                    onClick={() => {accept(item.username); fetchReceiveList(); fetchApplyList(); fetchFriendList();}}
                                                                                 >
                                                                                     接受申请
                                                                                 </Button>,
@@ -872,7 +861,7 @@ const Screen = () => {
                                                                                     disabled={item.make_sure}
                                                                                     key={item.username + "2"}
                                                                                     type="primary"
-                                                                                    onClick={() => decline(item.username)}
+                                                                                    onClick={() => {decline(item.username); fetchReceiveList(); fetchApplyList(); fetchFriendList();}}
                                                                                 >
                                                                                     拒绝申请
                                                                                 </Button>
