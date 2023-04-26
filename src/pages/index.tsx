@@ -88,21 +88,6 @@ const Screen = () => {
     const router = useRouter();
     const query = router.query;
 
-    useEffect(() => {
-        if(!router.isReady) {
-            return;
-        }
-        if(currentPage === CONS.MAIN) {
-            fetchFriendList();
-        }
-        if(currentPage === CONS.SEARCH) {
-            search();
-        }
-        if(currentPage === CONS.PUBLICINFO) {
-            checkFriend();
-        }
-    }, [router, query, currentPage]);
-
     const WSConnect = () => {
         window.ws = new WebSocket("wss://se-im-backend-overflowlab.app.secoder.net/wsconnect");
         console.log("开始连接");
@@ -448,7 +433,6 @@ const Screen = () => {
             "username": username,
         };
         window.ws.send(JSON.stringify(data));
-        console.log(other);
     };
 
     const decline = (other: string) => {
@@ -481,7 +465,11 @@ const Screen = () => {
                 friend_name: otherUsername,
             },
         )
-            .then(() => message.success(STRINGS.FRIEND_DELETED, 1))
+            .then(() => {
+                message.success(STRINGS.FRIEND_DELETED, 1);
+                fetchFriendList();
+                setAddressItem(CONS.EMPTY);
+            })
             .catch((err) => message.error(err.message, 1));
     };
 
@@ -497,6 +485,7 @@ const Screen = () => {
         )
             .then((res) => {
                 setIsFriend(res.is_friend);
+                setAddressItem(CONS.PUBLICINFO);
             })
             .catch((err) => console.log(err));
     };
@@ -667,9 +656,9 @@ const Screen = () => {
                         <Layout style={{ minHeight: "100vh" }}>
                             <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
                                 <Menu theme={"dark"} defaultSelectedKeys={["1"]} mode="inline">
-                                    <Menu.Item title={"聊天"} icon={<MessageOutlined/>} key={"1"} onClick={()=>setMenuItem(CONS.CHATFRAME)}> 聊天 </Menu.Item>
+                                    <Menu.Item title={"聊天"} icon={<MessageOutlined/>} key={"1"} onClick={()=> {setMenuItem(CONS.CHATFRAME); fetchRoom();}}> 聊天 </Menu.Item>
 
-                                    <Menu.Item title={"通讯录"} icon={<UsergroupAddOutlined />} key={"2"} onClick={()=>setMenuItem(CONS.ADDRESSBOOK)}> 通讯录 </Menu.Item>
+                                    <Menu.Item title={"通讯录"} icon={<UsergroupAddOutlined />} key={"2"} onClick={()=> {setMenuItem(CONS.ADDRESSBOOK); fetchFriendList();}}> 通讯录 </Menu.Item>
 
                                     <Menu.Item title={"设置"} icon={<SettingOutlined />} key={"3"} onClick={()=> setMenuItem(CONS.SETTINGS)}> 设置 </Menu.Item>
                                 </Menu>
@@ -732,7 +721,7 @@ const Screen = () => {
                                                                     actions={[
                                                                         <Button
                                                                             key={item.groupname}
-                                                                            type="primary"
+                                                                            type="text"
                                                                             onClick={() => deleteGroup(item.groupname)}>
                                                                             删除分组
                                                                         </Button>
@@ -751,11 +740,9 @@ const Screen = () => {
                                                                                         type="text"
                                                                                         onClick={() => {
                                                                                             setOtherUsername(subItem);
-                                                                                            console.log(subItem);
                                                                                             checkFriend();
-                                                                                            setAddressItem(CONS.PUBLICINFO);
                                                                                         }}>
-                                                                                        查看好友
+                                                                                        查看
                                                                                     </Button>]}>
 
                                                                                     <List.Item.Meta
@@ -878,7 +865,6 @@ const Screen = () => {
                                                                                     onClick={() => {
                                                                                         setOtherUsername(item.username);
                                                                                         checkFriend();
-                                                                                        setAddressItem(CONS.PUBLICINFO);
                                                                                     }}
                                                                                 >
                                                                                     查看用户界面

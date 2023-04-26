@@ -20,3 +20,4 @@ export const SETTINGS = 2;
 export const NEWFRIEND = 0;
 export const PUBLICINFO = 1;
 export const SEARCH = 3;
+export const EMPTY = -1;
