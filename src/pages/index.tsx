@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, {useRef, useState } from "react";
 import * as STRINGS from "../constants/string";
 import { request } from "../utils/network";
 import {message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar } from "antd";
@@ -79,7 +79,7 @@ const Screen = () => {
     const [messageList, setMessageList] = useState<messageListData[]>([]);
     const [messageListRefreshing, setMessageListRefreshing] = useState<boolean>(false);
 
-    const [otherUsername, setOtherUsername] = useState<string>("");
+    const otherUsername = useRef("");
     const [isFriend, setIsFriend] = useState<boolean>(false);
     const [friendGroup, setFriendGroup] = useState<string>("");
     const [box, setBox] = useState<number>(0);
@@ -111,7 +111,6 @@ const Screen = () => {
             if (data.function === "friendlist") {
                 setFriendList(data.friendlist.map((val: any) => ({...val})));
                 setFriendListRefreshing(false);
-                console.log("接收的列表：", friendList);
             }
             if (data.function === "fetchroom"){
                 setRoomList(data.roomlist.map((val: any) => ({...val})));
@@ -434,7 +433,7 @@ const Screen = () => {
         const data = {
             "function": "apply",
             "from": username,
-            "to": otherUsername,
+            "to": otherUsername.current,
             "username": username
         };
         window.ws.send(JSON.stringify(data));
@@ -447,7 +446,7 @@ const Screen = () => {
             {
                 username: username,
                 token: token,
-                friend_name: otherUsername,
+                friend_name: otherUsername.current,
             },
         )
             .then(() => {
@@ -459,17 +458,17 @@ const Screen = () => {
     };
 
     const checkFriend = () => {
+        console.log("checkname：", otherUsername.current);
         request(
             "api/friend/checkuser",
             "POST",
             {
                 my_username: username,
-                check_name: otherUsername,
+                check_name: otherUsername.current,
                 token: token
             },
         )
             .then((res) => {
-                console.log("checkname：", otherUsername);
                 setIsFriend(res.is_friend);
                 setAddressItem(CONS.PUBLICINFO);
             })
@@ -482,7 +481,7 @@ const Screen = () => {
             if (arr.groupname === friendGroup){
                 flag = 1;
                 return;
-            }
+            };
         })
         // 若不存在则创建
         if (flag === 0){
@@ -505,7 +504,7 @@ const Screen = () => {
                 token: token,
                 username: username,
                 fgroup_name: friendGroup,
-                friend_name: otherUsername,
+                friend_name: otherUsername.current,
             },
         )
             .then(() => message.success(STRINGS.FRIEND_GROUP_ADDED, 1))
@@ -737,7 +736,7 @@ const Screen = () => {
                                                                                         key={subItem}
                                                                                         type="text"
                                                                                         onClick={() => {
-                                                                                            setOtherUsername(subItem);
+                                                                                            otherUsername.current = subItem;
                                                                                             checkFriend();
                                                                                         }}>
                                                                                         查看
@@ -862,7 +861,7 @@ const Screen = () => {
                                                                                     key = {item.username}
                                                                                     type="primary"
                                                                                     onClick={() => {
-                                                                                        setOtherUsername(item.username);
+                                                                                        otherUsername.current = item.username;
                                                                                         checkFriend();
                                                                                     }}
                                                                                 >
@@ -885,7 +884,7 @@ const Screen = () => {
                                                     paddingTop: "5px", paddingBottom: "25px", border: "1px solid transparent", borderRadius: "20px",
                                                     alignItems: "center", backgroundColor: "rgba(255,255,255,0.7)"
                                                 }}>
-                                                    <h1>{otherUsername}</h1>
+                                                    <h1>{otherUsername.current}</h1>
                                                     {isFriend ? (
                                                         <div style={{ width: "400px", height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
                                                             <Button
