@@ -56,9 +56,6 @@ const Screen = () => {
     const { Content, Sider } = Layout;
     const [collapsed, setCollapsed] = useState(false);
 
-    const [friendListRefreshing, setFriendListRefreshing] = useState<boolean>(true);
-    const [friendList, setFriendList] = useState<friendListData[]>([]);
-
     const [newUsername, getNewUsername] = useState<string>("");
     const [newPassword, setNewPassword] = useState<string>("");
     const [changeUserInfo, setChangeUserInfo] = useState<number>(0);
@@ -73,6 +70,9 @@ const Screen = () => {
 
     const [applyList, setApplyList] = useState<receiveData[]>([]);
     const [applyRefreshing, setApplyRefreshing] = useState<boolean>(false);
+
+    const [friendListRefreshing, setFriendListRefreshing] = useState<boolean>(true);
+    const [friendList, setFriendList] = useState<friendListData[]>([]);
 
     const [roomList, setRoomList] = useState<roomListData[]>([]);
     const [roomListRefreshing, setRoomListRefreshing] = useState<boolean>(true);
@@ -156,6 +156,10 @@ const Screen = () => {
                 setApplyList(data.applylist.map((val: any) => ({...val})));
                 setApplyRefreshing(false);
             }
+            if (data.function === "fetchfriendlist") {
+                setFriendList(data.friendlist.map((val: any) => ({...val})));
+                setFriendListRefreshing(false);
+            }
             if (data.function === "fetchroom"){
                 setRoomList(data.roomlist.map((val: any) => ({...val})));
                 setRoomListRefreshing(false);
@@ -169,13 +173,12 @@ const Screen = () => {
             }
             // 握手
             if (data.function === "ack_message"){
-                setMessageList(data.noticelist.map((val: any) => ({...val})));
-                setMessageListRefreshing(false);
+                // todo
+                // 将消息id置为已发送
             }
             if (data.function === "send_message"){
-                setMessageList(data.noticelist.map((val: any) => ({...val})));
-                setMessageListRefreshing(false);
-
+                // todo
+                // 更新消息列表 发送ack(id)
             }
         };
         if (isEmail(account)){
@@ -192,7 +195,6 @@ const Screen = () => {
                     message.success(STRINGS.LOGIN_SUCCESS, 1);
                     setToken(res.token);
                     setUsername(res.username);
-                    fetchFriendList();
                     setCurrentPage(CONS.MAIN);
                 })
                 .catch((err) => {
@@ -213,7 +215,6 @@ const Screen = () => {
                     message.success(STRINGS.LOGIN_SUCCESS, 1);
                     setToken(res.token);
                     setUsername(res.username);
-                    fetchFriendList();
                     setCurrentPage(CONS.MAIN);
                 })
                 .catch((err) => {
@@ -255,26 +256,14 @@ const Screen = () => {
 
     const fetchFriendList = () => {
         setFriendListRefreshing(true);
-        request(
-            "/api/friend/getfriendlist",
-            "POST",
-            {
-                username: username,
-                token: token,
-            }
-        )
-            .then((res) => {
-                console.log(res.friendlist);
-                setFriendList(res.friendlist.map((val: any) => ({...val})));
-                setFriendListRefreshing(false);
-            })
-            .catch((err) => {
-                console.log(err);
-                setFriendListRefreshing(false);
-            });
+        const data = {
+            "function": "fetchfriendlist",
+            "username": username
+        };
+        window.ws.send(JSON.stringify(data));
     };
 
-    const deleteGroup = (group:string) => {
+    const deleteGroup = (group:string) => { // todo
         request(
             "/api/friend/deletefgroup",
             "DELETE",
@@ -406,7 +395,6 @@ const Screen = () => {
     const fetchReceiveList = () => {
         setReceiveRefreshing(true);
         const data = {
-            "direction": "/friend/client2server",
             "function": "fetchreceivelist",
             "username": username
         };
@@ -416,7 +404,6 @@ const Screen = () => {
     const fetchApplyList = () => {
         setApplyRefreshing(true);
         const data = {
-            "direction": "/friend/client2server",
             "function": "fetchapplylist",
             "username": username
         };
