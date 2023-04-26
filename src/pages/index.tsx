@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import * as STRINGS from "../constants/string";
 import { request } from "../utils/network";
 import {message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar } from "antd";
@@ -50,7 +50,7 @@ const Screen = () => {
     const [sms, setSms] = useState<string>("");
 
     const [currentPage, setCurrentPage] = useState<number>(CONS.LOGIN);
-    const [menuItem, setMenuItem] = useState<number>(CONS.CHATFRAME);
+    const [menuItem, setMenuItem] = useState<number>(CONS.EMPTY);
 
     const [token, setToken] = useState<number>(0);
 
@@ -80,10 +80,39 @@ const Screen = () => {
     const [messageList, setMessageList] = useState<messageListData[]>([]);
     const [messageListRefreshing, setMessageListRefreshing] = useState<boolean>(false);
 
+    const [messageBody, setMessageBody] = useState<string>("");
+    const [roomID, setRoomID] = useState<string>("");
+
     const [otherUsername, setOtherUsername] = useState<string>("");
     const [isFriend, setIsFriend] = useState<boolean>(false);
     const [friendGroup, setFriendGroup] = useState<string>("");
     const [box, setBox] = useState<number>(0);
+
+    useEffect(() => {
+        if(currentPage === CONS.MAIN)
+        {
+            if(menuItem === CONS.ADDRESSBOOK)
+            {
+                fetchFriendList();
+            }
+            if(menuItem === CONS.CHATFRAME)
+            {
+                fetchRoom();
+                fetchMessageList();
+            }
+        }
+    }, [currentPage, menuItem]);
+
+    const querygroup = (groupname: string) => {
+        for(var i = 0; i < friendList.length; i++)
+        {
+            if(friendList[i].groupname === groupname)
+            {
+                return i;
+            }
+        }
+        return -1;
+    }
 
     const WSConnect = () => {
         window.ws = new WebSocket("wss://se-im-backend-overflowlab.app.secoder.net/wsconnect");
@@ -95,6 +124,54 @@ const Screen = () => {
             WSOnerror();
         };
     };
+
+    const WSInit = () => {
+        WSConnect();
+        
+        window.ws.onopen = function () {
+            console.log("websocket connected");
+            window.heartBeat = true;
+            WSHeartBeat();
+        };
+        window.ws.onmessage = async function (event) {
+            const data = JSON.parse(event.data);
+            console.log(data);
+            if (data.function === "receivelist") {
+                setReceiveList(data.receivelist.map((val: any) =>({...val})));
+                setReceiveRefreshing(false);
+            }
+            if (data.function === "applylist") {
+                setApplyList(data.applylist.map((val: any) => ({...val})));
+                setApplyRefreshing(false);
+            }
+            if (data.function === "friendlist") {
+                setFriendList(data.friendlist.map((val: any) => ({...val})));
+                setFriendListRefreshing(false);
+            }
+            if (data.function === "fetchroom"){
+                setRoomList(data.roomlist.map((val: any) => ({...val})));
+                setRoomListRefreshing(false);
+            }
+            if (data.function === "fetchmessage"){
+                setMessageList(data.noticelist.map((val: any) => ({...val})));
+                setMessageListRefreshing(false);
+            }
+            if (data.function === "heartbeatconfirm") {
+                WSHeartBeat();
+            }
+            // 握手
+            if (data.function === "ack_message"){
+                //setMessageList(data.noticelist.map((val: any) => ({...val})));
+                //setMessageListRefreshing(false);
+            }
+            if (data.function === "send_message"){
+                //setMessageList(data.noticelist.map((val: any) => ({...val})));
+                //setMessageListRefreshing(false);
+
+            }
+        };
+
+    }
 
     const WSOnerror = () => {
         console.log("Websocket断开");
@@ -119,6 +196,7 @@ const Screen = () => {
                 "function": "heartbeat",
             };
             window.ws.send(JSON.stringify(data));
+            console.log(JSON.stringify(data));
             console.log("发送心跳");
             window.serverTimeoutObj = setTimeout(() => {
                 window.heartBeat = true;
@@ -138,47 +216,8 @@ const Screen = () => {
         clearTimeout(window.serverTimeoutObj);
     };
 
-
     const login = () => {
-        WSConnect();
         
-        window.ws.onopen = function () {
-            console.log("websocket connected");
-            WSHeartBeat();
-        };
-        window.ws.onmessage = async function (event) {
-            const data = JSON.parse(event.data);
-            console.log(JSON.stringify(data));
-            if (data.function === "receivelist") {
-                setReceiveList(data.receivelist.map((val: any) =>({...val})));
-                setReceiveRefreshing(false);
-            }
-            if (data.function === "applylist") {
-                setApplyList(data.applylist.map((val: any) => ({...val})));
-                setApplyRefreshing(false);
-            }
-            if (data.function === "fetchroom"){
-                setRoomList(data.roomlist.map((val: any) => ({...val})));
-                setRoomListRefreshing(false);
-            }
-            if (data.function === "fetchmessage"){
-                setMessageList(data.noticelist.map((val: any) => ({...val})));
-                setMessageListRefreshing(false);
-            }
-            if (data.function === "heartbeatconfirm") {
-                WSHeartBeat();
-            }
-            // 握手
-            if (data.function === "ack_message"){
-                setMessageList(data.noticelist.map((val: any) => ({...val})));
-                setMessageListRefreshing(false);
-            }
-            if (data.function === "send_message"){
-                setMessageList(data.noticelist.map((val: any) => ({...val})));
-                setMessageListRefreshing(false);
-
-            }
-        };
         if (isEmail(account)){
             request(
                 "/api/user/login",
@@ -193,7 +232,7 @@ const Screen = () => {
                     message.success(STRINGS.LOGIN_SUCCESS, 1);
                     setToken(res.token);
                     setUsername(res.username);
-                    fetchFriendList();
+                    WSInit();
                     setCurrentPage(CONS.MAIN);
                 })
                 .catch((err) => {
@@ -214,7 +253,7 @@ const Screen = () => {
                     message.success(STRINGS.LOGIN_SUCCESS, 1);
                     setToken(res.token);
                     setUsername(res.username);
-                    fetchFriendList();
+                    WSInit();
                     setCurrentPage(CONS.MAIN);
                 })
                 .catch((err) => {
@@ -256,23 +295,12 @@ const Screen = () => {
 
     const fetchFriendList = () => {
         setFriendListRefreshing(true);
-        request(
-            "/api/friend/getfriendlist",
-            "POST",
-            {
-                username: username,
-                token: token,
-            }
-        )
-            .then((res) => {
-                console.log(res.friendlist);
-                setFriendList(res.friendlist.map((val: any) => ({...val})));
-                setFriendListRefreshing(false);
-            })
-            .catch((err) => {
-                console.log(err);
-                setFriendListRefreshing(false);
-            });
+        var data = {
+            "function": "fetchfriendlist",
+            "username": username
+        };
+        window.ws.send(JSON.stringify(data));
+        console.log(JSON.stringify(data));
     };
 
     const deleteGroup = (group:string) => {
@@ -281,6 +309,7 @@ const Screen = () => {
             "DELETE",
             {
                 token: token,
+                username: username,
                 fgroup_name: group,
             }
         )
@@ -407,21 +436,21 @@ const Screen = () => {
     const fetchReceiveList = () => {
         setReceiveRefreshing(true);
         const data = {
-            "direction": "/friend/client2server",
             "function": "fetchreceivelist",
             "username": username
         };
         window.ws.send(JSON.stringify(data));
+        console.log(JSON.stringify(data));
     };
 
     const fetchApplyList = () => {
         setApplyRefreshing(true);
         const data = {
-            "direction": "/friend/client2server",
             "function": "fetchapplylist",
             "username": username
         };
         window.ws.send(JSON.stringify(data));
+        console.log(JSON.stringify(data));
     };
 
     const accept = (other: string) => {
@@ -432,6 +461,7 @@ const Screen = () => {
             "username": username,
         };
         window.ws.send(JSON.stringify(data));
+        console.log(JSON.stringify(data));
     };
 
     const decline = (other: string) => {
@@ -442,6 +472,7 @@ const Screen = () => {
             "username": username,
         };
         window.ws.send(JSON.stringify(data));
+        console.log(JSON.stringify(data));
     };
 
     const addFriend = () => {
@@ -452,6 +483,7 @@ const Screen = () => {
             "username": username
         };
         window.ws.send(JSON.stringify(data));
+        console.log(JSON.stringify(data));
     };
 
     const deleteFriend = () => {
@@ -472,13 +504,13 @@ const Screen = () => {
             .catch((err) => message.error(err.message, 1));
     };
 
-    const checkFriend = () => {
+    const checkFriend = (other: string) => {
         request(
             "api/friend/checkuser",
             "POST",
             {
                 my_username: username,
-                check_name: otherUsername,
+                check_name: other,
                 token: token
             },
         )
@@ -490,59 +522,89 @@ const Screen = () => {
     };
 
     const addToGroup = () => {
-        request(
-            "api/friend/createfgroup",
-            "POST",
-            {
-                username: username,
-                token: token,
-                fgroup_name: friendGroup,
-            },
-        )
-            .then(() => {
-                request(
-                    "api/friend/addfgroup",
-                    "PUT",
-                    {
-                        username: username,
-                        fgroup_name: friendGroup,
-                        friend_name: otherUsername,
-                    },
-                )
-                    .then(() => message.success(STRINGS.FRIEND_GROUP_ADDED, 1))
-                    .catch((err) => message.error(err.message, 1));
-        
-            })
-            .catch((err) => message.error(err.message, 1));
+        (querygroup(friendGroup) === -1) ? (
+            request(
+                "api/friend/createfgroup",
+                "POST",
+                {
+                    username: username,
+                    token: token,
+                    fgroup_name: friendGroup,
+                },
+            )
+                .then(() => {
+                    request(
+                        "api/friend/addfgroup",
+                        "PUT",
+                        {
+                            username: username,
+                            fgroup_name: friendGroup,
+                            friend_name: otherUsername,
+                            token: token,
+                        },
+                    )
+                        .then(() => {
+                            message.success(STRINGS.FRIEND_GROUP_ADDED, 1);
+                            fetchFriendList();
+                        })
+                        .catch((err) => message.error(err.message, 1));
+                })
+                .catch((err) => message.error(err.message, 1))
+        ):(
+            request(
+                "api/friend/addfgroup",
+                "PUT",
+                {
+                    username: username,
+                    fgroup_name: friendGroup,
+                    friend_name: otherUsername,
+                    token: token,
+                },
+            )
+                .then(() => {
+                    message.success(STRINGS.FRIEND_GROUP_ADDED, 1);
+                    fetchFriendList();
+                })
+                .catch((err) => message.error(err.message, 1))
+        );
     };
 
     const fetchRoom = () => {
         setRoomListRefreshing(true);
         const data = {
+            "function": "fetchRoom",
             "username": username,
         };
         window.ws.send(JSON.stringify(data));
+        console.log(JSON.stringify(data));
     };
 
     const fetchMessage = (id: string) => {
         setMessageListRefreshing(true);
         const data = {
+            "function": "fetchmessage",
             "id": id,
             "username": username,
         };
         window.ws.send(JSON.stringify((data)));
+        console.log(JSON.stringify(data));
     };
 
     const sendMessage = (id: string) => {
         const date = new Date();
-        const data = {
+        const data:messageListData = {
             "id": id,
-            "username": username,
+            "body": messageBody,
+            "sender": username,
             "time": moment(date).format("YYYY-MM-DD hh:mm:ss"),
         };
-        window.ws.send(JSON.stringify(data));
+        //window.ws.send(JSON.stringify(data));
+        console.log(JSON.stringify(data));
+        setMessageList((messageList) => (messageList.concat([data])));
     };
 
+
+    //手动设置一个对话，测试对话UI
     const fetchMessageList = () => {
         var tmessagelist: messageListData[] = [
             {id: "0", sender: "ashitemaru", body: "Hi", time: "0"},
@@ -569,7 +631,7 @@ const Screen = () => {
 
         setUsername("ashitemaru");
         setMessageList(tmessagelist);
-    }
+    };
 
     return (
         <div style={{
@@ -683,9 +745,9 @@ const Screen = () => {
                         <Layout style={{ minHeight: "100vh" }}>
                             <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
                                 <Menu theme={"dark"} defaultSelectedKeys={["1"]} mode="inline">
-                                    <Menu.Item title={"聊天"} icon={<MessageOutlined/>} key={"1"} onClick={()=> {setMenuItem(CONS.CHATFRAME); fetchRoom();}}> 聊天 </Menu.Item>
+                                    <Menu.Item title={"聊天"} icon={<MessageOutlined/>} key={"1"} onClick={()=> setMenuItem(CONS.CHATFRAME)}> 聊天 </Menu.Item>
 
-                                    <Menu.Item title={"通讯录"} icon={<UsergroupAddOutlined />} key={"2"} onClick={()=> {setMenuItem(CONS.ADDRESSBOOK); fetchFriendList();}}> 通讯录 </Menu.Item>
+                                    <Menu.Item title={"通讯录"} icon={<UsergroupAddOutlined />} key={"2"} onClick={()=> setMenuItem(CONS.ADDRESSBOOK)}> 通讯录 </Menu.Item>
 
                                     <Menu.Item title={"设置"} icon={<SettingOutlined />} key={"3"} onClick={()=> setMenuItem(CONS.SETTINGS)}> 设置 </Menu.Item>
                                 </Menu>
@@ -725,9 +787,7 @@ const Screen = () => {
                                                 <h1> *用户/群聊名 </h1>
                                             </div>
                                             <div style={{padding: "24px", position: "relative", height: "74vh", left: 0, right: 0, overflow: "auto"}}>
-                                                <p>messagelist</p>
                                                 <List
-                                                    bordered
                                                     dataSource={messageList}
                                                     renderItem={(item) => (
                                                         <List.Item
@@ -761,10 +821,16 @@ const Screen = () => {
                                                 />
                                             </div>
                                             <div style={{ padding: "24px", position: "relative", display: "flex", flexDirection: "row", bottom: 0, left: 0, right: 0, height: "16vh" }}>
-                                                <TextArea bordered style={{left: 0, right: 0}}/>
+                                                <TextArea
+                                                    bordered
+                                                    allowClear
+                                                    style={{left: 0, right: 0}}
+                                                    value={messageBody}
+                                                    onChange={(e) => setMessageBody(e.target.value)}
+                                                />
                                                 <Button 
                                                     type="primary"
-                                                    onClick={() => fetchMessageList()}
+                                                    onClick={() => sendMessage(roomID)}
                                                 >
                                                     发送
                                                 </Button>
@@ -813,7 +879,7 @@ const Screen = () => {
                                                                                         type="text"
                                                                                         onClick={() => {
                                                                                             setOtherUsername(subItem);
-                                                                                            checkFriend();
+                                                                                            checkFriend(subItem);
                                                                                         }}>
                                                                                         查看
                                                                                     </Button>]}>
@@ -938,7 +1004,7 @@ const Screen = () => {
                                                                                     type="primary"
                                                                                     onClick={() => {
                                                                                         setOtherUsername(item.username);
-                                                                                        checkFriend();
+                                                                                        checkFriend(item.username);
                                                                                     }}
                                                                                 >
                                                                                     查看用户界面
