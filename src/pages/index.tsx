@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import * as STRINGS from "../constants/string";
 import { request } from "../utils/network";
 import {message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar} from "antd";
 import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined, ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined } from "@ant-design/icons";
-import { useRouter } from "next/router";
 import * as CONS from "../constants/constants";
 import moment from "moment";
 
@@ -84,9 +83,6 @@ const Screen = () => {
     const [isFriend, setIsFriend] = useState<boolean>(false);
     const [friendGroup, setFriendGroup] = useState<string>("");
     const [box, setBox] = useState<number>(0);
-
-    const router = useRouter();
-    const query = router.query;
 
     const WSConnect = () => {
         window.ws = new WebSocket("wss://se-im-backend-overflowlab.app.secoder.net/wsconnect");
@@ -836,16 +832,17 @@ const Screen = () => {
                                                     display: "flex", flexDirection: "column", border: "1px solid transparent", borderRadius: "20px",
                                                     alignItems: "center", backgroundColor: "rgba(255,255,255,0.7)"
                                                 }}>
-                                                    <h1>
-                                                        搜素用户
-                                                    </h1>
-                                                    <Button type="primary" onClick={search}> 搜索 </Button>
-                                                    <input style={{ width: "400px", height: "50px", margin: "5px", borderRadius: "12px", borderColor: "#00BFFF" }}
-                                                        type="text"
-                                                        placeholder="请填写用户名"
-                                                        value={searchName}
-                                                        onChange={(e) => setSearchName(e.target.value)}
-                                                    />
+                                                    <h1> 搜索用户 </h1>
+                                                    <Space.Compact>
+                                                        <Input style={{ width: "400px", height: "50px", margin: "5px", borderRadius: "12px", borderColor: "#00BFFF" }}
+                                                            type="text"
+                                                            placeholder="请填写用户名"
+                                                            value={searchName}
+                                                            onChange={(e) => setSearchName(e.target.value)}
+                                                        />
+                                                        <Button type="primary" onClick={search} icon={<SearchOutlined />}/>
+                                                    </Space.Compact>
+
                                                     {searchRefreshing ? (
                                                         <p> 未搜索 </p>
                                                     ) : (
