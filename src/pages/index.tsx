@@ -93,6 +93,46 @@ const Screen = () => {
         window.ws.onerror = function () {
             WSOnerror();
         };
+        window.ws.onopen = function () {
+            console.log("websocket connected");
+            WSHeartBeat();
+        };
+        window.ws.onmessage = async function (event) {
+            const data = JSON.parse(event.data);
+            console.log(JSON.stringify(data));
+            if (data.function === "receivelist") {
+                setReceiveList(data.receivelist.map((val: any) =>({...val})));
+                setReceiveRefreshing(false);
+            }
+            if (data.function === "applylist") {
+                setApplyList(data.applylist.map((val: any) => ({...val})));
+                setApplyRefreshing(false);
+            }
+            if (data.function === "fetchfriendlist") {
+                setFriendList(data.friendlist.map((val: any) => ({...val})));
+                setFriendListRefreshing(false);
+            }
+            if (data.function === "fetchroom"){
+                setRoomList(data.roomlist.map((val: any) => ({...val})));
+                setRoomListRefreshing(false);
+            }
+            if (data.function === "fetchmessage"){
+                setMessageList(data.noticelist.map((val: any) => ({...val})));
+                setMessageListRefreshing(false);
+            }
+            if (data.function === "heartbeatconfirm") {
+                WSHeartBeat();
+            }
+            // 握手
+            if (data.function === "ack_message"){
+                // todo
+                // 将消息id置为已发送
+            }
+            if (data.function === "send_message"){
+                // todo
+                // 更新消息列表 发送ack(id)
+            }
+        };
     };
 
     const WSOnerror = () => {
@@ -180,47 +220,6 @@ const Screen = () => {
                     message.error(err.message, 1);
                 });
         }
-
-        window.ws.onopen = function () {
-            console.log("websocket connected");
-            WSHeartBeat();
-        };
-        window.ws.onmessage = async function (event) {
-            const data = JSON.parse(event.data);
-            console.log(JSON.stringify(data));
-            if (data.function === "receivelist") {
-                setReceiveList(data.receivelist.map((val: any) =>({...val})));
-                setReceiveRefreshing(false);
-            }
-            if (data.function === "applylist") {
-                setApplyList(data.applylist.map((val: any) => ({...val})));
-                setApplyRefreshing(false);
-            }
-            if (data.function === "fetchfriendlist") {
-                setFriendList(data.friendlist.map((val: any) => ({...val})));
-                setFriendListRefreshing(false);
-            }
-            if (data.function === "fetchroom"){
-                setRoomList(data.roomlist.map((val: any) => ({...val})));
-                setRoomListRefreshing(false);
-            }
-            if (data.function === "fetchmessage"){
-                setMessageList(data.noticelist.map((val: any) => ({...val})));
-                setMessageListRefreshing(false);
-            }
-            if (data.function === "heartbeatconfirm") {
-                WSHeartBeat();
-            }
-            // 握手
-            if (data.function === "ack_message"){
-                // todo
-                // 将消息id置为已发送
-            }
-            if (data.function === "send_message"){
-                // todo
-                // 更新消息列表 发送ack(id)
-            }
-        };
     };
 
     const register = () => {
@@ -254,7 +253,7 @@ const Screen = () => {
         }
     };
 
-    const deleteGroup = (group:string) => { // todo
+    const deleteGroup = (group:string) => {
         request(
             "/api/friend/deletefgroup",
             "DELETE",
