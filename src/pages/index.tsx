@@ -137,50 +137,48 @@ const Screen = () => {
         clearTimeout(window.serverTimeoutObj);
     };
 
+    window.ws.onopen = function () {
+        console.log("websocket connected");
+        WSHeartBeat();
+    };
+    window.ws.onmessage = async function (event) {
+        const data = JSON.parse(event.data);
+        console.log(JSON.stringify(data));
+        if (data.function === "receivelist") {
+            setReceiveList(data.receivelist.map((val: any) =>({...val})));
+            setReceiveRefreshing(false);
+        }
+        if (data.function === "applylist") {
+            setApplyList(data.applylist.map((val: any) => ({...val})));
+            setApplyRefreshing(false);
+        }
+        if (data.function === "fetchfriendlist") {
+            setFriendList(data.friendlist.map((val: any) => ({...val})));
+            setFriendListRefreshing(false);
+        }
+        if (data.function === "fetchroom"){
+            setRoomList(data.roomlist.map((val: any) => ({...val})));
+            setRoomListRefreshing(false);
+        }
+        if (data.function === "fetchmessage"){
+            setMessageList(data.noticelist.map((val: any) => ({...val})));
+            setMessageListRefreshing(false);
+        }
+        if (data.function === "heartbeatconfirm") {
+            WSHeartBeat();
+        }
+        // 握手
+        if (data.function === "ack_message"){
+            // todo
+            // 将消息id置为已发送
+        }
+        if (data.function === "send_message"){
+            // todo
+            // 更新消息列表 发送ack(id)
+        }
+    };
 
     const login = () => {
-        WSConnect();
-        
-        window.ws.onopen = function () {
-            console.log("websocket connected");
-            WSHeartBeat();
-        };
-        window.ws.onmessage = async function (event) {
-            const data = JSON.parse(event.data);
-            console.log(JSON.stringify(data));
-            if (data.function === "receivelist") {
-                setReceiveList(data.receivelist.map((val: any) =>({...val})));
-                setReceiveRefreshing(false);
-            }
-            if (data.function === "applylist") {
-                setApplyList(data.applylist.map((val: any) => ({...val})));
-                setApplyRefreshing(false);
-            }
-            if (data.function === "fetchfriendlist") {
-                setFriendList(data.friendlist.map((val: any) => ({...val})));
-                setFriendListRefreshing(false);
-            }
-            if (data.function === "fetchroom"){
-                setRoomList(data.roomlist.map((val: any) => ({...val})));
-                setRoomListRefreshing(false);
-            }
-            if (data.function === "fetchmessage"){
-                setMessageList(data.noticelist.map((val: any) => ({...val})));
-                setMessageListRefreshing(false);
-            }
-            if (data.function === "heartbeatconfirm") {
-                WSHeartBeat();
-            }
-            // 握手
-            if (data.function === "ack_message"){
-                // todo
-                // 将消息id置为已发送
-            }
-            if (data.function === "send_message"){
-                // todo
-                // 更新消息列表 发送ack(id)
-            }
-        };
         if (isEmail(account)){
             request(
                 "/api/user/login",
@@ -193,6 +191,7 @@ const Screen = () => {
             )
                 .then((res) => {
                     message.success(STRINGS.LOGIN_SUCCESS, 1);
+                    WSConnect();
                     setToken(res.token);
                     setUsername(res.username);
                     setCurrentPage(CONS.MAIN);
@@ -213,6 +212,7 @@ const Screen = () => {
             )
                 .then((res) => {
                     message.success(STRINGS.LOGIN_SUCCESS, 1);
+                    WSConnect();
                     setToken(res.token);
                     setUsername(res.username);
                     setCurrentPage(CONS.MAIN);
@@ -252,15 +252,6 @@ const Screen = () => {
         else{
             message.warning(STRINGS.PASSWORD_INCONSISTENT, 1);
         }
-    };
-
-    const fetchFriendList = () => {
-        setFriendListRefreshing(true);
-        const data = {
-            "function": "fetchfriendlist",
-            "username": username
-        };
-        window.ws.send(JSON.stringify(data));
     };
 
     const deleteGroup = (group:string) => { // todo
@@ -392,6 +383,15 @@ const Screen = () => {
         }
     };
 
+    const fetchFriendList = () => {
+        setFriendListRefreshing(true);
+        const data = {
+            "function": "fetchfriendlist",
+            "username": username
+        };
+        window.ws.send(JSON.stringify(data));
+    };
+
     const fetchReceiveList = () => {
         setReceiveRefreshing(true);
         const data = {
@@ -432,9 +432,9 @@ const Screen = () => {
 
     const addFriend = () => {
         const data = {
+            "function": "apply",
             "from": username,
             "to": otherUsername,
-            "function": "apply",
             "username": username
         };
         window.ws.send(JSON.stringify(data));
@@ -476,35 +476,45 @@ const Screen = () => {
     };
 
     const addToGroup = () => {
+        let flag = 0;
+        friendList.forEach((arr) => {
+            if (arr.groupname === friendGroup){
+                flag = 1;
+                return;
+            }
+        })
+        // 若不存在则创建
+        if (flag === 0){
+            request(
+                "api/friend/createfgroup",
+                "POST",
+                {
+                    username: username,
+                    token: token,
+                    fgroup_name: friendGroup,
+                },
+            )
+                .then(() => console.log("成功新建分组"))
+                .catch((err) => message.error(err.message, 1));
+        }
         request(
-            "api/friend/createfgroup",
-            "POST",
+            "api/friend/addfgroup",
+            "PUT",
             {
-                username: username,
                 token: token,
+                username: username,
                 fgroup_name: friendGroup,
+                friend_name: otherUsername,
             },
         )
-            .then(() => {
-                request(
-                    "api/friend/addfgroup",
-                    "PUT",
-                    {
-                        username: username,
-                        fgroup_name: friendGroup,
-                        friend_name: otherUsername,
-                    },
-                )
-                    .then(() => message.success(STRINGS.FRIEND_GROUP_ADDED, 1))
-                    .catch((err) => message.error(err.message, 1));
-        
-            })
+            .then(() => message.success(STRINGS.FRIEND_GROUP_ADDED, 1))
             .catch((err) => message.error(err.message, 1));
     };
 
     const fetchRoom = () => {
         setRoomListRefreshing(true);
         const data = {
+            "function": "fetchroom",
             "username": username,
         };
         window.ws.send(JSON.stringify(data));
@@ -513,6 +523,7 @@ const Screen = () => {
     const fetchMessage = (id: string) => {
         setMessageListRefreshing(true);
         const data = {
+            "function": "fetchmessage",
             "id": id,
             "username": username,
         };
@@ -522,6 +533,7 @@ const Screen = () => {
     const sendMessage = (id: string) => {
         const date = new Date();
         const data = {
+            "function": "sendmessage",
             "id": id,
             "username": username,
             "time": moment(date).format("YYYY-MM-DD hh:mm:ss"),
@@ -641,9 +653,9 @@ const Screen = () => {
                         <Layout style={{ minHeight: "100vh" }}>
                             <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
                                 <Menu theme={"dark"} defaultSelectedKeys={["1"]} mode="inline">
-                                    <Menu.Item title={"聊天"} icon={<MessageOutlined/>} key={"1"} onClick={()=> {setMenuItem(CONS.CHATFRAME); fetchRoom();}}> 聊天 </Menu.Item>
+                                    <Menu.Item title={"聊天"} icon={<MessageOutlined/>} key={"1"} onClick={()=> {fetchRoom(); setMenuItem(CONS.CHATFRAME);}}> 聊天 </Menu.Item>
 
-                                    <Menu.Item title={"通讯录"} icon={<UsergroupAddOutlined />} key={"2"} onClick={()=> {setMenuItem(CONS.ADDRESSBOOK); fetchFriendList();}}> 通讯录 </Menu.Item>
+                                    <Menu.Item title={"通讯录"} icon={<UsergroupAddOutlined />} key={"2"} onClick={()=> {fetchFriendList(); setMenuItem(CONS.ADDRESSBOOK);}}> 通讯录 </Menu.Item>
 
                                     <Menu.Item title={"设置"} icon={<SettingOutlined />} key={"3"} onClick={()=> setMenuItem(CONS.SETTINGS)}> 设置 </Menu.Item>
                                 </Menu>
