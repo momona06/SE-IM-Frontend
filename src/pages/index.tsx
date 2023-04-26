@@ -482,7 +482,7 @@ const Screen = () => {
                 flag = 1;
                 return;
             };
-        })
+        });
         // 若不存在则创建
         if (flag === 0){
             request(
@@ -705,7 +705,7 @@ const Screen = () => {
 
                                             <h3> 好友列表 </h3>
                                             {friendListRefreshing ? (
-                                                <p> Loading... </p>
+                                                <Spin />
                                             ) : (
                                                 <div style={{ padding: 12}}>
                                                     {friendList.length === 0 ? (
@@ -766,7 +766,7 @@ const Screen = () => {
                                             {addressItem === CONS.NEWFRIEND ? (
                                                 <div>
                                                     {receiveRefreshing ? (
-                                                        <p> Loading... </p>
+                                                        <Spin />
                                                     ) : (
                                                         <div style={{ padding: 12}}>
                                                             {receiveList.length === 0 ? (
@@ -805,7 +805,7 @@ const Screen = () => {
                                                     )}
 
                                                     {applyRefreshing ? (
-                                                        <p> Loading... </p>
+                                                        <Spin />
                                                     ) : (
                                                         <div style={{ padding: 12}}>
                                                             {applyList.length === 0 ? (
