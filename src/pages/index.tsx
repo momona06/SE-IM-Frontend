@@ -108,9 +108,10 @@ const Screen = () => {
                 setApplyList(data.applylist.map((val: any) => ({...val})));
                 setApplyRefreshing(false);
             }
-            if (data.function === "fetchfriendlist") {
+            if (data.function === "friendlist") {
                 setFriendList(data.friendlist.map((val: any) => ({...val})));
                 setFriendListRefreshing(false);
+                console.log("接收的列表：", friendList);
             }
             if (data.function === "fetchroom"){
                 setRoomList(data.roomlist.map((val: any) => ({...val})));
