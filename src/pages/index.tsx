@@ -50,6 +50,7 @@ const Screen = () => {
 
     const [currentPage, setCurrentPage] = useState<number>(CONS.LOGIN);
     const [menuItem, setMenuItem] = useState<number>(CONS.CHATFRAME);
+    const [addressItem, setAddressItem] = useState<number>(CONS.EMPTY);
 
     const [token, setToken] = useState<number>(0);
 
@@ -63,7 +64,6 @@ const Screen = () => {
     const [searchRefreshing, setSearchRefreshing] = useState<boolean>(false);
     const [searchList, setSearchList] = useState<searchData[]>([]);
     const [searchName, setSearchName] = useState<string>("");
-    const [addressItem, setAddressItem] = useState<number>();
 
     const [receiveList, setReceiveList] = useState<receiveData[]>([]);
     const [receiveRefreshing, setReceiveRefreshing] = useState<boolean>(false);
@@ -137,47 +137,6 @@ const Screen = () => {
         clearTimeout(window.serverTimeoutObj);
     };
 
-    window.ws.onopen = function () {
-        console.log("websocket connected");
-        WSHeartBeat();
-    };
-    window.ws.onmessage = async function (event) {
-        const data = JSON.parse(event.data);
-        console.log(JSON.stringify(data));
-        if (data.function === "receivelist") {
-            setReceiveList(data.receivelist.map((val: any) =>({...val})));
-            setReceiveRefreshing(false);
-        }
-        if (data.function === "applylist") {
-            setApplyList(data.applylist.map((val: any) => ({...val})));
-            setApplyRefreshing(false);
-        }
-        if (data.function === "fetchfriendlist") {
-            setFriendList(data.friendlist.map((val: any) => ({...val})));
-            setFriendListRefreshing(false);
-        }
-        if (data.function === "fetchroom"){
-            setRoomList(data.roomlist.map((val: any) => ({...val})));
-            setRoomListRefreshing(false);
-        }
-        if (data.function === "fetchmessage"){
-            setMessageList(data.noticelist.map((val: any) => ({...val})));
-            setMessageListRefreshing(false);
-        }
-        if (data.function === "heartbeatconfirm") {
-            WSHeartBeat();
-        }
-        // 握手
-        if (data.function === "ack_message"){
-            // todo
-            // 将消息id置为已发送
-        }
-        if (data.function === "send_message"){
-            // todo
-            // 更新消息列表 发送ack(id)
-        }
-    };
-
     const login = () => {
         if (isEmail(account)){
             request(
@@ -221,6 +180,47 @@ const Screen = () => {
                     message.error(err.message, 1);
                 });
         }
+
+        window.ws.onopen = function () {
+            console.log("websocket connected");
+            WSHeartBeat();
+        };
+        window.ws.onmessage = async function (event) {
+            const data = JSON.parse(event.data);
+            console.log(JSON.stringify(data));
+            if (data.function === "receivelist") {
+                setReceiveList(data.receivelist.map((val: any) =>({...val})));
+                setReceiveRefreshing(false);
+            }
+            if (data.function === "applylist") {
+                setApplyList(data.applylist.map((val: any) => ({...val})));
+                setApplyRefreshing(false);
+            }
+            if (data.function === "fetchfriendlist") {
+                setFriendList(data.friendlist.map((val: any) => ({...val})));
+                setFriendListRefreshing(false);
+            }
+            if (data.function === "fetchroom"){
+                setRoomList(data.roomlist.map((val: any) => ({...val})));
+                setRoomListRefreshing(false);
+            }
+            if (data.function === "fetchmessage"){
+                setMessageList(data.noticelist.map((val: any) => ({...val})));
+                setMessageListRefreshing(false);
+            }
+            if (data.function === "heartbeatconfirm") {
+                WSHeartBeat();
+            }
+            // 握手
+            if (data.function === "ack_message"){
+                // todo
+                // 将消息id置为已发送
+            }
+            if (data.function === "send_message"){
+                // todo
+                // 更新消息列表 发送ack(id)
+            }
+        };
     };
 
     const register = () => {
