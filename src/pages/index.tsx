@@ -469,6 +469,7 @@ const Screen = () => {
             },
         )
             .then((res) => {
+                console.log("checkname：", otherUsername);
                 setIsFriend(res.is_friend);
                 setAddressItem(CONS.PUBLICINFO);
             })
