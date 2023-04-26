@@ -24,6 +24,7 @@ interface receiveData {
 interface roomListData {
     name: string;
     id: string;
+    unreadnum: number;
 }
 
 interface messageListData {
@@ -678,7 +679,6 @@ const Screen = () => {
                                                         <p>暂无会话</p>
                                                     ) : (
                                                         <List
-                                                            bordered
                                                             dataSource={roomList}
                                                             renderItem={(item) => (
                                                                 <List.Item key={item.id}>
