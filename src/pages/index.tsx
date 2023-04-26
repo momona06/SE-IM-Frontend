@@ -721,7 +721,7 @@ const Screen = () => {
                                                                         <Button
                                                                             key={item.groupname}
                                                                             type="text"
-                                                                            onClick={() => deleteGroup(item.groupname)}>
+                                                                            onClick={() => {deleteGroup(item.groupname); fetchFriendList();}}>
                                                                             删除分组
                                                                         </Button>
                                                                     ]}
