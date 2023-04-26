@@ -904,7 +904,7 @@ const Screen = () => {
                                                         </div>
                                                     ) : (
                                                         <div style={{ width: "200px", height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
-                                                            <Button type="primary" onClick={() => (addFriend())} >
+                                                            <Button type="primary" onClick={() => {addFriend(); fetchFriendList()}}>
                                                                 添加好友
                                                             </Button>
                                                         </div>
