@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import * as STRINGS from "../constants/string";
 import { request } from "../utils/network";
-import {message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar} from "antd";
+import {message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar } from "antd";
 import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined, ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined } from "@ant-design/icons";
 import * as CONS from "../constants/constants";
 import moment from "moment";
+import TextArea from "antd/lib/input/TextArea";
 
 interface friendListData {
     groupname: string;
@@ -234,6 +235,7 @@ const Screen = () => {
             .then(() => {
                 message.success(STRINGS.REGISTER_SUCCESS, 1);
                 setCurrentPage(CONS.LOGIN);
+                getPassword("");
             })
             .catch((err) => message.error(err.message, 1));
     };
@@ -393,6 +395,7 @@ const Screen = () => {
                 .then((res) => {
                     setSearchList(res.search_user_list.map((val: any) =>({username: val})));
                     setSearchRefreshing(false);
+
                 })
                 .catch((err) => {
                     message.error(err.message, 1);
@@ -539,6 +542,34 @@ const Screen = () => {
         };
         window.ws.send(JSON.stringify(data));
     };
+
+    const fetchMessageList = () => {
+        var tmessagelist: messageListData[] = [
+            {id: "0", sender: "ashitemaru", body: "Hi", time: "0"},
+            {id: "1", sender: "ashitemaru", body: "I'm Ashitemaru.", time: "1"},
+            {id: "2", sender: "holder", body: "Hello!", time: "3"},
+            {id: "3", sender: "ashitemaru", body: "Hi", time: "4"},
+            {id: "4", sender: "ashitemaru", body: "I'm Ashitemaru.", time: "6"},
+            {id: "5", sender: "holder", body: "Hello!", time: "7"},
+            {id: "6", sender: "ashitemaru", body: "Hi", time: "8"},
+            {id: "7", sender: "ashitemaru", body: "I'm Ashitemaru.", time: "343"},
+            {id: "8", sender: "holder", body: "Hello!", time: "73357"},
+            {id: "9", sender: "ashitemaru", body: "Hi", time: "3273272"},
+            {id: "10", sender: "ashitemaru", body: "I'm Ashitemaru.", time: "5737527"},
+            {id: "11", sender: "holder", body: "Hello!", time: "33333333"},
+            {id: "12", sender: "ashitemaru", body: "Hefwvuyvauyfvboi;awhbfibwaliubfiawleufvawelgykvbwean\nligiluw\naeg\nui\nl\nvbsihhfliuwabeuilgiuawbgiuwaeubgliheakvfiusbiulgbiulsergibloi", time: "44444444"},
+            {id: "13", sender: "ashitemaru", body: "I'm Ashitemaru.", time: "44444445"},
+            {id: "14", sender: "holder", body: "Hello!", time: "55555555"},
+            {id: "15", sender: "ashitemaru", body: "Hi", time: "66666666"},
+            {id: "16", sender: "ashitemaru", body: "I'm Ashitemaru.", time: "66666667"},
+            {id: "17", sender: "holder", body: "Hello!", time: "77777778"},
+            {id: "18", sender: "ashitemaru", body: "Hi", time: "88888888"},
+            {id: "19", sender: "ashitemaru", body: "I'm Ashitemaru.", time: "99999998"},
+            {id: "20", sender: "holder", body: "Hello!", time: "99999999"}];
+
+        setUsername("ashitemaru");
+        setMessageList(tmessagelist);
+    }
 
     return (
         <div style={{
@@ -689,9 +720,55 @@ const Screen = () => {
                                                 </div>
                                             )}
                                         </div>
-                                        <div style={{ padding: "24px", backgroundColor:"#FFF5EE",  width:"80%", minHeight:"100vh" }}>
-                                            聊天页面
-                                        </div>
+                                        <div style={{ backgroundColor:"#FFF5EE",  width:"80%", minHeight:"100vh" }}>
+                                            <div style={{padding: "24px", height: "10vh"}}>
+                                                <h1> *用户/群聊名 </h1>
+                                            </div>
+                                            <div style={{padding: "24px", position: "relative", height: "74vh", left: 0, right: 0, overflow: "auto"}}>
+                                                <p>messagelist</p>
+                                                <List
+                                                    bordered
+                                                    dataSource={messageList}
+                                                    renderItem={(item) => (
+                                                        <List.Item
+                                                            key={item.id}
+                                                        >
+                                                            {item.sender === username ? (
+                                                                <div style={{ display: "flex", flexDirection: "row-reverse", justifyContent: "flex-start", marginLeft: "auto"}}>
+                                                                    <div style={{display: "flex", flexDirection: "column"}}>
+                                                                        <List.Item.Meta avatar={<Avatar src={"https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxgeticon?seq=239472774&username=@c8ef32eea4f34c3becfba86e70bd5320e33c7eba9d35d382ed6185b9c3efbfe0&skey=@crypt_6df0f029_14c4f0a85beaf972ec58feb5ca7dc0e0"}/>}/>
+                                                                        <h6>{item.sender}</h6>
+                                                                    </div>
+                                                                    <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#66B7FF"}}>
+                                                                        <p>{item.body}</p>
+                                                                        <h6>{item.time}</h6>
+                                                                    </div>
+                                                                </div>
+                                                            ) : (
+                                                                <div style={{ display: "flex", flexDirection: "row"}}>
+                                                                    <div style={{display: "flex", flexDirection: "column"}}>
+                                                                        <List.Item.Meta avatar={<Avatar src={"https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxgeticon?seq=239472774&username=@c8ef32eea4f34c3becfba86e70bd5320e33c7eba9d35d382ed6185b9c3efbfe0&skey=@crypt_6df0f029_14c4f0a85beaf972ec58feb5ca7dc0e0"}/>}/>
+                                                                        <h6>{item.sender}</h6>
+                                                                    </div>
+                                                                    <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF"}}>
+                                                                        <p>{item.body}</p>
+                                                                        <h6>{item.time}</h6>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </List.Item>
+                                                    )}
+                                                />
+                                            </div>
+                                            <div style={{ padding: "24px", position: "relative", display: "flex", flexDirection: "row", bottom: 0, left: 0, right: 0, height: "16vh" }}>
+                                                <TextArea bordered style={{left: 0, right: 0}}/>
+                                                <Button 
+                                                    type="primary"
+                                                    onClick={() => fetchMessageList()}
+                                                >
+                                                    发送
+                                                </Button>
+                                            </div>                                        </div>
                                     </div>
                                 ) : null}
 
@@ -833,8 +910,8 @@ const Screen = () => {
                                                     alignItems: "center", backgroundColor: "rgba(255,255,255,0.7)"
                                                 }}>
                                                     <h1> 搜索用户 </h1>
-                                                    <Space.Compact>
-                                                        <Input style={{ width: "400px", height: "50px", margin: "5px", borderRadius: "12px", borderColor: "#00BFFF" }}
+                                                    <Space.Compact style={{ width: "80%" }}>
+                                                        <Input
                                                             type="text"
                                                             placeholder="请填写用户名"
                                                             value={searchName}
