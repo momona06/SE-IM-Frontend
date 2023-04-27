@@ -175,12 +175,10 @@ const Screen = () => {
         clearInterval(window.timeoutObj);
         clearTimeout(window.serverTimeoutObj);
         window.timeoutObj = setInterval(() => {
-            console.log("重置心跳");
             const data = {
                 "function": "heartbeat",
             };
             window.ws.send(JSON.stringify(data));
-            console.log("发送心跳");
             window.serverTimeoutObj = setTimeout(() => {
                 window.heartBeat = true;
                 console.log("服务器宕机中");
@@ -375,7 +373,7 @@ const Screen = () => {
                 input_password: password,
             },
         )
-            .then(() => setCurrentPage(CONS.LOGIN))
+            .then(() => {setCurrentPage(CONS.LOGIN); WSClose();})
             .catch((err) => message.error(err.message, 1));
     };
 
@@ -542,25 +540,49 @@ const Screen = () => {
     };
 
     const fetchMessage = (id: string) => {
-        setMessageListRefreshing(true);
-        const data = {
-            "function": "fetchmessage",
-            "chatroom_id": id,
-            "username": username,
-        };
-        window.ws.send(JSON.stringify((data)));
+        // setMessageListRefreshing(true);
+        // const data = {
+        //     "function": "fetchmessage",
+        //     "chatroom_id": id,
+        //     "username": username,
+        // };
+        // window.ws.send(JSON.stringify((data)));
+        var tmessagelist: messageListData[] = [
+            {id: "0", sender: username, body: "Hi", time: "0"},
+            {id: "1", sender: username, body: "I'm Ashitemaru.", time: "1"},
+            {id: "2", sender: "holder", body: "Hello!", time: "3"},
+            {id: "3", sender: username, body: "Hi", time: "4"},
+            {id: "4", sender: username, body: "I'm Ashitemaru.", time: "6"},
+            {id: "5", sender: "holder", body: "Hello!", time: "7"},
+            {id: "6", sender: username, body: "Hi", time: "8"},
+            {id: "7", sender: username, body: "I'm Ashitemaru.", time: "343"},
+            {id: "8", sender: "holder", body: "Hello!", time: "73357"},
+            {id: "9", sender: username, body: "Hi", time: "3273272"},
+            {id: "10", sender: username, body: "I'm Ashitemaru.", time: "5737527"},
+            {id: "11", sender: "holder", body: "Hello!", time: "33333333"},
+            {id: "12", sender: username, body: "Hefwvuyvauyfvboi;awhbfibwaliubfiawleufvawelgykvbwean\nligiluw\naeg\nui\nl\nvbsihhfliuwabeuilgiuawbgiuwaeubgliheakvfiusbiulgbiulsergibloi", time: "44444444"},
+            {id: "13", sender: username, body: "I'm Ashitemaru.", time: "44444445"},
+            {id: "14", sender: "holder", body: "Hello!", time: "55555555"},
+            {id: "15", sender: username, body: "Hi", time: "66666666"},
+            {id: "16", sender: username, body: "I'm Ashitemaru.", time: "66666667"},
+            {id: "17", sender: "holder", body: "Hello!", time: "77777778"},
+            {id: "18", sender: username, body: "Hi", time: "88888888"},
+            {id: "19", sender: username, body: "I'm Ashitemaru.", time: "99999998"},
+            {id: "20", sender: "holder", body: "Hello!", time: "99999999"}];
+        setMessageList(tmessagelist);
     };
 
     const sendMessage = (id: string) => {
         const date = new Date();
-        const data = {
-            "function": "sendmessage",
+        const data: messageListData = {
+            // "function": "sendmessage",
             "id": id,
             "body": messageBody,
             "sender": username,
             "time": moment(date).format("YYYY-MM-DD hh:mm:ss"),
         };
-        window.ws.send(JSON.stringify(data));
+        // window.ws.send(JSON.stringify(data));
+        setMessageList((messageList) => (messageList.concat([data])));
     };
 
     return (
