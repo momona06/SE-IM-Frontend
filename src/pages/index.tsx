@@ -139,7 +139,7 @@ const Screen = () => {
                 setRoomListRefreshing(false);
             }
             if (data.function === "fetchmessage"){
-                setMessageList(data.noticelist.map((val: any) => ({...val})));
+                setMessageList(data.messagelist.map((val: any) => ({...val})));
                 setMessageListRefreshing(false);
             }
             if (data.function === "heartbeatconfirm") {
@@ -862,7 +862,7 @@ const Screen = () => {
                                                                                     disabled={item.make_sure}
                                                                                     key = {item.username + "1"}
                                                                                     type="primary"
-                                                                                    onClick={() => {accept(item.username); fetchReceiveList(); fetchFriendList();}}
+                                                                                    onClick={() => {accept(item.username); fetchReceiveList();}}
                                                                                 >
                                                                                     接受申请
                                                                                 </Button>,
@@ -870,7 +870,7 @@ const Screen = () => {
                                                                                     disabled={item.make_sure}
                                                                                     key={item.username + "2"}
                                                                                     type="primary"
-                                                                                    onClick={() => {decline(item.username); fetchReceiveList(); fetchFriendList();}}
+                                                                                    onClick={() => {decline(item.username); fetchReceiveList();}}
                                                                                 >
                                                                                     拒绝申请
                                                                                 </Button>
@@ -982,7 +982,7 @@ const Screen = () => {
                                                         </div>
                                                     ) : (
                                                         <div style={{ width: "200px", height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
-                                                            <Button type="primary" onClick={() => {addFriend(); fetchFriendList();}}>
+                                                            <Button type="primary" onClick={() => {addFriend();}}>
                                                                 添加好友
                                                             </Button>
                                                         </div>
