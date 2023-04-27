@@ -474,7 +474,7 @@ const Screen = () => {
             if (arr.groupname === friendGroup){
                 flag = 1;
                 return;
-            };
+            }
         });
         // 若不存在则创建
         if (flag === 0){
@@ -545,7 +545,7 @@ const Screen = () => {
         setMessageListRefreshing(true);
         const data = {
             "function": "fetchmessage",
-            "id": id,
+            "chatroom_id": id,
             "username": username,
         };
         window.ws.send(JSON.stringify((data)));
@@ -726,38 +726,42 @@ const Screen = () => {
                                                 <div style={{padding: "24px", height: "10vh"}}>
                                                     <h1> { roomID } </h1>
                                                 </div>
-                                                <div style={{padding: "24px", position: "relative", height: "74vh", left: 0, right: 0, overflow: "auto"}}>
-                                                    <List
-                                                        dataSource={messageList}
-                                                        renderItem={(item) => (
-                                                            <List.Item key={ item.id }>
-                                                                {item.sender === username ? (
-                                                                    <div style={{ display: "flex", flexDirection: "row-reverse", justifyContent: "flex-start", marginLeft: "auto"}}>
-                                                                        <div style={{display: "flex", flexDirection: "column"}}>
-                                                                            <List.Item.Meta avatar={<Avatar src={"https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxgeticon?seq=239472774&username=@c8ef32eea4f34c3becfba86e70bd5320e33c7eba9d35d382ed6185b9c3efbfe0&skey=@crypt_6df0f029_14c4f0a85beaf972ec58feb5ca7dc0e0"}/>}/>
-                                                                            <h6>{item.sender}</h6>
+                                                {messageListRefreshing ? (
+                                                    <Spin />
+                                                ) : (
+                                                    <div style={{padding: "24px", position: "relative", height: "74vh", left: 0, right: 0, overflow: "auto"}}>
+                                                        <List
+                                                            dataSource={messageList}
+                                                            renderItem={(item) => (
+                                                                <List.Item key={ item.id }>
+                                                                    {item.sender === username ? (
+                                                                        <div style={{ display: "flex", flexDirection: "row-reverse", justifyContent: "flex-start", marginLeft: "auto"}}>
+                                                                            <div style={{display: "flex", flexDirection: "column"}}>
+                                                                                <List.Item.Meta avatar={<Avatar src={"https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxgeticon?seq=239472774&username=@c8ef32eea4f34c3becfba86e70bd5320e33c7eba9d35d382ed6185b9c3efbfe0&skey=@crypt_6df0f029_14c4f0a85beaf972ec58feb5ca7dc0e0"}/>}/>
+                                                                                <h6>{item.sender}</h6>
+                                                                            </div>
+                                                                            <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#66B7FF"}}>
+                                                                                <p>{item.body}</p>
+                                                                                <h6>{item.time}</h6>
+                                                                            </div>
                                                                         </div>
-                                                                        <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#66B7FF"}}>
-                                                                            <p>{item.body}</p>
-                                                                            <h6>{item.time}</h6>
+                                                                    ) : (
+                                                                        <div style={{ display: "flex", flexDirection: "row"}}>
+                                                                            <div style={{display: "flex", flexDirection: "column"}}>
+                                                                                <List.Item.Meta avatar={<Avatar src={"https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxgeticon?seq=239472774&username=@c8ef32eea4f34c3becfba86e70bd5320e33c7eba9d35d382ed6185b9c3efbfe0&skey=@crypt_6df0f029_14c4f0a85beaf972ec58feb5ca7dc0e0"}/>}/>
+                                                                                <h6>{item.sender}</h6>
+                                                                            </div>
+                                                                            <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF"}}>
+                                                                                <p>{ item.body }</p>
+                                                                                <h6>{ item.time }</h6>
+                                                                            </div>
                                                                         </div>
-                                                                    </div>
-                                                                ) : (
-                                                                    <div style={{ display: "flex", flexDirection: "row"}}>
-                                                                        <div style={{display: "flex", flexDirection: "column"}}>
-                                                                            <List.Item.Meta avatar={<Avatar src={"https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxgeticon?seq=239472774&username=@c8ef32eea4f34c3becfba86e70bd5320e33c7eba9d35d382ed6185b9c3efbfe0&skey=@crypt_6df0f029_14c4f0a85beaf972ec58feb5ca7dc0e0"}/>}/>
-                                                                            <h6>{item.sender}</h6>
-                                                                        </div>
-                                                                        <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF"}}>
-                                                                            <p>{ item.body }</p>
-                                                                            <h6>{ item.time }</h6>
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-                                                            </List.Item>
-                                                        )}
-                                                    />
-                                                </div>
+                                                                    )}
+                                                                </List.Item>
+                                                            )}
+                                                        />
+                                                    </div>
+                                                )}
                                                 <div style={{ padding: "24px", position: "relative", display: "flex", flexDirection: "row", bottom: 0, left: 0, right: 0, height: "16vh" }}>
                                                     <TextArea
                                                         bordered
@@ -978,7 +982,7 @@ const Screen = () => {
                                                         </div>
                                                     ) : (
                                                         <div style={{ width: "200px", height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
-                                                            <Button type="primary" onClick={() => {addFriend(); fetchFriendList()}}>
+                                                            <Button type="primary" onClick={() => {addFriend(); fetchFriendList();}}>
                                                                 添加好友
                                                             </Button>
                                                         </div>
