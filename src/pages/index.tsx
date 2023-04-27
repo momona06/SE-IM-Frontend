@@ -2,7 +2,7 @@ import React, {useEffect, useRef, useState } from "react";
 import * as STRINGS from "../constants/string";
 import { request } from "../utils/network";
 import {message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar} from "antd";
-import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined, ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined } from "@ant-design/icons";
+import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined, ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined, CommentOutlined } from "@ant-design/icons";
 import * as CONS from "../constants/constants";
 import moment from "moment";
 import TextArea from "antd/lib/input/TextArea";
@@ -23,9 +23,10 @@ interface receiveData {
 }
 
 interface roomListData {
-    name: string;
-    id: string;
+    roomname: string;
+    roomid: string;
     unreadnum: number;
+    // mem_list: string[];
 }
 
 interface messageListData {
@@ -56,7 +57,7 @@ const Screen = () => {
 
     const [token, setToken] = useState<number>(0);
 
-    const { Content, Sider } = Layout;
+    const {Content, Sider } = Layout;
     const [collapsed, setCollapsed] = useState(false);
 
     const [newUsername, getNewUsername] = useState<string>("");
@@ -100,7 +101,6 @@ const Screen = () => {
             if(menuItem === CONS.CHATFRAME)
             {
                 fetchRoom();
-                // todo: messageList
             }
         }
     }, [currentPage, menuItem]);
@@ -403,34 +403,6 @@ const Screen = () => {
                 });
         }
     };
-
-    const fetchFriendList = () => {
-        setFriendListRefreshing(true);
-        const data = {
-            "function": "fetchfriendlist",
-            "username": username
-        };
-        window.ws.send(JSON.stringify(data));
-    };
-
-    const fetchReceiveList = () => {
-        setReceiveRefreshing(true);
-        const data = {
-            "function": "fetchreceivelist",
-            "username": username
-        };
-        window.ws.send(JSON.stringify(data));
-    };
-
-    const fetchApplyList = () => {
-        setApplyRefreshing(true);
-        const data = {
-            "function": "fetchapplylist",
-            "username": username
-        };
-        window.ws.send(JSON.stringify(data));
-    };
-
     const accept = (other: string) => {
         const data = {
             "function": "confirm",
@@ -530,6 +502,33 @@ const Screen = () => {
         )
             .then(() => message.success(STRINGS.FRIEND_GROUP_ADDED, 1))
             .catch((err) => message.error(err.message, 1));
+    };
+
+    const fetchFriendList = () => {
+        setFriendListRefreshing(true);
+        const data = {
+            "function": "fetchfriendlist",
+            "username": username
+        };
+        window.ws.send(JSON.stringify(data));
+    };
+
+    const fetchReceiveList = () => {
+        setReceiveRefreshing(true);
+        const data = {
+            "function": "fetchreceivelist",
+            "username": username
+        };
+        window.ws.send(JSON.stringify(data));
+    };
+
+    const fetchApplyList = () => {
+        setApplyRefreshing(true);
+        const data = {
+            "function": "fetchapplylist",
+            "username": username
+        };
+        window.ws.send(JSON.stringify(data));
     };
 
     const fetchRoom = () => {
@@ -701,9 +700,19 @@ const Screen = () => {
                                                         <List
                                                             dataSource={roomList}
                                                             renderItem={(item) => (
-                                                                <List.Item key={item.id}>
+                                                                <List.Item key={item.roomid}>
                                                                     <List.Item.Meta
-                                                                        title={<Button type={"text"} onClick={()=>{ fetchMessage(item.id); }}> {item.name} </Button>}
+                                                                        title={
+                                                                            <Button
+                                                                                type={"text"}
+                                                                                onClick={()=>{
+                                                                                    fetchMessage(item.roomid);
+                                                                                    setRoomID(item.roomid); }}>
+                                                                                <Badge count={item.unreadnum}>
+                                                                                    <Avatar icon={<CommentOutlined />}/>
+                                                                                </Badge>
+                                                                                { item.roomname }
+                                                                            </Button>}
                                                                     />
                                                                 </List.Item>
                                                             )}
@@ -712,60 +721,60 @@ const Screen = () => {
                                                 </div>
                                             )}
                                         </div>
-                                        <div style={{ backgroundColor:"#FFF5EE",  width:"80%", minHeight:"100vh" }}>
-                                            <div style={{padding: "24px", height: "10vh"}}>
-                                                <h1> *用户/群聊名 </h1>
+                                        {roomID === "" ? null : (
+                                            <div style={{ backgroundColor:"#FFF5EE",  width:"80%", minHeight:"100vh" }}>
+                                                <div style={{padding: "24px", height: "10vh"}}>
+                                                    <h1> { roomID } </h1>
+                                                </div>
+                                                <div style={{padding: "24px", position: "relative", height: "74vh", left: 0, right: 0, overflow: "auto"}}>
+                                                    <List
+                                                        dataSource={messageList}
+                                                        renderItem={(item) => (
+                                                            <List.Item key={ item.id }>
+                                                                {item.sender === username ? (
+                                                                    <div style={{ display: "flex", flexDirection: "row-reverse", justifyContent: "flex-start", marginLeft: "auto"}}>
+                                                                        <div style={{display: "flex", flexDirection: "column"}}>
+                                                                            <List.Item.Meta avatar={<Avatar src={"https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxgeticon?seq=239472774&username=@c8ef32eea4f34c3becfba86e70bd5320e33c7eba9d35d382ed6185b9c3efbfe0&skey=@crypt_6df0f029_14c4f0a85beaf972ec58feb5ca7dc0e0"}/>}/>
+                                                                            <h6>{item.sender}</h6>
+                                                                        </div>
+                                                                        <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#66B7FF"}}>
+                                                                            <p>{item.body}</p>
+                                                                            <h6>{item.time}</h6>
+                                                                        </div>
+                                                                    </div>
+                                                                ) : (
+                                                                    <div style={{ display: "flex", flexDirection: "row"}}>
+                                                                        <div style={{display: "flex", flexDirection: "column"}}>
+                                                                            <List.Item.Meta avatar={<Avatar src={"https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxgeticon?seq=239472774&username=@c8ef32eea4f34c3becfba86e70bd5320e33c7eba9d35d382ed6185b9c3efbfe0&skey=@crypt_6df0f029_14c4f0a85beaf972ec58feb5ca7dc0e0"}/>}/>
+                                                                            <h6>{item.sender}</h6>
+                                                                        </div>
+                                                                        <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF"}}>
+                                                                            <p>{ item.body }</p>
+                                                                            <h6>{ item.time }</h6>
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </List.Item>
+                                                        )}
+                                                    />
+                                                </div>
+                                                <div style={{ padding: "24px", position: "relative", display: "flex", flexDirection: "row", bottom: 0, left: 0, right: 0, height: "16vh" }}>
+                                                    <TextArea
+                                                        bordered
+                                                        allowClear
+                                                        style={{left: 0, right: 0}}
+                                                        value={messageBody}
+                                                        onChange={(e) => setMessageBody(e.target.value)}
+                                                    />
+                                                    <Button
+                                                        type="primary"
+                                                        onClick={() => sendMessage(roomID)}
+                                                    >
+                                                        发送
+                                                    </Button>
+                                                </div>
                                             </div>
-                                            <div style={{padding: "24px", position: "relative", height: "74vh", left: 0, right: 0, overflow: "auto"}}>
-                                                <List
-                                                    dataSource={messageList}
-                                                    renderItem={(item) => (
-                                                        <List.Item
-                                                            key={item.id}
-                                                        >
-                                                            {item.sender === username ? (
-                                                                <div style={{ display: "flex", flexDirection: "row-reverse", justifyContent: "flex-start", marginLeft: "auto"}}>
-                                                                    <div style={{display: "flex", flexDirection: "column"}}>
-                                                                        <List.Item.Meta avatar={<Avatar src={"https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxgeticon?seq=239472774&username=@c8ef32eea4f34c3becfba86e70bd5320e33c7eba9d35d382ed6185b9c3efbfe0&skey=@crypt_6df0f029_14c4f0a85beaf972ec58feb5ca7dc0e0"}/>}/>
-                                                                        <h6>{item.sender}</h6>
-                                                                    </div>
-                                                                    <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#66B7FF"}}>
-                                                                        <p>{item.body}</p>
-                                                                        <h6>{item.time}</h6>
-                                                                    </div>
-                                                                </div>
-                                                            ) : (
-                                                                <div style={{ display: "flex", flexDirection: "row"}}>
-                                                                    <div style={{display: "flex", flexDirection: "column"}}>
-                                                                        <List.Item.Meta avatar={<Avatar src={"https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxgeticon?seq=239472774&username=@c8ef32eea4f34c3becfba86e70bd5320e33c7eba9d35d382ed6185b9c3efbfe0&skey=@crypt_6df0f029_14c4f0a85beaf972ec58feb5ca7dc0e0"}/>}/>
-                                                                        <h6>{item.sender}</h6>
-                                                                    </div>
-                                                                    <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF"}}>
-                                                                        <p>{item.body}</p>
-                                                                        <h6>{item.time}</h6>
-                                                                    </div>
-                                                                </div>
-                                                            )}
-                                                        </List.Item>
-                                                    )}
-                                                />
-                                            </div>
-                                            <div style={{ padding: "24px", position: "relative", display: "flex", flexDirection: "row", bottom: 0, left: 0, right: 0, height: "16vh" }}>
-                                                <TextArea
-                                                    bordered
-                                                    allowClear
-                                                    style={{left: 0, right: 0}}
-                                                    value={messageBody}
-                                                    onChange={(e) => setMessageBody(e.target.value)}
-                                                />
-                                                <Button
-                                                    type="primary"
-                                                    onClick={() => sendMessage(roomID)}
-                                                >
-                                                    发送
-                                                </Button>
-                                            </div>
-                                        </div>
+                                        )}
                                     </div>
                                 ) : null}
 
@@ -782,7 +791,7 @@ const Screen = () => {
                                             ) : (
                                                 <div style={{ padding: 12}}>
                                                     {friendList.length === 0 ? (
-                                                        <p> 无好友 </p>
+                                                        <p> 无好友分组 </p>
                                                     ) : (
                                                         <List
                                                             dataSource={friendList}
@@ -791,7 +800,7 @@ const Screen = () => {
                                                                     actions={[
                                                                         <Button
                                                                             key={item.groupname}
-                                                                            type="text"
+                                                                            type="default"
                                                                             onClick={() => {deleteGroup(item.groupname); fetchFriendList();}}>
                                                                             删除分组
                                                                         </Button>
@@ -799,7 +808,7 @@ const Screen = () => {
                                                                 >
                                                                     {item.groupname}
                                                                     {item.username.length === 0 ? (
-                                                                        <p>该分组为空</p>
+                                                                        <p> 该分组为空 </p>
                                                                     ) : (
                                                                         <List
                                                                             dataSource={item.username}
@@ -807,7 +816,7 @@ const Screen = () => {
                                                                                 <List.Item>
                                                                                     <List.Item.Meta
                                                                                         title={<Button
-                                                                                            key={subItem}
+                                                                                            key={ subItem }
                                                                                             type="text"
                                                                                             onClick={() => {
                                                                                                 otherUsername.current = subItem;
@@ -815,11 +824,7 @@ const Screen = () => {
                                                                                             }}>
                                                                                             { subItem }
                                                                                         </Button>}
-                                                                                        avatar={
-                                                                                            <Badge count={1}>
-                                                                                                <Avatar icon={<UserOutlined />}/>
-                                                                                            </Badge>
-                                                                                        }
+                                                                                        avatar={ <Avatar icon={<UserOutlined />}/> }
                                                                                     />
                                                                                 </List.Item>
                                                                             )}
@@ -853,7 +858,7 @@ const Screen = () => {
                                                                                     disabled={item.make_sure}
                                                                                     key = {item.username + "1"}
                                                                                     type="primary"
-                                                                                    onClick={() => {accept(item.username); fetchReceiveList(); fetchApplyList(); fetchFriendList();}}
+                                                                                    onClick={() => {accept(item.username); fetchReceiveList(); fetchFriendList();}}
                                                                                 >
                                                                                     接受申请
                                                                                 </Button>,
@@ -861,7 +866,7 @@ const Screen = () => {
                                                                                     disabled={item.make_sure}
                                                                                     key={item.username + "2"}
                                                                                     type="primary"
-                                                                                    onClick={() => {decline(item.username); fetchReceiveList(); fetchApplyList(); fetchFriendList();}}
+                                                                                    onClick={() => {decline(item.username); fetchReceiveList(); fetchFriendList();}}
                                                                                 >
                                                                                     拒绝申请
                                                                                 </Button>
