@@ -194,22 +194,24 @@ const Screen = () => {
             }
             if (data.function === "Msg"){
                 // 更新消息列表 发送ack(id)
-                let newMessage = {
-                    msg_id: data.msg_id,
-                    msg_type: data.msg_type,
-                    msg_body: data.msg_body,
-                    msg_time: data.msg_type,
-                    sender: data.sender
-                };
+                if (data.sender != username) {
+                    let newMessage = {
+                        msg_id: data.msg_id,
+                        msg_type: data.msg_type,
+                        msg_body: data.msg_body,
+                        msg_time: data.msg_type,
+                        sender: data.sender
+                    };
 
-                messageList.push(newMessage);
+                    messageList.push(newMessage);
 
-                let ACK = {
-                    "function": "acknowledge_message",
-                    "is_back": false,
-                    "count": 1
-                };
-                window.ws.send(JSON.stringify(ACK));
+                    let ACK = {
+                        "function": "acknowledge_message",
+                        "is_back": false,
+                        "count": 1
+                    };
+                    window.ws.send(JSON.stringify(ACK));
+                }
             }
         };
     };
