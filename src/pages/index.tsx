@@ -6,7 +6,6 @@ import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, Contacts
 import * as CONS from "../constants/constants";
 import TextArea from "antd/lib/input/TextArea";
 import moment from "moment";
-import {id} from "postcss-selector-parser";
 
 interface friendListData {
     groupname: string;
@@ -595,6 +594,7 @@ const Screen = () => {
             "room_name": roomName,
             "room_id": roomID
         };
+        console.log(data);
         window.ws.send(JSON.stringify(data));
     };
 
@@ -605,6 +605,7 @@ const Screen = () => {
             "chatroom_id": id,
             "username": username,
         };
+        console.log(data);
         window.ws.send(JSON.stringify(data));
     };
 
