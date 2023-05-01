@@ -643,6 +643,7 @@ const Screen = () => {
             "sender": username
         };
         messageList.push(newMessage);
+        setMessageList(messageList);
     };
 
     const fetchRoomInfo = (ID: number) => {
