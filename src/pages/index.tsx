@@ -588,11 +588,11 @@ const Screen = () => {
         window.ws.send(JSON.stringify(data));
     };
 
-    const addRoom = (roomID: number, roomName: string) => {
+    const addRoom = (ID: number, Name: string) => {
         let data = {
             "function": "add_chat",
-            "room_name": roomName,
-            "room_id": roomID
+            "room_name": Name,
+            "room_id": ID
         };
         console.log(data);
         window.ws.send(JSON.stringify(data));
@@ -629,10 +629,10 @@ const Screen = () => {
         messageList.push(newMessage);
     };
 
-    const fetchRoomInfo = (roomID: number) => {
+    const fetchRoomInfo = (ID: number) => {
         let data = {
             "function": "fetch_roominfo",
-            "roomid": roomID,
+            "roomid": ID,
         };
         window.ws.send(JSON.stringify(data));
     };
@@ -842,7 +842,7 @@ const Screen = () => {
                                             <div style={{ padding: "0 24px", backgroundColor:"#FFF5EE",  width:"80%", minHeight:"100vh" }}>
                                                 <div style={{height: "10vh", margin: "5px, 10px", flexDirection: "row"}}>
                                                     <Space>
-                                                        <h1> { roomName } </h1>
+                                                        <h1> { roomID } </h1>
                                                         <Popover placement={"bottomRight"} content={ roomInfoPage } trigger={"click"}>
                                                             <Button type={"primary"} size={"middle"} icon={ <EllipsisOutlined/> } ghost={true} shape={"round"} onClick={() => fetchRoomInfo(roomID)}/>
                                                         </Popover>
