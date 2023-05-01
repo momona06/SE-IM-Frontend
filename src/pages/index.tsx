@@ -194,9 +194,7 @@ const Screen = () => {
             }
             if (data.function === "Msg"){
                 // 更新消息列表 发送ack(id)
-                console.log("username:", username);
-                console.log("sender:", data.sender);
-                if (data.sender != username) {
+                if (data.sender != window.username) {
                     let newMessage = {
                         msg_id: data.msg_id,
                         msg_type: data.msg_type,
@@ -271,7 +269,6 @@ const Screen = () => {
             )
                 .then((res) => {
                     message.success(STRINGS.LOGIN_SUCCESS, 1);
-                    setUsername(res.username);
                     window.username = res.username;
                     setToken(res.token);
                     setCurrentPage(CONS.MAIN);
@@ -294,7 +291,6 @@ const Screen = () => {
                 .then((res) => {
                     message.success(STRINGS.LOGIN_SUCCESS, 1);
                     setToken(res.token);
-                    setUsername(res.username);
                     window.username = res.username;
                     setCurrentPage(CONS.MAIN);
                     WSConnect();
@@ -469,8 +465,8 @@ const Screen = () => {
         const data = {
             "function": "confirm",
             "from": other,
-            "to": username,
-            "username": username,
+            "to": window.username,
+            "username": window.username,
         };
         window.ws.send(JSON.stringify(data));
         message.success("已同意申请", 1);
@@ -480,8 +476,8 @@ const Screen = () => {
         const data = {
             "function": "decline",
             "from": other,
-            "to": username,
-            "username": username,
+            "to": window.username,
+            "username": window.username,
         };
         window.ws.send(JSON.stringify(data));
     };
@@ -489,9 +485,9 @@ const Screen = () => {
     const addFriend = () => {
         const data = {
             "function": "apply",
-            "from": username,
+            "from": window.username,
             "to": otherUsername,
-            "username": username
+            "username": window.username
         };
         window.ws.send(JSON.stringify(data));
         message.success("申请已发送", 1);
@@ -502,7 +498,7 @@ const Screen = () => {
             "/api/friend/deletefriend",
             "DELETE",
             {
-                username: username,
+                username: window.username,
                 token: token,
                 friend_name: otherUsername,
             },
@@ -520,7 +516,7 @@ const Screen = () => {
             "api/friend/checkuser",
             "POST",
             {
-                my_username: username,
+                my_username: window.username,
                 check_name: otherUsername,
                 token: token
             },
@@ -546,7 +542,7 @@ const Screen = () => {
                 "api/friend/createfgroup",
                 "POST",
                 {
-                    username: username,
+                    username: window.username,
                     token: token,
                     fgroup_name: friendGroup,
                 },
@@ -559,7 +555,7 @@ const Screen = () => {
             "PUT",
             {
                 token: token,
-                username: username,
+                username: window.username,
                 fgroup_name: friendGroup,
                 friend_name: otherUsername,
             },
@@ -572,7 +568,7 @@ const Screen = () => {
         setFriendListRefreshing(true);
         const data = {
             "function": "fetchfriendlist",
-            "username": username
+            "username": window.username
         };
         window.ws.send(JSON.stringify(data));
     };
@@ -581,7 +577,7 @@ const Screen = () => {
         setReceiveRefreshing(true);
         const data = {
             "function": "fetchreceivelist",
-            "username": username
+            "username": window.username
         };
         window.ws.send(JSON.stringify(data));
     };
@@ -590,7 +586,7 @@ const Screen = () => {
         setApplyRefreshing(true);
         const data = {
             "function": "fetchapplylist",
-            "username": username
+            "username": window.username
         };
         window.ws.send(JSON.stringify(data));
     };
