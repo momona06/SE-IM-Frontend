@@ -628,6 +628,7 @@ const Screen = () => {
             "msg_type": "text",
             "msg_body": messageBody
         };
+        console.log(data);
         window.ws.send(JSON.stringify(data));
 
         const date = new Date();
@@ -647,6 +648,7 @@ const Screen = () => {
             "function": "fetch_roominfo",
             "roomid": ID,
         };
+        window.ws.send(JSON.stringify(data));
         window.ws.send(JSON.stringify(data));
     };
 
