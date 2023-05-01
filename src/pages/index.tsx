@@ -6,6 +6,7 @@ import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, Contacts
 import * as CONS from "../constants/constants";
 import TextArea from "antd/lib/input/TextArea";
 import moment from "moment";
+import {id} from "postcss-selector-parser";
 
 interface friendListData {
     groupname: string;
@@ -40,10 +41,10 @@ interface messageListData {
 }
 
 interface roomInfoData {
-    name: string;
-    id: number;
-    members: userData[];
-    // 权限
+    mem_list: string[];
+    manager_list: string[];
+    master: string;
+    mem_count: number;
 }
 
 export const isEmail = (val : string) => {
@@ -92,13 +93,13 @@ const Screen = () => {
     const [messageList, setMessageList] = useState<messageListData[]>([]);
     const [messageListRefreshing, setMessageListRefreshing] = useState<boolean>(false);
 
-    const otherUsername = useRef("");
+    const [otherUsername, setOtherUsername] = useState<string>("");
 
     const [messageBody, setMessageBody] = useState<string>("");
 
     const [roomID, setRoomID] = useState<string>("");
     const [roomName, setRoomName] = useState<string>("");
-    const [roomInfo, setRoomInfo] = useState<roomInfoData>({id: -1, members: [], name: ""});
+    const [roomInfo, setRoomInfo] = useState<roomInfoData>({mem_list: [], master: "", manager_list: [], mem_count: 0});
 
     const [isFriend, setIsFriend] = useState<boolean>(false);
     const [friendGroup, setFriendGroup] = useState<string>("");
@@ -111,7 +112,7 @@ const Screen = () => {
                 fetchFriendList();
             }
             if(menuItem === CONS.CHATFRAME) {
-                fetchRoom();
+                fetchRoomList();
             }
         }
     }, [currentPage, menuItem]);
@@ -164,6 +165,16 @@ const Screen = () => {
                 window.ws.send(JSON.stringify(ACK));
             }
 
+            if (data.function === "fetchroominfo"){
+                let info = {
+                    mem_list: data.mem_list,
+                    manager_list: data.manager_list,
+                    master: data.master,
+                    mem_count: data.mem_count
+                };
+                setRoomInfo(info);
+            }
+
             if (data.function === "Ack2"){
                 // 将消息id置为已发送
                 let last = messageList.pop();
@@ -175,11 +186,11 @@ const Screen = () => {
             if (data.function === "Msg"){
                 // 更新消息列表 发送ack(id)
                 let newMessage = {
-                    "msg_id": data.msg_id,
-                    "msg_type": data.msg_type,
-                    "msg_body": data.msg_body,
-                    "msg_time": data.msg_type,
-                    "sender": data.sender
+                    msg_id: data.msg_id,
+                    msg_type: data.msg_type,
+                    msg_body: data.msg_body,
+                    msg_time: data.msg_type,
+                    sender: data.sender
                 };
                 messageList.push(newMessage);
 
@@ -463,7 +474,7 @@ const Screen = () => {
         const data = {
             "function": "apply",
             "from": username,
-            "to": otherUsername.current,
+            "to": otherUsername,
             "username": username
         };
         window.ws.send(JSON.stringify(data));
@@ -477,7 +488,7 @@ const Screen = () => {
             {
                 username: username,
                 token: token,
-                friend_name: otherUsername.current,
+                friend_name: otherUsername,
             },
         )
             .then(() => {
@@ -494,7 +505,7 @@ const Screen = () => {
             "POST",
             {
                 my_username: username,
-                check_name: otherUsername.current,
+                check_name: otherUsername,
                 token: token
             },
         )
@@ -534,7 +545,7 @@ const Screen = () => {
                 token: token,
                 username: username,
                 fgroup_name: friendGroup,
-                friend_name: otherUsername.current,
+                friend_name: otherUsername,
             },
         )
             .then(() => message.success(STRINGS.FRIEND_GROUP_ADDED, 1))
@@ -568,7 +579,7 @@ const Screen = () => {
         window.ws.send(JSON.stringify(data));
     };
 
-    const fetchRoom = () => {
+    const fetchRoomList = () => {
         console.log("发送fetchroom请求");
         setRoomListRefreshing(true);
         const data = {
@@ -578,7 +589,15 @@ const Screen = () => {
         window.ws.send(JSON.stringify(data));
     };
 
-    const fetchMessage = (id: string) => {
+    const addRoom = () => {
+        let data = {
+            "function": "add_chat",
+            "room_name": roomName,
+            "room_id": roomID
+        };
+    };
+
+    const fetchMessageList = (id: string) => {
         setMessageListRefreshing(true);
         const data = {
             "function": "fetch_message",
@@ -608,6 +627,14 @@ const Screen = () => {
         messageList.push(newMessage);
     };
 
+    const fetchRoomInfo = (roomID: string) => {
+        let data = {
+            "function": "fetch_roominfo",
+            "roomid": roomID,
+        };
+        window.ws.send(JSON.stringify(data));
+    };
+
     //会话具体信息
     //todo
     const roomInfoPage = (
@@ -624,7 +651,7 @@ const Screen = () => {
                 </Space.Compact>
                 <List
                     grid={{gutter: 16} }
-                    dataSource={roomInfo.members}
+                    dataSource={roomInfo.mem_list}
                     renderItem={(item) => (
                         <List.Item>
                             <Popover placement={"rightBottom"} content={"这里是点击成员后的弹出卡片，应当显示publicInfo"}>
@@ -786,7 +813,8 @@ const Screen = () => {
                                                                                 block
                                                                                 type={"text"}
                                                                                 onClick={()=>{
-                                                                                    fetchMessage(item.roomid);
+                                                                                    fetchMessageList(item.roomid);
+                                                                                    addRoom();
                                                                                     setRoomID(item.roomid);
                                                                                     setRoomName(item.roomname);
                                                                                 }}>
@@ -814,7 +842,7 @@ const Screen = () => {
                                                     <Space>
                                                         <h1> { roomName } </h1>
                                                         <Popover placement={"bottomRight"} content={ roomInfoPage } trigger={"click"}>
-                                                            <Button type={"default"} size={"middle"} icon={ <EllipsisOutlined/> } ghost={true} shape={"round"}/>
+                                                            <Button type={"primary"} size={"middle"} icon={ <EllipsisOutlined/> } ghost={true} shape={"round"} onClick={() => fetchRoomInfo(roomID)}/>
                                                         </Popover>
                                                     </Space>
                                                 </div>
@@ -925,7 +953,7 @@ const Screen = () => {
                                                                                             block
                                                                                             type="text"
                                                                                             onClick={() => {
-                                                                                                otherUsername.current = subItem;
+                                                                                                setOtherUsername(subItem);
                                                                                                 checkFriend();
                                                                                             }}>
                                                                                             { subItem }
@@ -1044,7 +1072,7 @@ const Screen = () => {
                                                                                     size={"large"}
                                                                                     type="primary"
                                                                                     onClick={() => {
-                                                                                        otherUsername.current = item.username;
+                                                                                        setOtherUsername(item.username);
                                                                                         checkFriend();
                                                                                     }}
                                                                                 >
@@ -1067,7 +1095,7 @@ const Screen = () => {
                                                     paddingTop: "5px", paddingBottom: "25px", border: "1px solid transparent", borderRadius: "20px",
                                                     alignItems: "center", backgroundColor: "rgba(255,255,255,0.7)"
                                                 }}>
-                                                    <h1>{otherUsername.current}</h1>
+                                                    <h1>{otherUsername}</h1>
                                                     {isFriend ? (
                                                         <div style={{ width: "400px", height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
                                                             <Button
