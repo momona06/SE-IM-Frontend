@@ -208,6 +208,7 @@ const Screen = () => {
                     let ACK = {
                         "function": "acknowledge_message",
                         "is_back": false,
+                        "room_id": currentRoomID,
                         "count": 1
                     };
                     window.ws.send(JSON.stringify(ACK));
