@@ -121,6 +121,10 @@ const Screen = () => {
     const WSConnect = () => {
         window.ws = new WebSocket("wss://se-im-backend-overflowlab.app.secoder.net/wsconnect");
         console.log("开始连接");
+        window.ws.send(JSON.stringify({
+            "function": "add_channel",
+            "username": username
+        }));
         window.ws.onopen = function () {
             console.log("websocket connected");
             setMenuItem(CONS.CHATFRAME);
@@ -259,10 +263,10 @@ const Screen = () => {
             )
                 .then((res) => {
                     message.success(STRINGS.LOGIN_SUCCESS, 1);
-                    WSConnect();
-                    setToken(res.token);
                     setUsername(res.username);
+                    setToken(res.token);
                     setCurrentPage(CONS.MAIN);
+                    WSConnect();
                 })
                 .catch((err) => {
                     message.error(err.message, 1);
@@ -280,10 +284,10 @@ const Screen = () => {
             )
                 .then((res) => {
                     message.success(STRINGS.LOGIN_SUCCESS, 1);
-                    WSConnect();
                     setToken(res.token);
                     setUsername(res.username);
                     setCurrentPage(CONS.MAIN);
+                    WSConnect();
                 })
                 .catch((err) => {
                     message.error(err.message, 1);
