@@ -1,8 +1,8 @@
 import React, {useEffect, useRef, useState } from "react";
 import * as STRINGS from "../constants/string";
 import { request } from "../utils/network";
-import {message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar} from "antd";
-import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined, ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined, CommentOutlined } from "@ant-design/icons";
+import {message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar, Popover, Card, Divider} from "antd";
+import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined, ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined, CommentOutlined, EllipsisOutlined } from "@ant-design/icons";
 import * as CONS from "../constants/constants";
 import moment from "moment";
 import TextArea from "antd/lib/input/TextArea";
@@ -12,7 +12,7 @@ interface friendListData {
     username: string[];
 }
 
-interface searchData {
+interface userData {
     username: string;
 }
 
@@ -26,7 +26,6 @@ interface roomListData {
     roomname: string;
     roomid: string;
     unreadnum: number;
-    // mem_list: string[];
 }
 
 interface messageListData {
@@ -34,6 +33,12 @@ interface messageListData {
     sender: string;
     time: string;
     id: string;
+}
+
+interface roomInfoData {
+    name: string;
+    id: number;
+    members: userData[];
 }
 
 export const isEmail = (val : string) => {
@@ -65,7 +70,7 @@ const Screen = () => {
     const [changeUserInfo, setChangeUserInfo] = useState<number>(0);
 
     const [searchRefreshing, setSearchRefreshing] = useState<boolean>(false);
-    const [searchList, setSearchList] = useState<searchData[]>([]);
+    const [searchList, setSearchList] = useState<userData[]>([]);
     const [searchName, setSearchName] = useState<string>("");
 
     const [receiveList, setReceiveList] = useState<receiveData[]>([]);
@@ -85,7 +90,10 @@ const Screen = () => {
     const otherUsername = useRef("");
 
     const [messageBody, setMessageBody] = useState<string>("");
+    //todo: 考虑将roomID roomName加入roomInfo
     const [roomID, setRoomID] = useState<string>("");
+    const [roomName, setRoomName] = useState<string>("");
+    const [roomInfo, setRoomInfo] = useState<roomInfoData>({id: -1, members: [], name: ""});
 
     const [isFriend, setIsFriend] = useState<boolean>(false);
     const [friendGroup, setFriendGroup] = useState<string>("");
@@ -540,6 +548,7 @@ const Screen = () => {
     };
 
     const fetchMessage = (id: string) => {
+        // todo: 完成信息抓取
         // setMessageListRefreshing(true);
         // const data = {
         //     "function": "fetchmessage",
@@ -547,7 +556,7 @@ const Screen = () => {
         //     "username": username,
         // };
         // window.ws.send(JSON.stringify((data)));
-        var tmessagelist: messageListData[] = [
+        const tmessagelist: messageListData[] = [
             {id: "0", sender: username, body: "Hi", time: "0"},
             {id: "1", sender: username, body: "I'm Ashitemaru.", time: "1"},
             {id: "2", sender: "holder", body: "Hello!", time: "3"},
@@ -579,11 +588,38 @@ const Screen = () => {
             "id": id,
             "body": messageBody,
             "sender": username,
-            "time": moment(date).format("YYYY-MM-DD hh:mm:ss"),
+            "time": moment(date).format("YYYY-MM-DD HH:mm:ss"),
         };
         // window.ws.send(JSON.stringify(data));
         setMessageList((messageList) => (messageList.concat([data])));
     };
+
+    //会话具体信息
+    //todo
+    const roomInfoPage = (
+        <div style={{padding: "12px"}}>
+            <Space>
+                <Button block type={"primary"} shape={"round"} icon={<SearchOutlined />}/>
+                <List
+                    grid={{gutter: 16} }
+                    dataSource={roomInfo.members}
+                    renderItem={(item) => (
+                        <List.Item>
+                            <Popover placement={"rightBottom"} content={"这里是点击成员后的弹出卡片，应当显示publicInfo"}>
+                                <Card cover={"头像"}>
+                                    {"用户名"}
+                                </Card>
+                            </Popover>
+                        </List.Item>
+                    )}
+                />
+                <Divider/>
+                <Card title={"群聊名称"}>
+                    {roomName}
+                </Card>
+            </Space>
+        </div>
+    );
 
     return (
         <div style={{
@@ -706,7 +742,6 @@ const Screen = () => {
                             </Sider>
 
                             <Content className="site-layout">
-
                                 { /*聊天组件*/}
                                 {menuItem === CONS.CHATFRAME ? (
                                     <div style={{ display: "flex", flexDirection: "row" }}>
@@ -715,7 +750,7 @@ const Screen = () => {
                                             {roomListRefreshing ? (
                                                 <Spin />
                                             ) : (
-                                                <div style={{padding: 12}}>
+                                                <div>
                                                     {roomList.length === 0 ? (
                                                         <p>暂无会话</p>
                                                     ) : (
@@ -726,14 +761,20 @@ const Screen = () => {
                                                                     <List.Item.Meta
                                                                         title={
                                                                             <Button
+                                                                                block
                                                                                 type={"text"}
                                                                                 onClick={()=>{
                                                                                     fetchMessage(item.roomid);
-                                                                                    setRoomID(item.roomid); }}>
-                                                                                <Badge count={item.unreadnum}>
-                                                                                    <Avatar icon={<CommentOutlined />}/>
-                                                                                </Badge>
-                                                                                { item.roomname }
+                                                                                    setRoomID(item.roomid);
+                                                                                    setRoomName(item.roomname);
+                                                                                }}>
+                                                                                <Space>
+                                                                                    <Badge count={item.unreadnum}>
+                                                                                        {/* TODO: 添加会话的图标 */}
+                                                                                        <Avatar icon={ <CommentOutlined/> }/>
+                                                                                    </Badge>
+                                                                                    { item.roomname }
+                                                                                </Space>
                                                                             </Button>}
                                                                     />
                                                                 </List.Item>
@@ -743,11 +784,19 @@ const Screen = () => {
                                                 </div>
                                             )}
                                         </div>
+
+                                        {/* 消息页面 */}
                                         {roomID === "" ? null : (
-                                            <div style={{ backgroundColor:"#FFF5EE",  width:"80%", minHeight:"100vh" }}>
-                                                <div style={{padding: "24px", height: "10vh"}}>
-                                                    <h1> { roomID } </h1>
+                                            <div style={{ padding: "0 24px", backgroundColor:"#FFF5EE",  width:"80%", minHeight:"100vh" }}>
+                                                <div style={{height: "10vh", margin: "5px, 10px", flexDirection: "row"}}>
+                                                    <Space>
+                                                        <h1> { roomName } </h1>
+                                                        <Popover placement={"bottomRight"} content={ roomInfoPage } trigger={"click"}>
+                                                            <Button type={"default"} size={"middle"} icon={ <EllipsisOutlined/> }/>
+                                                        </Popover>
+                                                    </Space>
                                                 </div>
+
                                                 {messageListRefreshing ? (
                                                     <Spin />
                                                 ) : (
@@ -764,7 +813,7 @@ const Screen = () => {
                                                                             </div>
                                                                             <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#66B7FF"}}>
                                                                                 <p>{item.body}</p>
-                                                                                <h6>{item.time}</h6>
+                                                                                <span>{item.time}</span>
                                                                             </div>
                                                                         </div>
                                                                     ) : (
@@ -775,7 +824,7 @@ const Screen = () => {
                                                                             </div>
                                                                             <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF"}}>
                                                                                 <p>{ item.body }</p>
-                                                                                <h6>{ item.time }</h6>
+                                                                                <span>{ item.time }</span>
                                                                             </div>
                                                                         </div>
                                                                     )}
@@ -784,9 +833,14 @@ const Screen = () => {
                                                         />
                                                     </div>
                                                 )}
-                                                <div style={{ padding: "24px", position: "relative", display: "flex", flexDirection: "row", bottom: 0, left: 0, right: 0, height: "16vh" }}>
+                                                {/* 底部发送框 */}
+                                                <div style={{ padding: "24px", position: "relative", display: "flex", flexDirection: "column", bottom: 0, left: 0, right: 0, height: "16vh" }}>
+                                                    <div style={{flexDirection: "row"}}>
+                                                        <Space>
+                                                            <Button type={"text"} />
+                                                        </Space>
+                                                    </div>
                                                     <TextArea
-                                                        bordered
                                                         allowClear
                                                         style={{left: 0, right: 0}}
                                                         value={messageBody}
@@ -794,8 +848,7 @@ const Screen = () => {
                                                     />
                                                     <Button
                                                         type="primary"
-                                                        onClick={() => sendMessage(roomID)}
-                                                    >
+                                                        onClick={() => sendMessage(roomID)}>
                                                         发送
                                                     </Button>
                                                 </div>
@@ -826,6 +879,7 @@ const Screen = () => {
                                                                     actions={[
                                                                         <Button
                                                                             key={item.groupname}
+                                                                            size={"large"}
                                                                             type="default"
                                                                             onClick={() => {deleteGroup(item.groupname); fetchFriendList();}}>
                                                                             删除分组
@@ -843,6 +897,7 @@ const Screen = () => {
                                                                                     <List.Item.Meta
                                                                                         title={<Button
                                                                                             key={ subItem }
+                                                                                            block
                                                                                             type="text"
                                                                                             onClick={() => {
                                                                                                 otherUsername.current = subItem;
@@ -875,7 +930,6 @@ const Screen = () => {
                                                                 <p> 无好友申请 </p>
                                                             ) : (
                                                                 <List
-                                                                    bordered
                                                                     dataSource={receiveList}
                                                                     renderItem={(item) => (
                                                                         <List.Item
@@ -961,6 +1015,8 @@ const Screen = () => {
                                                                             actions={[
                                                                                 <Button
                                                                                     key = {item.username}
+                                                                                    block
+                                                                                    size={"large"}
                                                                                     type="primary"
                                                                                     onClick={() => {
                                                                                         otherUsername.current = item.username;
@@ -1048,7 +1104,7 @@ const Screen = () => {
                                             alignItems: "center",
                                             backgroundColor: "rgba(255,255,255,0.7)"
                                         }}>
-                                            <h3>当前用户：{username}</h3>
+                                            <h3>用户名：{username}</h3>
                                             <div style={{width: "400px", height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
                                                 <Space size={50}>
                                                     <Button size={"large"} type={"primary"}
