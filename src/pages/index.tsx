@@ -595,6 +595,7 @@ const Screen = () => {
             "room_name": roomName,
             "room_id": roomID
         };
+        window.ws.send(JSON.stringify(data));
     };
 
     const fetchMessageList = (id: string) => {
