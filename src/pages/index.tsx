@@ -2,10 +2,10 @@ import React, {useEffect, useRef, useState } from "react";
 import * as STRINGS from "../constants/string";
 import { request } from "../utils/network";
 import {message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar, Popover, Card, Divider} from "antd";
-import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined, ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined, CommentOutlined, EllipsisOutlined } from "@ant-design/icons";
+import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined, ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined, CommentOutlined, EllipsisOutlined, SmileOutlined } from "@ant-design/icons";
 import * as CONS from "../constants/constants";
-import moment from "moment";
 import TextArea from "antd/lib/input/TextArea";
+import moment from "moment";
 
 interface friendListData {
     groupname: string;
@@ -14,6 +14,7 @@ interface friendListData {
 
 interface userData {
     username: string;
+    // avater
 }
 
 interface receiveData {
@@ -25,20 +26,24 @@ interface receiveData {
 interface roomListData {
     roomname: string;
     roomid: string;
-    unreadnum: number;
+    is_notice: boolean;
+    is_top: boolean;
 }
 
+// 本地存储消息列表
 interface messageListData {
-    body: string;
+    msg_id: number;
+    msg_type: string;
+    msg_body: string;
+    msg_time: string;
     sender: string;
-    time: string;
-    id: string;
 }
 
 interface roomInfoData {
     name: string;
     id: number;
     members: userData[];
+    // 权限
 }
 
 export const isEmail = (val : string) => {
@@ -102,12 +107,10 @@ const Screen = () => {
     useEffect(() => {
         if(currentPage === CONS.MAIN)
         {
-            if(menuItem === CONS.ADDRESSBOOK)
-            {
+            if(menuItem === CONS.ADDRESSBOOK) {
                 fetchFriendList();
             }
-            if(menuItem === CONS.CHATFRAME)
-            {
+            if(menuItem === CONS.CHATFRAME) {
                 fetchRoom();
             }
         }
@@ -153,14 +156,31 @@ const Screen = () => {
             if (data.function === "heartbeatconfirm") {
                 WSHeartBeat();
             }
-            // 握手
-            if (data.function === "ack_message"){
-                // todo
+
+            if (data.function === "Ack2"){
                 // 将消息id置为已发送
+                const last = messageList.pop();
+                if (last){
+                    last.msg_id = data.msg_id;
+                    messageList.push(last);
+                }
             }
-            if (data.function === "send_message"){
+            if (data.function === "Msg"){
                 // todo
                 // 更新消息列表 发送ack(id)
+                const newMessage = {
+                    "msg_id": data.msg_id,
+                    "msg_type": data.msg_type,
+                    "msg_body": data.msg_body,
+                    "msg_time": data.msg_type,
+                    "sender": data.sender
+                };
+                messageList.push(newMessage);
+
+                const ACK = {
+                    "function": "acknowledge_message",
+                };
+                window.ws.send(JSON.stringify(ACK));
             }
         };
     };
@@ -409,6 +429,7 @@ const Screen = () => {
                 });
         }
     };
+
     const accept = (other: string) => {
         const data = {
             "function": "confirm",
@@ -417,6 +438,7 @@ const Screen = () => {
             "username": username,
         };
         window.ws.send(JSON.stringify(data));
+        message.success("已同意申请", 1);
     };
 
     const decline = (other: string) => {
@@ -437,6 +459,7 @@ const Screen = () => {
             "username": username
         };
         window.ws.send(JSON.stringify(data));
+        message.success("申请已发送", 1);
     };
 
     const deleteFriend = () => {
@@ -541,65 +564,56 @@ const Screen = () => {
         console.log("发送fetchroom请求");
         setRoomListRefreshing(true);
         const data = {
-            "function": "fetchroom",
+            "function": "fetch_room",
             "username": username,
         };
         window.ws.send(JSON.stringify(data));
     };
 
     const fetchMessage = (id: string) => {
-        // todo: 完成信息抓取
-        // setMessageListRefreshing(true);
-        // const data = {
-        //     "function": "fetchmessage",
-        //     "chatroom_id": id,
-        //     "username": username,
-        // };
-        // window.ws.send(JSON.stringify((data)));
-        const tmessagelist: messageListData[] = [
-            {id: "0", sender: username, body: "Hi", time: "0"},
-            {id: "1", sender: username, body: "I'm Ashitemaru.", time: "1"},
-            {id: "2", sender: "holder", body: "Hello!", time: "3"},
-            {id: "3", sender: username, body: "Hi", time: "4"},
-            {id: "4", sender: username, body: "I'm Ashitemaru.", time: "6"},
-            {id: "5", sender: "holder", body: "Hello!", time: "7"},
-            {id: "6", sender: username, body: "Hi", time: "8"},
-            {id: "7", sender: username, body: "I'm Ashitemaru.", time: "343"},
-            {id: "8", sender: "holder", body: "Hello!", time: "73357"},
-            {id: "9", sender: username, body: "Hi", time: "3273272"},
-            {id: "10", sender: username, body: "I'm Ashitemaru.", time: "5737527"},
-            {id: "11", sender: "holder", body: "Hello!", time: "33333333"},
-            {id: "12", sender: username, body: "Hefwvuyvauyfvboi;awhbfibwaliubfiawleufvawelgykvbwean\nligiluw\naeg\nui\nl\nvbsihhfliuwabeuilgiuawbgiuwaeubgliheakvfiusbiulgbiulsergibloi", time: "44444444"},
-            {id: "13", sender: username, body: "I'm Ashitemaru.", time: "44444445"},
-            {id: "14", sender: "holder", body: "Hello!", time: "55555555"},
-            {id: "15", sender: username, body: "Hi", time: "66666666"},
-            {id: "16", sender: username, body: "I'm Ashitemaru.", time: "66666667"},
-            {id: "17", sender: "holder", body: "Hello!", time: "77777778"},
-            {id: "18", sender: username, body: "Hi", time: "88888888"},
-            {id: "19", sender: username, body: "I'm Ashitemaru.", time: "99999998"},
-            {id: "20", sender: "holder", body: "Hello!", time: "99999999"}];
-        setMessageList(tmessagelist);
+        setMessageListRefreshing(true);
+        const data = {
+            "function": "fetch_message",
+            "chatroom_id": id,
+            "username": username,
+        };
+        window.ws.send(JSON.stringify(data));
     };
 
     const sendMessage = (id: string) => {
-        const date = new Date();
-        const data: messageListData = {
-            // "function": "sendmessage",
-            "id": id,
-            "body": messageBody,
-            "sender": username,
-            "time": moment(date).format("YYYY-MM-DD HH:mm:ss"),
+        const data = {
+            "function": "Msg",
+            "msg_type": "text",
+            "msg_body": messageBody
         };
-        // window.ws.send(JSON.stringify(data));
-        setMessageList((messageList) => (messageList.concat([data])));
+        window.ws.send(JSON.stringify(data));
+
+        const date = new Date();
+        const newMessage = {
+            // 在收到ACK前暂置为-1， 判断对方是否收到可用-1判断
+            "msg_id": -1,
+            "msg_type": "text",
+            "msg_body": messageBody,
+            "msg_time": moment(date).format("YYYY-MM-DD HH:mm:ss"),
+            "sender": username
+        };
+        messageList.push(newMessage);
     };
 
     //会话具体信息
     //todo
     const roomInfoPage = (
-        <div style={{padding: "12px"}}>
+        <div style={{padding: "12px", flexDirection: "column"}}>
             <Space>
-                <Button block type={"primary"} shape={"round"} icon={<SearchOutlined />}/>
+                <Space.Compact style={{ width: "80%" }}>
+                    <Input
+                        type="text"
+                        placeholder="请填写用户名"
+                        value={searchName}
+                        onChange={(e) => setSearchName(e.target.value)}
+                    />
+                    <Button type="primary" onClick={search} icon={<SearchOutlined />}/>
+                </Space.Compact>
                 <List
                     grid={{gutter: 16} }
                     dataSource={roomInfo.members}
@@ -769,7 +783,7 @@ const Screen = () => {
                                                                                     setRoomName(item.roomname);
                                                                                 }}>
                                                                                 <Space>
-                                                                                    <Badge count={item.unreadnum}>
+                                                                                    <Badge count={999}>
                                                                                         {/* TODO: 添加会话的图标 */}
                                                                                         <Avatar icon={ <CommentOutlined/> }/>
                                                                                     </Badge>
@@ -792,7 +806,7 @@ const Screen = () => {
                                                     <Space>
                                                         <h1> { roomName } </h1>
                                                         <Popover placement={"bottomRight"} content={ roomInfoPage } trigger={"click"}>
-                                                            <Button type={"default"} size={"middle"} icon={ <EllipsisOutlined/> }/>
+                                                            <Button type={"default"} size={"middle"} icon={ <EllipsisOutlined/> } ghost={true} shape={"round"}/>
                                                         </Popover>
                                                     </Space>
                                                 </div>
@@ -804,7 +818,7 @@ const Screen = () => {
                                                         <List
                                                             dataSource={messageList}
                                                             renderItem={(item) => (
-                                                                <List.Item key={ item.id }>
+                                                                <List.Item key={ item.msg_id }>
                                                                     {item.sender === username ? (
                                                                         <div style={{ display: "flex", flexDirection: "row-reverse", justifyContent: "flex-start", marginLeft: "auto"}}>
                                                                             <div style={{display: "flex", flexDirection: "column"}}>
@@ -812,8 +826,8 @@ const Screen = () => {
                                                                                 <h6>{item.sender}</h6>
                                                                             </div>
                                                                             <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#66B7FF"}}>
-                                                                                <p>{item.body}</p>
-                                                                                <span>{item.time}</span>
+                                                                                <p>{item.msg_body}</p>
+                                                                                <span>{item.msg_time}</span>
                                                                             </div>
                                                                         </div>
                                                                     ) : (
@@ -823,8 +837,8 @@ const Screen = () => {
                                                                                 <h6>{item.sender}</h6>
                                                                             </div>
                                                                             <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF"}}>
-                                                                                <p>{ item.body }</p>
-                                                                                <span>{ item.time }</span>
+                                                                                <p>{ item.msg_body }</p>
+                                                                                <span>{ item.msg_time }</span>
                                                                             </div>
                                                                         </div>
                                                                     )}
@@ -833,11 +847,14 @@ const Screen = () => {
                                                         />
                                                     </div>
                                                 )}
-                                                {/* 底部发送框 */}
+                                                {/* 底部发送框 todo: 表情/文件/图片*/}
                                                 <div style={{ padding: "24px", position: "relative", display: "flex", flexDirection: "column", bottom: 0, left: 0, right: 0, height: "16vh" }}>
                                                     <div style={{flexDirection: "row"}}>
                                                         <Space>
-                                                            <Button type={"text"} />
+                                                            <Popover placement={"top"}>
+                                                                <Button type={"default"} icon={<SmileOutlined />}/>
+                                                            </Popover>
+                                                            <Button type={"default"} />
                                                         </Space>
                                                     </div>
                                                     <TextArea
