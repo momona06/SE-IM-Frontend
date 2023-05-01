@@ -28,6 +28,7 @@ interface roomListData {
     roomid: number;
     is_notice: boolean;
     is_top: boolean;
+    message_list: messageListData[];
 }
 
 // 本地存储消息列表
@@ -89,6 +90,7 @@ const Screen = () => {
 
     const [roomList, setRoomList] = useState<roomListData[]>([]);
     const [roomListRefreshing, setRoomListRefreshing] = useState<boolean>(true);
+
     const [messageList, setMessageList] = useState<messageListData[]>([]);
     const [messageListRefreshing, setMessageListRefreshing] = useState<boolean>(false);
 
@@ -96,8 +98,8 @@ const Screen = () => {
 
     const [messageBody, setMessageBody] = useState<string>("");
 
-    const [roomID, setRoomID] = useState<number>(0);
-    const [roomName, setRoomName] = useState<string>("");
+    const [currentRoomID, setCurrentRoomID] = useState<number>(-1);
+    const [currentRoomName, setCurrentRoomName] = useState<string>("");
     const [roomInfo, setRoomInfo] = useState<roomInfoData>({mem_list: [], master: "", manager_list: [], mem_count: 0});
 
     const [isFriend, setIsFriend] = useState<boolean>(false);
@@ -152,6 +154,7 @@ const Screen = () => {
                 setRoomList(data.roomlist.map((val: any) => ({...val})));
                 setRoomListRefreshing(false);
             }
+            //暂时无用
             if (data.function === "fetchmessage"){
                 setMessageList(data.messagelist.map((val: any) => ({...val})));
                 setMessageListRefreshing(false);
@@ -177,7 +180,7 @@ const Screen = () => {
             if (data.function === "Ack2"){
                 // 将消息id置为已发送
                 let last = messageList.pop();
-                if (last){
+                if (last) {
                     last.msg_id = data.msg_id;
                     messageList.push(last);
                 }
@@ -666,7 +669,7 @@ const Screen = () => {
                 />
                 <Divider/>
                 <Card title={"群聊名称"}>
-                    {roomName}
+                    {currentRoomName}
                 </Card>
             </Space>
         </div>
@@ -806,7 +809,7 @@ const Screen = () => {
                                                         <p>暂无会话</p>
                                                     ) : (
                                                         <List
-                                                            dataSource={roomList}
+                                                            dataSource={ roomList }
                                                             renderItem={(item) => (
                                                                 <List.Item key={item.roomid}>
                                                                     <List.Item.Meta
@@ -815,9 +818,9 @@ const Screen = () => {
                                                                                 block
                                                                                 type={"text"}
                                                                                 onClick={()=>{
-                                                                                    setRoomID(item.roomid);
-                                                                                    setRoomName(item.roomname);
-                                                                                    fetchMessageList(item.roomid);
+                                                                                    setCurrentRoomID(item.roomid);
+                                                                                    setCurrentRoomName(item.roomname);
+                                                                                    setMessageList(item.message_list);
                                                                                     addRoom(item.roomid, item.roomname);
                                                                                 }}>
                                                                                 <Space>
@@ -838,13 +841,13 @@ const Screen = () => {
                                         </div>
 
                                         {/* 消息页面 */}
-                                        {roomID === -1 ? null : (
+                                        {currentRoomID === -1 ? null : (
                                             <div style={{ padding: "0 24px", backgroundColor:"#FFF5EE",  width:"80%", minHeight:"100vh" }}>
                                                 <div style={{height: "10vh", margin: "5px, 10px", flexDirection: "row"}}>
                                                     <Space>
-                                                        <h1> { roomID } </h1>
+                                                        <h1> { currentRoomID } </h1>
                                                         <Popover placement={"bottomRight"} content={ roomInfoPage } trigger={"click"}>
-                                                            <Button type={"primary"} size={"middle"} icon={ <EllipsisOutlined/> } ghost={true} shape={"round"} onClick={() => fetchRoomInfo(roomID)}/>
+                                                            <Button type={"primary"} size={"middle"} icon={ <EllipsisOutlined/> } ghost={true} shape={"round"} onClick={() => fetchRoomInfo(currentRoomID)}/>
                                                         </Popover>
                                                     </Space>
                                                 </div>
@@ -854,7 +857,7 @@ const Screen = () => {
                                                 ) : (
                                                     <div style={{padding: "24px", position: "relative", height: "74vh", left: 0, right: 0, overflow: "auto"}}>
                                                         <List
-                                                            dataSource={messageList}
+                                                            dataSource={ messageList }
                                                             renderItem={(item) => (
                                                                 <List.Item key={ item.msg_id }>
                                                                     {item.sender === username ? (
