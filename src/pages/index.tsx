@@ -609,7 +609,7 @@ const Screen = () => {
 
     const sendMessage = (id: string) => {
         const data = {
-            "function": "Msg",
+            "function": "send_message",
             "msg_type": "text",
             "msg_body": messageBody
         };
