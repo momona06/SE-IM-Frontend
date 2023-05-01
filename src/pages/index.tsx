@@ -269,6 +269,7 @@ const Screen = () => {
             )
                 .then((res) => {
                     message.success(STRINGS.LOGIN_SUCCESS, 1);
+                    setUsername(res.username);
                     window.username = res.username;
                     setToken(res.token);
                     setCurrentPage(CONS.MAIN);
@@ -291,6 +292,7 @@ const Screen = () => {
                 .then((res) => {
                     message.success(STRINGS.LOGIN_SUCCESS, 1);
                     setToken(res.token);
+                    setUsername(res.username);
                     window.username = res.username;
                     setCurrentPage(CONS.MAIN);
                     WSConnect();
@@ -465,8 +467,8 @@ const Screen = () => {
         const data = {
             "function": "confirm",
             "from": other,
-            "to": window.username,
-            "username": window.username,
+            "to": username,
+            "username": username,
         };
         window.ws.send(JSON.stringify(data));
         message.success("已同意申请", 1);
@@ -476,8 +478,8 @@ const Screen = () => {
         const data = {
             "function": "decline",
             "from": other,
-            "to": window.username,
-            "username": window.username,
+            "to": username,
+            "username": username,
         };
         window.ws.send(JSON.stringify(data));
     };
@@ -485,9 +487,9 @@ const Screen = () => {
     const addFriend = () => {
         const data = {
             "function": "apply",
-            "from": window.username,
+            "from": username,
             "to": otherUsername,
-            "username": window.username
+            "username": username
         };
         window.ws.send(JSON.stringify(data));
         message.success("申请已发送", 1);
@@ -498,7 +500,7 @@ const Screen = () => {
             "/api/friend/deletefriend",
             "DELETE",
             {
-                username: window.username,
+                username: username,
                 token: token,
                 friend_name: otherUsername,
             },
@@ -516,7 +518,7 @@ const Screen = () => {
             "api/friend/checkuser",
             "POST",
             {
-                my_username: window.username,
+                my_username: username,
                 check_name: otherUsername,
                 token: token
             },
@@ -542,7 +544,7 @@ const Screen = () => {
                 "api/friend/createfgroup",
                 "POST",
                 {
-                    username: window.username,
+                    username: username,
                     token: token,
                     fgroup_name: friendGroup,
                 },
@@ -555,7 +557,7 @@ const Screen = () => {
             "PUT",
             {
                 token: token,
-                username: window.username,
+                username: username,
                 fgroup_name: friendGroup,
                 friend_name: otherUsername,
             },
@@ -568,7 +570,7 @@ const Screen = () => {
         setFriendListRefreshing(true);
         const data = {
             "function": "fetchfriendlist",
-            "username": window.username
+            "username": username
         };
         window.ws.send(JSON.stringify(data));
     };
@@ -577,7 +579,7 @@ const Screen = () => {
         setReceiveRefreshing(true);
         const data = {
             "function": "fetchreceivelist",
-            "username": window.username
+            "username": username
         };
         window.ws.send(JSON.stringify(data));
     };
@@ -586,7 +588,7 @@ const Screen = () => {
         setApplyRefreshing(true);
         const data = {
             "function": "fetchapplylist",
-            "username": window.username
+            "username": username
         };
         window.ws.send(JSON.stringify(data));
     };
