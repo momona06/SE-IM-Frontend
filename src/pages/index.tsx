@@ -124,10 +124,12 @@ const Screen = () => {
         window.ws.onopen = function () {
             console.log("websocket connected");
             setMenuItem(CONS.CHATFRAME);
-            window.ws.send(JSON.stringify({
+            let data = {
                 "function": "add_channel",
                 "username": username
-            }));
+            };
+            console.log(data);
+            window.ws.send(JSON.stringify(data));
             WSHeartBeat();
         };
         window.ws.onclose = function () {
