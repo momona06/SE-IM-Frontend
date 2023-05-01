@@ -815,9 +815,9 @@ const Screen = () => {
                                                                                 block
                                                                                 type={"text"}
                                                                                 onClick={()=>{
+                                                                                    setRoomID(item.roomid);
                                                                                     fetchMessageList(item.roomid);
                                                                                     addRoom();
-                                                                                    setRoomID(item.roomid);
                                                                                     setRoomName(item.roomname);
                                                                                 }}>
                                                                                 <Space>
