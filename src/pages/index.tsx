@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState } from "react";
+import React, {useEffect, useState } from "react";
 import * as STRINGS from "../constants/string";
 import { request } from "../utils/network";
 import {message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar, Popover, Card, Divider} from "antd";
@@ -25,7 +25,7 @@ interface receiveData {
 
 interface roomListData {
     roomname: string;
-    roomid: string;
+    roomid: number;
     is_notice: boolean;
     is_top: boolean;
 }
@@ -96,7 +96,7 @@ const Screen = () => {
 
     const [messageBody, setMessageBody] = useState<string>("");
 
-    const [roomID, setRoomID] = useState<string>("");
+    const [roomID, setRoomID] = useState<number>(0);
     const [roomName, setRoomName] = useState<string>("");
     const [roomInfo, setRoomInfo] = useState<roomInfoData>({mem_list: [], master: "", manager_list: [], mem_count: 0});
 
@@ -588,7 +588,7 @@ const Screen = () => {
         window.ws.send(JSON.stringify(data));
     };
 
-    const addRoom = () => {
+    const addRoom = (roomID: number, roomName: string) => {
         let data = {
             "function": "add_chat",
             "room_name": roomName,
@@ -598,7 +598,7 @@ const Screen = () => {
         window.ws.send(JSON.stringify(data));
     };
 
-    const fetchMessageList = (id: string) => {
+    const fetchMessageList = (id: number) => {
         setMessageListRefreshing(true);
         const data = {
             "function": "fetch_message",
@@ -609,7 +609,7 @@ const Screen = () => {
         window.ws.send(JSON.stringify(data));
     };
 
-    const sendMessage = (id: string) => {
+    const sendMessage = () => {
         const data = {
             "function": "send_message",
             "msg_type": "text",
@@ -629,7 +629,7 @@ const Screen = () => {
         messageList.push(newMessage);
     };
 
-    const fetchRoomInfo = (roomID: string) => {
+    const fetchRoomInfo = (roomID: number) => {
         let data = {
             "function": "fetch_roominfo",
             "roomid": roomID,
@@ -816,9 +816,9 @@ const Screen = () => {
                                                                                 type={"text"}
                                                                                 onClick={()=>{
                                                                                     setRoomID(item.roomid);
-                                                                                    fetchMessageList(item.roomid);
-                                                                                    addRoom();
                                                                                     setRoomName(item.roomname);
+                                                                                    fetchMessageList(item.roomid);
+                                                                                    addRoom(item.roomid, item.roomname);
                                                                                 }}>
                                                                                 <Space>
                                                                                     <Badge count={999}>
@@ -838,7 +838,7 @@ const Screen = () => {
                                         </div>
 
                                         {/* 消息页面 */}
-                                        {roomID === "" ? null : (
+                                        {roomID === -1 ? null : (
                                             <div style={{ padding: "0 24px", backgroundColor:"#FFF5EE",  width:"80%", minHeight:"100vh" }}>
                                                 <div style={{height: "10vh", margin: "5px, 10px", flexDirection: "row"}}>
                                                     <Space>
@@ -903,7 +903,7 @@ const Screen = () => {
                                                     />
                                                     <Button
                                                         type="primary"
-                                                        onClick={() => sendMessage(roomID)}>
+                                                        onClick={() => sendMessage()}>
                                                         发送
                                                     </Button>
                                                 </div>
