@@ -194,6 +194,8 @@ const Screen = () => {
             }
             if (data.function === "Msg"){
                 // 更新消息列表 发送ack(id)
+                console.log("username:", username);
+                console.log("sender:", data.sender);
                 if (data.sender != username) {
                     let newMessage = {
                         msg_id: data.msg_id,
