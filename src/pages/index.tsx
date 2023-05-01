@@ -95,7 +95,7 @@ const Screen = () => {
     const otherUsername = useRef("");
 
     const [messageBody, setMessageBody] = useState<string>("");
-    //todo: 考虑将roomID roomName加入roomInfo
+
     const [roomID, setRoomID] = useState<string>("");
     const [roomName, setRoomName] = useState<string>("");
     const [roomInfo, setRoomInfo] = useState<roomInfoData>({id: -1, members: [], name: ""});
@@ -133,6 +133,9 @@ const Screen = () => {
         window.ws.onmessage = async function (event) {
             const data = JSON.parse(event.data);
             console.log(JSON.stringify(data));
+            if (data.function === "heartbeatconfirm") {
+                WSHeartBeat();
+            }
             if (data.function === "receivelist") {
                 setReceiveList(data.receivelist.map((val: any) =>({...val})));
                 setReceiveRefreshing(false);
@@ -152,23 +155,26 @@ const Screen = () => {
             if (data.function === "fetchmessage"){
                 setMessageList(data.messagelist.map((val: any) => ({...val})));
                 setMessageListRefreshing(false);
-            }
-            if (data.function === "heartbeatconfirm") {
-                WSHeartBeat();
+                let count = messageList.length;
+                let ACK = {
+                    "function": "acknowledge_message",
+                    "is_back": true,
+                    "count": count,
+                };
+                window.ws.send(JSON.stringify(ACK));
             }
 
             if (data.function === "Ack2"){
                 // 将消息id置为已发送
-                const last = messageList.pop();
+                let last = messageList.pop();
                 if (last){
                     last.msg_id = data.msg_id;
                     messageList.push(last);
                 }
             }
             if (data.function === "Msg"){
-                // todo
                 // 更新消息列表 发送ack(id)
-                const newMessage = {
+                let newMessage = {
                     "msg_id": data.msg_id,
                     "msg_type": data.msg_type,
                     "msg_body": data.msg_body,
@@ -177,8 +183,10 @@ const Screen = () => {
                 };
                 messageList.push(newMessage);
 
-                const ACK = {
+                let ACK = {
                     "function": "acknowledge_message",
+                    "is_back": false,
+                    "count": 1
                 };
                 window.ws.send(JSON.stringify(ACK));
             }
@@ -847,7 +855,7 @@ const Screen = () => {
                                                         />
                                                     </div>
                                                 )}
-                                                {/* 底部发送框 todo: 表情/文件/图片*/}
+                                                {/* 底部发送框 todo: 文件/图片*/}
                                                 <div style={{ padding: "24px", position: "relative", display: "flex", flexDirection: "column", bottom: 0, left: 0, right: 0, height: "16vh" }}>
                                                     <div style={{flexDirection: "row"}}>
                                                         <Space>
