@@ -121,13 +121,13 @@ const Screen = () => {
     const WSConnect = () => {
         window.ws = new WebSocket("wss://se-im-backend-overflowlab.app.secoder.net/wsconnect");
         console.log("开始连接");
-        window.ws.send(JSON.stringify({
-            "function": "add_channel",
-            "username": username
-        }));
         window.ws.onopen = function () {
             console.log("websocket connected");
             setMenuItem(CONS.CHATFRAME);
+            window.ws.send(JSON.stringify({
+                "function": "add_channel",
+                "username": username
+            }));
             WSHeartBeat();
         };
         window.ws.onclose = function () {
@@ -198,6 +198,7 @@ const Screen = () => {
                     msg_time: data.msg_type,
                     sender: data.sender
                 };
+
                 messageList.push(newMessage);
 
                 let ACK = {
