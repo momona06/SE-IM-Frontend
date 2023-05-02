@@ -35,11 +35,11 @@ interface roomListData {
 
 // 本地存储消息列表
 interface messageListData {
-    id: number;
-    type: string;
-    body: string;
+    msg_id: number;
+    msg_type: string;
+    msg_body: string;
+    msg_time: string;
     sender: string;
-    time: string;
 }
 
 interface roomInfoData {
@@ -138,9 +138,7 @@ const Screen = () => {
 
     const WSConnect = () => {
         window.ws = new WebSocket("wss://se-im-backend-overflowlab.app.secoder.net/wsconnect");
-        console.log("开始连接");
         window.ws.onopen = function () {
-            console.log("websocket connected");
             setMenuItem(CONS.CHATFRAME);
             let data = {
                 "function": "add_channel",
@@ -192,22 +190,23 @@ const Screen = () => {
                 // 将消息id置为已发送
                 let last = messageList.pop();
                 if (last) {
-                    last.id = data.msg_id;
+                    last.msg_id = data.msg_id;
                     messageList.push(last);
                 }
             }
             else if (data.function === "Msg"){
                 let newMessage = {
-                    id: data.msg_id,
-                    type: data.msg_type,
-                    body: data.msg_body,
-                    time: data.msg_time,
+                    msg_id: data.msg_id,
+                    msg_type: data.msg_type,
+                    msg_body: data.msg_body,
+                    msg_time: data.msg_time,
                     sender: data.sender
                 };
+                console.log("msg_data:", data);
                 if (data.room_id === currentRoomID){
                     if (data.sender != window.username) {
                         setMessageList(messageList => messageList.concat(newMessage));
-                        console.log(messageList);
+                        console.log("message:", messageList);
                     }
                 }
                 else{
@@ -283,7 +282,6 @@ const Screen = () => {
             )
                 .then((res) => {
                     message.success(STRINGS.LOGIN_SUCCESS, 1);
-                    setUsername(res.username);
                     window.username = res.username;
                     setToken(res.token);
                     setCurrentPage(CONS.MAIN);
@@ -306,7 +304,6 @@ const Screen = () => {
                 .then((res) => {
                     message.success(STRINGS.LOGIN_SUCCESS, 1);
                     setToken(res.token);
-                    setUsername(res.username);
                     window.username = res.username;
                     setCurrentPage(CONS.MAIN);
                     WSConnect();
@@ -376,7 +373,6 @@ const Screen = () => {
         )
             .then(() => {
                 message.success(STRINGS.USERNAME_CHANGE_SUCCESS, 1);
-                setUsername(newUsername);
                 window.username = newUsername;
             })
             .catch((err) => message.error(err.message, 1));
@@ -637,10 +633,10 @@ const Screen = () => {
         const date = new Date();
         const newMessage = {
             // 在收到ACK前暂置为-1， 判断对方是否收到可用-1判断
-            "id": -1,
-            "type": "text",
-            "body": messageBody,
-            "time": moment(date).format("YYYY-MM-DD HH:mm:ss"),
+            "msg_id": -1,
+            "msg_type": "text",
+            "msg_body": messageBody,
+            "msg_time": moment(date).format("YYYY-MM-DD HH:mm:ss"),
             "sender": window.username
         };
         setMessageList(messageList => messageList.concat(newMessage));
@@ -918,7 +914,7 @@ const Screen = () => {
                                                     <List
                                                         dataSource={ messageList }
                                                         renderItem={(item) => (
-                                                            <List.Item key={ item.id }>
+                                                            <List.Item key={ item.msg_id }>
                                                                 {item.sender === window.username ? (
                                                                     <div style={{ display: "flex", flexDirection: "row-reverse", justifyContent: "flex-start", marginLeft: "auto"}}>
                                                                         <div style={{display: "flex", flexDirection: "column"}}>
@@ -926,8 +922,8 @@ const Screen = () => {
                                                                             <h6>{item.sender}</h6>
                                                                         </div>
                                                                         <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#66B7FF"}}>
-                                                                            <p>{item.body}</p>
-                                                                            <span>{item.time}</span>
+                                                                            <p>{item.msg_body}</p>
+                                                                            <span>{item.msg_time}</span>
                                                                         </div>
                                                                     </div>
                                                                 ) : (
@@ -937,8 +933,8 @@ const Screen = () => {
                                                                             <h6>{item.sender}</h6>
                                                                         </div>
                                                                         <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF"}}>
-                                                                            <p>{ item.body }</p>
-                                                                            <span>{ item.time }</span>
+                                                                            <p>{ item.msg_body }</p>
+                                                                            <span>{ item.msg_time }</span>
                                                                         </div>
                                                                     </div>
                                                                 )}
