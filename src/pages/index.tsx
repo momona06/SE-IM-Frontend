@@ -216,13 +216,11 @@ const Screen = () => {
             }
         };
     };
-
     const WSOnerror = () => {
         console.log("Websocket断开");
         console.log("error重接");
         WSConnect();
     };
-
     const WSOnclose = () => {
         console.log("Websocket断开连接");
         if (window.heartBeat) {
@@ -230,7 +228,6 @@ const Screen = () => {
             WSConnect();
         }
     };
-
     const WSHeartBeat = () => {
         clearInterval(window.timeoutObj);
         clearTimeout(window.serverTimeoutObj);
@@ -246,7 +243,6 @@ const Screen = () => {
             }, 2000);
         }, 10000);
     };
-
     const WSClose = () => {
         window.heartBeat = false;
         console.log("关闭");
@@ -256,7 +252,6 @@ const Screen = () => {
         clearInterval(window.timeoutObj);
         clearTimeout(window.serverTimeoutObj);
     };
-
     const login = () => {
         if (isEmail(account)){
             request(
@@ -303,7 +298,6 @@ const Screen = () => {
                 });
         }
     };
-
     const register = () => {
         request(
             "/api/user/register",
@@ -320,7 +314,6 @@ const Screen = () => {
             })
             .catch((err) => message.error(err.message, 1));
     };
-
     const verifyPassword = () => {
         if (verification === password){
             if (currentPage === CONS.REGISTER) {
@@ -334,7 +327,6 @@ const Screen = () => {
             message.warning(STRINGS.PASSWORD_INCONSISTENT, 1);
         }
     };
-
     const deleteGroup = (group:string) => {
         request(
             "/api/friend/deletefgroup",
@@ -348,7 +340,6 @@ const Screen = () => {
             .then(() => fetchFriendList())
             .catch((err) => message.error(err.message, 1));
     };
-
     const changeUsername = () => {
         request(
             "/api/user/revise",
@@ -367,7 +358,6 @@ const Screen = () => {
             })
             .catch((err) => message.error(err.message, 1));
     };
-
     const sendEmail = () => {
         request(
             "/api/user/send_email",
@@ -379,7 +369,6 @@ const Screen = () => {
             .then(() => message.success("发送成功", 1))
             .catch((err) => message.error(err.message, 1));
     };
-
     const verifySms = ()=>{
         request(
             "/api/user/email",
@@ -393,7 +382,6 @@ const Screen = () => {
             .then(() => message.success("验证通过", 1))
             .catch(() => message.error("验证失败", 1));
     };
-
     const changePassword = () => {
         request(
             "/api/user/revise",
@@ -409,7 +397,6 @@ const Screen = () => {
             .then(() => message.success(STRINGS.PASSWORD_CHANGE_SUCCESS, 1))
             .catch((err) => message.error(err.message, 1));
     };
-
     const logout = () => {
         request(
             "/api/user/logout",
@@ -425,7 +412,6 @@ const Screen = () => {
             })
             .catch((err) => message.error(err.message, 1));
     };
-
     const deleteUser = () => {
         request(
             "/api/user/cancel",
@@ -438,7 +424,6 @@ const Screen = () => {
             .then(() => {setCurrentPage(CONS.LOGIN); WSClose();})
             .catch((err) => message.error(err.message, 1));
     };
-
     const search = () => {
         if(searchName === "") {
             message.error("搜索的用户名不能为空", 1);
@@ -463,7 +448,6 @@ const Screen = () => {
                 });
         }
     };
-
     const accept = (other: string) => {
         const data = {
             "function": "confirm",
@@ -474,7 +458,6 @@ const Screen = () => {
         window.ws.send(JSON.stringify(data));
         message.success("已同意申请", 1);
     };
-
     const decline = (other: string) => {
         const data = {
             "function": "decline",
@@ -484,7 +467,6 @@ const Screen = () => {
         };
         window.ws.send(JSON.stringify(data));
     };
-
     const addFriend = () => {
         const data = {
             "function": "apply",
@@ -495,7 +477,6 @@ const Screen = () => {
         window.ws.send(JSON.stringify(data));
         message.success("申请已发送", 1);
     };
-
     const deleteFriend = () => {
         request(
             "/api/friend/deletefriend",
@@ -513,7 +494,6 @@ const Screen = () => {
             })
             .catch((err) => message.error(err.message, 1));
     };
-
     const checkFriend = () => {
         request(
             "api/friend/checkuser",
@@ -530,7 +510,6 @@ const Screen = () => {
             })
             .catch((err) => console.log(err));
     };
-
     const addToGroup = () => {
         let flag = 0;
         friendList.forEach((arr) => {
@@ -838,7 +817,7 @@ const Screen = () => {
                                                                                     addRoom(item.roomid, item.roomname);
                                                                                 }}>
                                                                                 <Space>
-                                                                                    <Badge count={999}>
+                                                                                    <Badge count={114514}>
                                                                                         {/* TODO: 添加会话的图标 */}
                                                                                         <Avatar icon={ <CommentOutlined/> }/>
                                                                                     </Badge>
@@ -859,7 +838,7 @@ const Screen = () => {
                                             <div style={{ padding: "0 24px", backgroundColor:"#FFF5EE",  width:"80%", minHeight:"100vh" }}>
                                                 <div style={{height: "10vh", margin: "5px, 10px", flexDirection: "row"}}>
                                                     <Space>
-                                                        <h1> { currentRoomID } </h1>
+                                                        <h1> { currentRoomName } </h1>
                                                         <Popover placement={"bottomRight"} content={ roomInfoPage } trigger={"click"}>
                                                             <Button type={"primary"} size={"middle"} icon={ <EllipsisOutlined/> } ghost={true} shape={"round"} onClick={() => fetchRoomInfo(currentRoomID)}/>
                                                         </Popover>
