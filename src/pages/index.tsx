@@ -199,9 +199,8 @@ const Screen = () => {
                         msg_time: data.msg_time,
                         sender: data.sender
                     };
-
-                    messageList.push(newMessage);
-
+                    setMessageList(messageList => messageList.concat(newMessage));
+                    console.log(messageList);
 
                     let ACK = {
                         "function": "acknowledge_message",
@@ -620,14 +619,11 @@ const Screen = () => {
         console.log(messageList);
     };
 
-
-
     const fetchRoomInfo = (ID: number) => {
         let data = {
             "function": "fetch_roominfo",
             "roomid": ID,
         };
-        window.ws.send(JSON.stringify(data));
         window.ws.send(JSON.stringify(data));
     };
 
