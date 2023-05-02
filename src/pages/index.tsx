@@ -33,10 +33,10 @@ interface roomListData {
 
 // 本地存储消息列表
 interface messageListData {
-    msg_id: number;
-    msg_type: string;
-    msg_body: string;
-    msg_time: string;
+    id: number;
+    type: string;
+    body: string;
+    time: string;
     sender: string;
 }
 
@@ -121,7 +121,6 @@ const Screen = () => {
     const WSConnect = () => {
         window.ws = new WebSocket("wss://se-im-backend-overflowlab.app.secoder.net/wsconnect");
         console.log("开始连接");
-
         window.ws.onopen = function () {
             console.log("websocket connected");
             setMenuItem(CONS.CHATFRAME);
@@ -185,7 +184,7 @@ const Screen = () => {
                 // 将消息id置为已发送
                 let last = messageList.pop();
                 if (last) {
-                    last.msg_id = data.msg_id;
+                    last.id = data.msg_id;
                     messageList.push(last);
                 }
             }
@@ -542,7 +541,6 @@ const Screen = () => {
             .then(() => message.success(STRINGS.FRIEND_GROUP_ADDED, 1))
             .catch((err) => message.error(err.message, 1));
     };
-
     const fetchFriendList = () => {
         setFriendListRefreshing(true);
         const data = {
@@ -551,7 +549,6 @@ const Screen = () => {
         };
         window.ws.send(JSON.stringify(data));
     };
-
     const fetchReceiveList = () => {
         setReceiveRefreshing(true);
         const data = {
@@ -560,7 +557,6 @@ const Screen = () => {
         };
         window.ws.send(JSON.stringify(data));
     };
-
     const fetchApplyList = () => {
         setApplyRefreshing(true);
         const data = {
@@ -569,7 +565,6 @@ const Screen = () => {
         };
         window.ws.send(JSON.stringify(data));
     };
-
     const fetchRoomList = () => {
         setRoomListRefreshing(true);
         const data = {
@@ -578,7 +573,6 @@ const Screen = () => {
         };
         window.ws.send(JSON.stringify(data));
     };
-
     const addRoom = (ID: number, Name: string) => {
         let data = {
             "function": "add_chat",
@@ -588,6 +582,7 @@ const Screen = () => {
         window.ws.send(JSON.stringify(data));
     };
 
+    // 暂时无用
     const fetchMessageList = (id: number) => {
         setMessageListRefreshing(true);
         const data = {
@@ -807,6 +802,7 @@ const Screen = () => {
                                                                                 onClick={()=>{
                                                                                     setCurrentRoomID(item.roomid);
                                                                                     setCurrentRoomName(item.roomname);
+                                                                                    // { 设置当前页面的message list }
                                                                                     setMessageList(item.message_list);
                                                                                     addRoom(item.roomid, item.roomname);
                                                                                 }}>
