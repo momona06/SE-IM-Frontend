@@ -204,7 +204,7 @@ const Screen = () => {
                     };
 
                     messageList.push(newMessage);
-                    setMessageList(messageList);
+                    refresheMessage();
 
                     let ACK = {
                         "function": "acknowledge_message",
