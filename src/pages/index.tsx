@@ -144,24 +144,24 @@ const Screen = () => {
             if (data.function === "heartbeatconfirm") {
                 WSHeartBeat();
             }
-            if (data.function === "receivelist") {
+            else if (data.function === "receivelist") {
                 setReceiveList(data.receivelist.map((val: any) =>({...val})));
                 setReceiveRefreshing(false);
             }
-            if (data.function === "applylist") {
+            else if (data.function === "applylist") {
                 setApplyList(data.applylist.map((val: any) => ({...val})));
                 setApplyRefreshing(false);
             }
-            if (data.function === "friendlist") {
+            else if (data.function === "friendlist") {
                 setFriendList(data.friendlist.map((val: any) => ({...val})));
                 setFriendListRefreshing(false);
             }
-            if (data.function === "fetchroom"){
+            else if (data.function === "fetchroom"){
                 setRoomList(data.roomlist.map((val: any) => ({...val})));
                 setRoomListRefreshing(false);
             }
             //暂时无用
-            if (data.function === "fetchmessage"){
+            else if (data.function === "fetchmessage"){
                 setMessageList(data.messagelist.map((val: any) => ({...val})));
                 setMessageListRefreshing(false);
                 let count = messageList.length;
@@ -172,8 +172,7 @@ const Screen = () => {
                 };
                 window.ws.send(JSON.stringify(ACK));
             }
-
-            if (data.function === "fetchroominfo"){
+            else if (data.function === "fetchroominfo"){
                 let info = {
                     mem_list: data.mem_list,
                     manager_list: data.manager_list,
@@ -182,8 +181,7 @@ const Screen = () => {
                 };
                 setRoomInfo(info);
             }
-
-            if (data.function === "Ack2"){
+            else if (data.function === "Ack2"){
                 // 将消息id置为已发送
                 let last = messageList.pop();
                 if (last) {
@@ -191,7 +189,7 @@ const Screen = () => {
                     messageList.push(last);
                 }
             }
-            if (data.function === "Msg"){
+            else if (data.function === "Msg"){
                 // 更新消息列表 发送ack(id)
                 if (data.sender != window.username) {
                     let newMessage = {
