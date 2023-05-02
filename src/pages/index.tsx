@@ -707,7 +707,7 @@ const Screen = () => {
                 />
                 <Divider/>
                 <Card title={"群聊名称"}>
-                    { window.currentRoomName }
+                    { "" }
                     {roomNotice ? (
                         <Button type="primary" onClick={() => setNotice(false)}> 设置免打扰 </Button>
                     ) : (
@@ -879,8 +879,7 @@ const Screen = () => {
                                                                                 onClick={()=>{
                                                                                     window.currentRoomID = item.roomid;
                                                                                     window.currentRoomName = item.roomname;
-                                                                                    // 设置当前页面的message list
-                                                                                    setMessageList(item.message_list);
+                                                                                    setMessageList(messageList => item.message_list);
                                                                                     addRoom(item.roomid, item.roomname);
                                                                                 }}>
                                                                                 <Space>
