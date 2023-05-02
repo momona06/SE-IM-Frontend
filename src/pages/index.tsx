@@ -131,6 +131,7 @@ const Screen = () => {
             }
             if(menuItem === CONS.CHATFRAME) {
                 fetchRoomList();
+                window.currentRoomID = 0;
             }
         }
     }, [currentPage, menuItem]);
