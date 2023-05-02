@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState } from "react";
+import React, {useEffect, useState } from "react";
 import * as STRINGS from "../constants/string";
 import { request } from "../utils/network";
 import { message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar, Popover, Card, Divider, Row, Col, Upload} from "antd";
@@ -716,7 +716,7 @@ const Screen = () => {
         window.ws.send(JSON.stringify(data));
     };
 
-    const fetchRoom = () => {
+    const fetchRoomList = () => {
         console.log("发送fetchroom请求");
         setRoomListRefreshing(true);
         const data = {
