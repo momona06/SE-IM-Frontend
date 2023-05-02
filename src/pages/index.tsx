@@ -135,7 +135,8 @@ const Screen = () => {
     }, [currentPage, menuItem]);
 
     const WSConnect = () => {
-        window.ws = new WebSocket("wss://se-im-backend-overflowlab.app.secoder.net/wsconnect");
+        let DEBUG = true;
+        window.ws = new WebSocket(DEBUG ? "ws://localhost:8000/wsconnect" : "wss://se-im-backend-overflowlab.app.secoder.net/wsconnect");
         window.ws.onopen = function () {
             setMenuItem(CONS.CHATFRAME);
             let data = {
@@ -624,24 +625,29 @@ const Screen = () => {
         window.ws.send(JSON.stringify(data));
     };
     const sendMessage = () => {
-        const data = {
-            "function": "send_message",
-            "msg_type": "text",
-            "msg_body": messageBody
-        };
-        window.ws.send(JSON.stringify(data));
+        if (messageBody != ""){
+            const data = {
+                "function": "send_message",
+                "msg_type": "text",
+                "msg_body": messageBody
+            };
+            window.ws.send(JSON.stringify(data));
 
-        const date = new Date();
-        const newMessage = {
-            // 在收到ACK前暂置为-1， 判断对方是否收到可用-1判断
-            "msg_id": -1,
-            "msg_type": "text",
-            "msg_body": messageBody,
-            "msg_time": moment(date).format("YYYY-MM-DD HH:mm:ss"),
-            "sender": window.username
-        };
-        setMessageList(messageList => messageList.concat(newMessage));
-        console.log(messageList);
+            const date = new Date();
+            const newMessage = {
+                // 在收到ACK前暂置为-1， 判断对方是否收到可用-1判断
+                "msg_id": -1,
+                "msg_type": "text",
+                "msg_body": messageBody,
+                "msg_time": moment(date).format("YYYY-MM-DD HH:mm:ss"),
+                "sender": window.username
+            };
+            setMessageList(messageList => messageList.concat(newMessage));
+            console.log(messageList);
+        }
+        else {
+            message.error("消息不能为空", 1);
+        }
     };
 
     const fetchRoomInfo = (ID: number) => {
