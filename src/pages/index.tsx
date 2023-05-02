@@ -1,7 +1,25 @@
 import React, {useEffect, useState } from "react";
 import * as STRINGS from "../constants/string";
 import { request } from "../utils/network";
-import { message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar, Popover, Card, Divider, Row, Col, Upload} from "antd";
+import {
+    message,
+    Input,
+    Button,
+    Space,
+    Layout,
+    List,
+    Menu,
+    Spin,
+    Badge,
+    Avatar,
+    Popover,
+    Card,
+    Divider,
+    Row,
+    Col,
+    Upload,
+    Switch
+} from "antd";
 import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined, ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined, CommentOutlined, EllipsisOutlined, SmileOutlined, UploadOutlined, ExclamationOutlined } from "@ant-design/icons";
 import type { UploadProps } from "antd";
 import * as CONS from "../constants/constants";
@@ -194,7 +212,6 @@ const Screen = () => {
                     last.msg_id = data.msg_id;
                     messageList.push(last);
                 }
-
             }
             else if (data.function === "Msg"){
                 let body = document.body;
@@ -674,7 +691,7 @@ const Screen = () => {
     };
 
     const setNotice = (set: boolean) => {
-        console.log("将免打扰设置为" + !set);
+        console.log("将免打扰设置为" + set);
         const data = {
             "function": "setnotice",
             "setnotice": set,
@@ -694,7 +711,7 @@ const Screen = () => {
                         value={searchName}
                         onChange={(e) => setSearchName(e.target.value)}
                     />
-                    <Button type="primary" onClick={search} icon={<SearchOutlined />}/>
+                    <Button type="primary" onClick={ search } icon={<SearchOutlined />}/>
                 </Space.Compact>
                 <List
                     grid={{gutter: 16} }
@@ -703,7 +720,7 @@ const Screen = () => {
                         <List.Item>
                             <Popover placement={"rightBottom"} content={"这里是点击成员后的弹出卡片，应当显示publicInfo"}>
                                 <Card cover={"头像"}>
-                                    {"用户名"}
+                                    { item }
                                 </Card>
                             </Popover>
                         </List.Item>
@@ -711,17 +728,17 @@ const Screen = () => {
                 />
                 <Divider/>
                 <Card title={"群聊名称"}>
-                    { currentRoomName }
-                    {roomNotice ? (
-                        <Button type="primary" onClick={() => setNotice(false)}> 设置免打扰 </Button>
-                    ) : (
-                        <Button type="primary" onClick={() => setNotice(true)}> 取消免打扰 </Button>
-                    )}
-                    {roomTop ? (
-                        <Button type="primary" onClick={() => setTop(false)}> 取消置顶 </Button>
-                    ) : (
-                        <Button type="primary" onClick={() => setTop(true)}> 设置置顶 </Button>
-                    )}
+                    <p> {window.currentRoomName} </p>
+                    <Space direction={"vertical"}>
+                        <Space direction={"horizontal"}>
+                            <p>免打扰</p>
+                            <Switch defaultChecked={roomNotice} onChange={setNotice}/>
+                        </Space>
+                        <Space direction={"horizontal"}>
+                            <p>置顶</p>
+                            <Switch defaultChecked={roomTop} onChange={setTop}/>
+                        </Space>
+                    </Space>
                 </Card>
             </Space>
         </div>
