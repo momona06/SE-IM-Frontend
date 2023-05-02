@@ -129,7 +129,6 @@ const Screen = () => {
                 "function": "add_channel",
                 "username": window.username
             };
-            console.log(data);
             window.ws.send(JSON.stringify(data));
             WSHeartBeat();
         };
@@ -204,7 +203,7 @@ const Screen = () => {
                     };
 
                     messageList.push(newMessage);
-                    refresheMessage();
+
 
                     let ACK = {
                         "function": "acknowledge_message",
@@ -551,7 +550,7 @@ const Screen = () => {
                     fgroup_name: friendGroup,
                 },
             )
-                .then(() => console.log("成功新建分组"))
+                .then(() => message.success("成功新建分组", 1))
                 .catch((err) => message.error(err.message, 1));
         }
         request(
@@ -596,7 +595,6 @@ const Screen = () => {
     };
 
     const fetchRoomList = () => {
-        console.log("发送fetchroom请求");
         setRoomListRefreshing(true);
         const data = {
             "function": "fetch_room",
@@ -611,7 +609,6 @@ const Screen = () => {
             "room_name": Name,
             "room_id": ID
         };
-        console.log(data);
         window.ws.send(JSON.stringify(data));
     };
 
@@ -622,7 +619,6 @@ const Screen = () => {
             "chatroom_id": id,
             "username": username,
         };
-        console.log(data);
         window.ws.send(JSON.stringify(data));
     };
 
@@ -632,7 +628,6 @@ const Screen = () => {
             "msg_type": "text",
             "msg_body": messageBody
         };
-        console.log(data);
         window.ws.send(JSON.stringify(data));
 
         const date = new Date();
@@ -644,14 +639,11 @@ const Screen = () => {
             "msg_time": moment(date).format("YYYY-MM-DD HH:mm:ss"),
             "sender": username
         };
-        messageList.push(newMessage);
-        refresheMessage();
+        setMessageList(messageList => messageList.concat(newMessage));
+        console.log(messageList);
     };
 
-    const refresheMessage = () => {
-        let newMessageList = messageList;
-        setMessageList(newMessageList);
-    };
+
 
     const fetchRoomInfo = (ID: number) => {
         let data = {
