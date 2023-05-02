@@ -283,7 +283,7 @@ const Screen = () => {
             }
             else if (data.function === "fetchroom"){
                 // todo
-                setRoomList(((data.roomlist.filter((val: any) => val.is_top === true)).concat(data.roomlist.filter((val: any) => val.is_top === false)).map((val: any) => ({...val}))));
+                setRoomList(((data.roomlist.filter((val: any) => val.is_top)).concat(data.roomlist.filter((val: any) => !val.is_top)).map((val: any) => ({...val}))));
                 console.log(roomList);
                 setRoomListRefreshing(false);
             }
@@ -764,11 +764,11 @@ const Screen = () => {
 
     function top(element: roomListData, index: number, array: roomListData[]) {
         return (element.is_top);
-    };
+    }
 
     function notTop(element: roomListData, index: number, array: roomListData[]) {
         return (!element.is_top);
-    };
+    }
 
     const setTop = (set: boolean) => {
         console.log("将置顶状态设置为" + set);
