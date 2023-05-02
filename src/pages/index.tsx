@@ -479,7 +479,7 @@ const Screen = () => {
                 "/api/friend/searchuser",
                 "POST",
                 {
-                    my_username: username,
+                    my_username: window.username,
                     search_username: searchName,
                 }
             )
@@ -549,7 +549,7 @@ const Screen = () => {
             "api/friend/checkuser",
             "POST",
             {
-                my_username: username,
+                my_username: window.username,
                 check_name: window.otherUsername,
                 token: token
             },
@@ -702,13 +702,13 @@ const Screen = () => {
     //会话具体信息
     //todo
     const roomInfoPage = (
-        <div style={{padding: "12px", flexDirection: "column"}}>
-            <Space>
+        <div style={{padding: "12px"}}>
+            <Space direction={"vertical"}>
                 <Space.Compact style={{ width: "80%" }}>
                     <Input
                         type="text"
                         placeholder="请填写用户名"
-                        value={searchName}
+                        value={ searchName }
                         onChange={(e) => setSearchName(e.target.value)}
                     />
                     <Button type="primary" onClick={ search } icon={<SearchOutlined />}/>
@@ -726,9 +726,9 @@ const Screen = () => {
                         </List.Item>
                     )}
                 />
-                <Divider/>
+                <Divider type={"horizontal"}/>
                 <Card title={"群聊名称"}>
-                    <p> {window.currentRoomName} </p>
+                    <p> { currentRoomName } </p>
                     <Space direction={"vertical"}>
                         <Space direction={"horizontal"}>
                             <p>免打扰</p>
