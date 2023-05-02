@@ -592,6 +592,7 @@ const Screen = () => {
             "function": "fetchfriendlist",
             "username": username
         };
+        console.log(data);
         window.ws.send(JSON.stringify(data));
     };
 
