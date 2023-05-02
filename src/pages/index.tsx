@@ -2,7 +2,7 @@ import React, {useEffect, useState } from "react";
 import * as STRINGS from "../constants/string";
 import { request } from "../utils/network";
 import { message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar, Popover, Card, Divider, Row, Col, Upload} from "antd";
-import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined, ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined, CommentOutlined, EllipsisOutlined, SmileOutlined, UploadOutlined } from "@ant-design/icons";
+import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined, ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined, CommentOutlined, EllipsisOutlined, SmileOutlined, UploadOutlined, ExclamationOutlined } from "@ant-design/icons";
 import type { UploadProps } from "antd";
 import * as CONS from "../constants/constants";
 import moment from "moment";
@@ -105,6 +105,7 @@ const Screen = () => {
     const [applyList, setApplyList] = useState<receiveData[]>([]);
     const [applyRefreshing, setApplyRefreshing] = useState<boolean>(false);
 
+    const [currentRoomName, setCurrentRoomName] = useState<string>("");
     const [friendListRefreshing, setFriendListRefreshing] = useState<boolean>(true);
     const [friendList, setFriendList] = useState<friendListData[]>([]);
 
@@ -201,19 +202,15 @@ const Screen = () => {
                     msg_time: data.msg_time,
                     sender: data.sender
                 };
-                console.log("msg_data:", data);
                 if (data.room_id === window.currentRoomID){
                     if (data.sender != window.username) {
                         setMessageList(messageList => messageList.concat(newMessage));
-                        console.log("message:", messageList);
                     }
                 }
                 else{
                     for (let room of roomList){
                         if (room.roomid === data.room_id){
-                            console.log("修改前：", room.message_list);
                             room.message_list.push(newMessage);
-                            console.log("修改后：", room.message_list);
                         }
                     }
                 }
@@ -585,7 +582,6 @@ const Screen = () => {
             "function": "fetchfriendlist",
             "username": window.username
         };
-        console.log(data);
         window.ws.send(JSON.stringify(data));
     };
 
@@ -608,7 +604,6 @@ const Screen = () => {
     };
 
     const fetchRoomList = () => {
-        console.log("发送fetchroom请求");
         setRoomListRefreshing(true);
         const data = {
             "function": "fetch_room",
@@ -624,26 +619,25 @@ const Screen = () => {
         };
         window.ws.send(JSON.stringify(data));
     };
-    const sendMessage = () => {
-        if (messageBody != ""){
-            const data = {
+    const sendMessage = (Message: string) => {
+        if (Message != ""){
+            let data = {
                 "function": "send_message",
                 "msg_type": "text",
-                "msg_body": messageBody
+                "msg_body": Message
             };
             window.ws.send(JSON.stringify(data));
 
-            const date = new Date();
-            const newMessage = {
+            let date = new Date();
+            let newMessage = {
                 // 在收到ACK前暂置为-1， 判断对方是否收到可用-1判断
                 "msg_id": -1,
                 "msg_type": "text",
-                "msg_body": messageBody,
+                "msg_body": Message,
                 "msg_time": moment(date).format("YYYY-MM-DD HH:mm:ss"),
                 "sender": window.username
             };
             setMessageList(messageList => messageList.concat(newMessage));
-            console.log(messageList);
         }
         else {
             message.error("消息不能为空", 1);
@@ -713,7 +707,7 @@ const Screen = () => {
                 />
                 <Divider/>
                 <Card title={"群聊名称"}>
-                    { "" }
+                    { currentRoomName }
                     {roomNotice ? (
                         <Button type="primary" onClick={() => setNotice(false)}> 设置免打扰 </Button>
                     ) : (
@@ -885,6 +879,7 @@ const Screen = () => {
                                                                                 onClick={()=>{
                                                                                     window.currentRoomID = item.roomid;
                                                                                     window.currentRoomName = item.roomname;
+                                                                                    setCurrentRoomName(item.roomname);
                                                                                     setMessageList(messageList => item.message_list);
                                                                                     addRoom(item.roomid, item.roomname);
                                                                                 }}>
@@ -921,7 +916,7 @@ const Screen = () => {
                                                         dataSource={ messageList }
                                                         renderItem={(item) => (
                                                             <List.Item key={ item.msg_id }>
-                                                                {item.sender === window.username ? (
+                                                                { item.sender === window.username ? (
                                                                     <div style={{ display: "flex", flexDirection: "row-reverse", justifyContent: "flex-start", marginLeft: "auto"}}>
                                                                         <div style={{display: "flex", flexDirection: "column"}}>
                                                                             <List.Item.Meta avatar={<Avatar src={"https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxgeticon?seq=239472774&username=@c8ef32eea4f34c3becfba86e70bd5320e33c7eba9d35d382ed6185b9c3efbfe0&skey=@crypt_6df0f029_14c4f0a85beaf972ec58feb5ca7dc0e0"}/>}/>
@@ -930,6 +925,15 @@ const Screen = () => {
                                                                         <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#66B7FF"}}>
                                                                             <p>{item.msg_body}</p>
                                                                             <span>{item.msg_time}</span>
+                                                                            {item.msg_id === -1 ? (
+                                                                                <Button
+                                                                                    type={"default"} shape={"circle"}
+                                                                                    size={"small"} danger={true} icon={<ExclamationOutlined />}
+                                                                                    onClick={() => {
+                                                                                        sendMessage(item.msg_body);
+                                                                                    }}
+                                                                                />
+                                                                            ) : null}
                                                                         </div>
                                                                     </div>
                                                                 ) : (
@@ -974,7 +978,7 @@ const Screen = () => {
                                                     <div style={{flexDirection: "row-reverse", display:"flex"}}>
                                                         <Button
                                                             type="primary"
-                                                            onClick={() => sendMessage()}>
+                                                            onClick={() => sendMessage(messageBody)}>
                                                             发送
                                                         </Button>
                                                         <Upload {...props}>
