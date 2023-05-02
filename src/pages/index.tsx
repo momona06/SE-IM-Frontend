@@ -6,6 +6,7 @@ import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, Contacts
 import * as CONS from "../constants/constants";
 import TextArea from "antd/lib/input/TextArea";
 import moment from "moment";
+import { Player } from "video-react";
 
 interface friendListData {
     groupname: string;
@@ -159,18 +160,7 @@ const Screen = () => {
                 setRoomList(data.roomlist.map((val: any) => ({...val})));
                 setRoomListRefreshing(false);
             }
-            //暂时无用
-            else if (data.function === "fetchmessage"){
-                setMessageList(data.messagelist.map((val: any) => ({...val})));
-                setMessageListRefreshing(false);
-                let count = messageList.length;
-                let ACK = {
-                    "function": "acknowledge_message",
-                    "is_back": true,
-                    "count": count,
-                };
-                window.ws.send(JSON.stringify(ACK));
-            }
+            // 会话具体信息， 包括成员列表，管理员等
             else if (data.function === "fetchroominfo"){
                 let info = {
                     mem_list: data.mem_list,
@@ -189,25 +179,35 @@ const Screen = () => {
                 }
             }
             else if (data.function === "Msg"){
-                // 更新消息列表 发送ack(id)
-                if (data.sender != window.username) {
-                    let newMessage = {
-                        id: data.msg_id,
-                        type: data.msg_type,
-                        body: data.msg_body,
-                        time: data.msg_time,
-                        sender: data.sender
-                    };
-                    setMessageList(messageList => messageList.concat(newMessage));
-                    console.log(messageList);
+                let newMessage = {
+                    id: data.msg_id,
+                    type: data.msg_type,
+                    body: data.msg_body,
+                    time: data.msg_time,
+                    sender: data.sender
+                };
 
-                    let ACK = {
-                        "function": "acknowledge_message",
-                        "is_back": false,
-                        "room_id": currentRoomID,
-                        "count": 1
-                    };
-                    window.ws.send(JSON.stringify(ACK));
+                if (data.room_id === currentRoomID){
+                    if (data.sender != window.username) {
+                        setMessageList(messageList => messageList.concat(newMessage));
+                        console.log(messageList);
+                        let ACK = {
+                            "function": "acknowledge_message",
+                            "is_back": false,
+                            "room_id": currentRoomID,
+                            "count": 1
+                        };
+                        window.ws.send(JSON.stringify(ACK));
+                    }
+                }
+                else{
+                    for (let room of roomList){
+                        if (room.roomid === data.room_id){
+                            console.log("修改前：", room.message_list);
+                            room.message_list.push(newMessage);
+                            console.log("修改后：", room.message_list);
+                        }
+                    }
                 }
             }
         };
@@ -581,18 +581,6 @@ const Screen = () => {
         };
         window.ws.send(JSON.stringify(data));
     };
-
-    // 暂时无用
-    const fetchMessageList = (id: number) => {
-        setMessageListRefreshing(true);
-        const data = {
-            "function": "fetch_message",
-            "chatroom_id": id,
-            "username": username,
-        };
-        window.ws.send(JSON.stringify(data));
-    };
-
     const sendMessage = () => {
         const data = {
             "function": "send_message",
@@ -802,7 +790,7 @@ const Screen = () => {
                                                                                 onClick={()=>{
                                                                                     setCurrentRoomID(item.roomid);
                                                                                     setCurrentRoomName(item.roomname);
-                                                                                    // { 设置当前页面的message list }
+                                                                                    // 设置当前页面的message list
                                                                                     setMessageList(item.message_list);
                                                                                     addRoom(item.roomid, item.roomname);
                                                                                 }}>
