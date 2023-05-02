@@ -6,7 +6,6 @@ import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, Contacts
 import * as CONS from "../constants/constants";
 import TextArea from "antd/lib/input/TextArea";
 import moment from "moment";
-import { Player } from "video-react";
 
 interface friendListData {
     groupname: string;
