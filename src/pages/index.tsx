@@ -198,7 +198,7 @@ const Screen = () => {
                         msg_id: data.msg_id,
                         msg_type: data.msg_type,
                         msg_body: data.msg_body,
-                        msg_time: data.msg_type,
+                        msg_time: data.msg_time,
                         sender: data.sender
                     };
 
