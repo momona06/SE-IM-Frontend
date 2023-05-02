@@ -114,8 +114,6 @@ const Screen = () => {
     const [messageList, setMessageList] = useState<messageListData[]>([]);
     const [messageBody, setMessageBody] = useState<string>("");
 
-    const [currentRoomID, setCurrentRoomID] = useState<number>(0);
-    const [currentRoomName, setCurrentRoomName] = useState<string>("");
     const [roomInfo, setRoomInfo] = useState<roomInfoData>({mem_list: [], master: "", manager_list: [], mem_count: 0});
     const [roomTop, setRoomTop] = useState<boolean>(false);
     const [roomNotice, setRoomNotice] = useState<boolean>(true);
@@ -203,9 +201,7 @@ const Screen = () => {
                     sender: data.sender
                 };
                 console.log("msg_data:", data);
-                console.log("data.room_id", data.room_id);
-                console.log("currentRoomID", currentRoomID);
-                if (data.room_id === currentRoomID){
+                if (data.room_id === window.currentRoomID){
                     if (data.sender != window.username) {
                         setMessageList(messageList => messageList.concat(newMessage));
                         console.log("message:", messageList);
@@ -711,7 +707,7 @@ const Screen = () => {
                 />
                 <Divider/>
                 <Card title={"群聊名称"}>
-                    {currentRoomName}
+                    { window.currentRoomName }
                     {roomNotice ? (
                         <Button type="primary" onClick={() => setNotice(false)}> 设置免打扰 </Button>
                     ) : (
@@ -881,8 +877,8 @@ const Screen = () => {
                                                                                 block
                                                                                 type={"text"}
                                                                                 onClick={()=>{
-                                                                                    setCurrentRoomID(item.roomid);
-                                                                                    setCurrentRoomName(item.roomname);
+                                                                                    window.currentRoomID = item.roomid;
+                                                                                    window.currentRoomName = item.roomname;
                                                                                     // 设置当前页面的message list
                                                                                     setMessageList(item.message_list);
                                                                                     addRoom(item.roomid, item.roomname);
@@ -905,13 +901,13 @@ const Screen = () => {
                                         </div>
 
                                         {/* 消息页面 */}
-                                        {currentRoomID === 0 ? null : (
+                                        {window.currentRoomID === 0 ? null : (
                                             <div style={{ padding: "0 24px", backgroundColor:"#FFF5EE",  width:"80%", minHeight:"100vh" }}>
                                                 <div style={{height: "10vh", margin: "5px, 10px", flexDirection: "row"}}>
                                                     <Space>
-                                                        <h1> { currentRoomName } </h1>
+                                                        <h1> { window.currentRoomName } </h1>
                                                         <Popover placement={"bottomRight"} content={ roomInfoPage } trigger={"click"}>
-                                                            <Button type={"primary"} size={"middle"} icon={ <EllipsisOutlined/> } ghost={true} shape={"round"} onClick={() => fetchRoomInfo(currentRoomID)}/>
+                                                            <Button type={"primary"} size={"middle"} icon={ <EllipsisOutlined/> } ghost={true} shape={"round"} onClick={() => fetchRoomInfo(window.currentRoomID)}/>
                                                         </Popover>
                                                     </Space>
                                                 </div>
@@ -1233,7 +1229,7 @@ const Screen = () => {
                                             alignItems: "center",
                                             backgroundColor: "rgba(255,255,255,0.7)"
                                         }}>
-                                            <h3>用户名：{username}</h3>
+                                            <h3>用户名：{ window.username }</h3>
                                             <div style={{width: "400px", height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
                                                 <Space size={50}>
                                                     <Button size={"large"} type={"primary"}

@@ -9,5 +9,7 @@ declare global {
         loginToken?: number
         username: string
         otherUsername: string
+        currentRoomID: number
+        currentRoomName: string
     }
 }
