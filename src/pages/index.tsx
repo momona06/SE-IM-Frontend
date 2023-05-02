@@ -929,6 +929,7 @@ const Screen = () => {
                                                                                             type="text"
                                                                                             onClick={() => {
                                                                                                 setOtherUsername(subItem);
+                                                                                                console.log(otherUsername);
                                                                                                 checkFriend();
                                                                                             }}>
                                                                                             { subItem }
@@ -1048,6 +1049,7 @@ const Screen = () => {
                                                                                     type="primary"
                                                                                     onClick={() => {
                                                                                         setOtherUsername(item.username);
+                                                                                        console.log(otherUsername);
                                                                                         checkFriend();
                                                                                     }}
                                                                                 >
