@@ -645,6 +645,7 @@ const Screen = () => {
             "sender": username
         };
         messageList.push(newMessage);
+        refresheMessage();
     };
 
     const refresheMessage = () => {
