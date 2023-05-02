@@ -203,6 +203,8 @@ const Screen = () => {
                     sender: data.sender
                 };
                 console.log("msg_data:", data);
+                console.log("data.room_id", data.room_id);
+                console.log("currentRoomID", currentRoomID);
                 if (data.room_id === currentRoomID){
                     if (data.sender != window.username) {
                         setMessageList(messageList => messageList.concat(newMessage));
@@ -225,6 +227,9 @@ const Screen = () => {
                     "count": 1
                 };
                 window.ws.send(JSON.stringify(ACK));
+            }
+            else {
+                return;
             }
         };
     };
@@ -950,7 +955,7 @@ const Screen = () => {
                                                                 {emojiList.map((item) => {
                                                                     return (
                                                                         <Col span={1} onClick={() => { appendEmoji(item.emoji);}} key={item.id}>
-                                                                            <div>{item.emoji}</div>
+                                                                            <div>{ item.emoji }</div>
                                                                         </Col>
                                                                     );
                                                                 })}
