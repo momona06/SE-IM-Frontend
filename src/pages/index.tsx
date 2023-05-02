@@ -204,6 +204,7 @@ const Screen = () => {
                     };
 
                     messageList.push(newMessage);
+                    setMessageList(messageList);
 
                     let ACK = {
                         "function": "acknowledge_message",
@@ -644,7 +645,11 @@ const Screen = () => {
             "sender": username
         };
         messageList.push(newMessage);
-        setMessageList(messageList);
+    };
+
+    const refresheMessage = () => {
+        let newMessageList = messageList;
+        setMessageList(newMessageList);
     };
 
     const fetchRoomInfo = (ID: number) => {
