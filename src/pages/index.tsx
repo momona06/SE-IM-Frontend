@@ -1,11 +1,13 @@
-import React, {useEffect, useState } from "react";
+import React, {useEffect, useRef, useState } from "react";
 import * as STRINGS from "../constants/string";
 import { request } from "../utils/network";
-import {message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar, Popover, Card, Divider} from "antd";
-import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined, ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined, CommentOutlined, EllipsisOutlined, SmileOutlined } from "@ant-design/icons";
+import { message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar, Popover, Card, Divider, Row, Col, Upload} from "antd";
+import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined, ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined, CommentOutlined, EllipsisOutlined, SmileOutlined, UploadOutlined } from "@ant-design/icons";
+import type { UploadProps } from "antd";
 import * as CONS from "../constants/constants";
-import TextArea from "antd/lib/input/TextArea";
 import moment from "moment";
+import TextArea from "antd/lib/input/TextArea";
+import { Player, ControlBar,  } from "video-react";
 
 interface friendListData {
     groupname: string;
@@ -14,7 +16,6 @@ interface friendListData {
 
 interface userData {
     username: string;
-    // avater
 }
 
 interface receiveData {
@@ -36,8 +37,8 @@ interface messageListData {
     id: number;
     type: string;
     body: string;
-    time: string;
     sender: string;
+    time: string;
 }
 
 interface roomInfoData {
@@ -51,6 +52,129 @@ export const isEmail = (val : string) => {
     //仅保留是否为邮件的判断，其余交给后端
     return /^[A-Za-z0-9\u4e00-\u9fa5]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/i.test(val);
 };
+
+const emojiList = [
+    {id: 1, emoji: "😀"},
+    {id: 2, emoji: "😁"},
+    {id: 3, emoji: "😂"},
+    {id: 4, emoji: "😃"},
+    {id: 5, emoji: "😄"},
+    {id: 6, emoji: "😅"},
+    {id: 7, emoji: "😆"},
+    {id: 8, emoji: "😇"},
+    {id: 9, emoji: "😉"},
+    {id: 10, emoji: "😊"},
+    {id: 11, emoji: "🙂"},
+    {id: 12, emoji: "🙃"},
+    {id: 13, emoji: "🤣"},
+    {id: 14, emoji: "😍"},
+    {id: 15, emoji: "😗"},
+    {id: 16, emoji: "😘"},
+    {id: 17, emoji: "😙"},
+    {id: 18, emoji: "😚"},
+    {id: 19, emoji: "🤩"},
+    {id: 20, emoji: "🥰"},
+    {id: 21, emoji: "😋"},
+    {id: 22, emoji: "😛"},
+    {id: 23, emoji: "😜"},
+    {id: 24, emoji: "😝"},
+    {id: 25, emoji: "🤑"},
+    {id: 26, emoji: "🤪"},
+    {id: 27, emoji: "🤔"},
+    {id: 28, emoji: "🤗"},
+    {id: 29, emoji: "🤫"},
+    {id: 30, emoji: "🤭"},
+    {id: 31, emoji: "😏"},
+    {id: 32, emoji: "😐"},
+    {id: 33, emoji: "😑"},
+    {id: 34, emoji: "😒"},
+    {id: 35, emoji: "😬"},
+    {id: 36, emoji: "😶"},
+    {id: 37, emoji: "🙄"},
+    {id: 38, emoji: "🤐"},
+    {id: 39, emoji: "🤥"},
+    {id: 40, emoji: "🤨"},
+    {id: 41, emoji: "😌"},
+    {id: 42, emoji: "😔"},
+    {id: 43, emoji: "😪"},
+    {id: 44, emoji: "😴"},
+    {id: 45, emoji: "🤤"},
+    {id: 46, emoji: "😵"},
+    {id: 47, emoji: "😷"},
+    {id: 48, emoji: "🤒"},
+    {id: 49, emoji: "🤕"},
+    {id: 50, emoji: "🤢"},
+    {id: 51, emoji: "🤧"},
+    {id: 52, emoji: "🤮"},
+    {id: 53, emoji: "🤯"},
+    {id: 54, emoji: "🥴"},
+    {id: 55, emoji: "🥵"},
+    {id: 56, emoji: "🥶"},
+    {id: 57, emoji: "🤠"},
+    {id: 58, emoji: "🥳"},
+    {id: 59, emoji: "😎"},
+    {id: 60, emoji: "🤓"},
+    {id: 61, emoji: "🧐"},
+    {id: 62, emoji: "😓"},
+    {id: 63, emoji: "😕"},
+    {id: 64, emoji: "😖"},
+    {id: 65, emoji: "😞"},
+    {id: 66, emoji: "😟"},
+    {id: 67, emoji: "😢"},
+    {id: 68, emoji: "😣"},
+    {id: 69, emoji: "😥"},
+    {id: 70, emoji: "😦"},
+    {id: 71, emoji: "😧"},
+    {id: 72, emoji: "😨"},
+    {id: 73, emoji: "😩"},
+    {id: 74, emoji: "😫"},
+    {id: 75, emoji: "😭"},
+    {id: 76, emoji: "😮"},
+    {id: 77, emoji: "😯"},
+    {id: 78, emoji: "😰"},
+    {id: 79, emoji: "😱"},
+    {id: 80, emoji: "😲"},
+    {id: 81, emoji: "😳"},
+    {id: 82, emoji: "🙁"},
+    {id: 83, emoji: "🥱"},
+    {id: 84, emoji: "🥺"},
+    {id: 85, emoji: "☠"},
+    {id: 86, emoji: "👿"},
+    {id: 87, emoji: "💀"},
+    {id: 88, emoji: "😈"},
+    {id: 89, emoji: "😠"},
+    {id: 90, emoji: "😡"},
+    {id: 91, emoji: "😤"},
+    {id: 92, emoji: "🤬"},
+    {id: 93, emoji: "👹"},
+    {id: 94, emoji: "👺"},
+    {id: 95, emoji: "👻"},
+    {id: 96, emoji: "👽"},
+    {id: 97, emoji: "👾"},
+    {id: 98, emoji: "💩"},
+    {id: 99, emoji: "🤖"},
+    {id: 100, emoji: "🤡"}
+];
+
+const props: UploadProps = {
+    name: "file",
+    action: "https://ww.mocky.io/v2/5cc8019d300000980a055e76",
+    headers: {
+        authorization: "authorization-text",
+    },
+    onChange(info) {
+        if(info.file.status !== "uploading") {
+            console.log(info.file, info.fileList);
+        }
+        if(info.file.status === "done") {
+            message.success(`${info.file.name} file uploaded successfully`);
+        } else if (info.file.status === "error") {
+            message.error(`${info.file.name} file upload failed.`);
+        }
+    },
+};
+
+
 
 //登录界面
 const Screen = () => {
@@ -101,6 +225,8 @@ const Screen = () => {
     const [currentRoomID, setCurrentRoomID] = useState<number>(-1);
     const [currentRoomName, setCurrentRoomName] = useState<string>("");
     const [roomInfo, setRoomInfo] = useState<roomInfoData>({mem_list: [], master: "", manager_list: [], mem_count: 0});
+    const [roomTop, setRoomTop] = useState<boolean>(false);
+    const [roomNotice, setRoomNotice] = useState<boolean>(true);
 
     const [isFriend, setIsFriend] = useState<boolean>(false);
     const [friendGroup, setFriendGroup] = useState<string>("");
@@ -116,7 +242,7 @@ const Screen = () => {
                 fetchRoomList();
             }
         }
-    }, [currentPage, menuItem]);
+    }, [currentPage, menuItem, addressItem]);
 
     const WSConnect = () => {
         window.ws = new WebSocket("wss://se-im-backend-overflowlab.app.secoder.net/wsconnect");
@@ -156,7 +282,9 @@ const Screen = () => {
                 setFriendListRefreshing(false);
             }
             else if (data.function === "fetchroom"){
-                setRoomList(data.roomlist.map((val: any) => ({...val})));
+                // todo
+                setRoomList(((data.roomlist.filter((val: any) => val.is_top === true)).concat(data.roomlist.filter((val: any) => val.is_top === false)).map((val: any) => ({...val}))));
+                console.log(roomList);
                 setRoomListRefreshing(false);
             }
             // 会话具体信息， 包括成员列表，管理员等
@@ -210,11 +338,13 @@ const Screen = () => {
             }
         };
     };
+
     const WSOnerror = () => {
         console.log("Websocket断开");
         console.log("error重接");
         WSConnect();
     };
+
     const WSOnclose = () => {
         console.log("Websocket断开连接");
         if (window.heartBeat) {
@@ -222,6 +352,7 @@ const Screen = () => {
             WSConnect();
         }
     };
+
     const WSHeartBeat = () => {
         clearInterval(window.timeoutObj);
         clearTimeout(window.serverTimeoutObj);
@@ -237,6 +368,7 @@ const Screen = () => {
             }, 2000);
         }, 10000);
     };
+
     const WSClose = () => {
         window.heartBeat = false;
         console.log("关闭");
@@ -246,6 +378,7 @@ const Screen = () => {
         clearInterval(window.timeoutObj);
         clearTimeout(window.serverTimeoutObj);
     };
+
     const login = () => {
         if (isEmail(account)){
             request(
@@ -292,6 +425,7 @@ const Screen = () => {
                 });
         }
     };
+
     const register = () => {
         request(
             "/api/user/register",
@@ -308,6 +442,7 @@ const Screen = () => {
             })
             .catch((err) => message.error(err.message, 1));
     };
+
     const verifyPassword = () => {
         if (verification === password){
             if (currentPage === CONS.REGISTER) {
@@ -321,6 +456,7 @@ const Screen = () => {
             message.warning(STRINGS.PASSWORD_INCONSISTENT, 1);
         }
     };
+
     const deleteGroup = (group:string) => {
         request(
             "/api/friend/deletefgroup",
@@ -334,6 +470,7 @@ const Screen = () => {
             .then(() => fetchFriendList())
             .catch((err) => message.error(err.message, 1));
     };
+
     const changeUsername = () => {
         request(
             "/api/user/revise",
@@ -352,6 +489,7 @@ const Screen = () => {
             })
             .catch((err) => message.error(err.message, 1));
     };
+
     const sendEmail = () => {
         request(
             "/api/user/send_email",
@@ -363,6 +501,7 @@ const Screen = () => {
             .then(() => message.success("发送成功", 1))
             .catch((err) => message.error(err.message, 1));
     };
+
     const verifySms = ()=>{
         request(
             "/api/user/email",
@@ -376,6 +515,7 @@ const Screen = () => {
             .then(() => message.success("验证通过", 1))
             .catch(() => message.error("验证失败", 1));
     };
+
     const changePassword = () => {
         request(
             "/api/user/revise",
@@ -391,6 +531,7 @@ const Screen = () => {
             .then(() => message.success(STRINGS.PASSWORD_CHANGE_SUCCESS, 1))
             .catch((err) => message.error(err.message, 1));
     };
+
     const logout = () => {
         request(
             "/api/user/logout",
@@ -406,6 +547,7 @@ const Screen = () => {
             })
             .catch((err) => message.error(err.message, 1));
     };
+
     const deleteUser = () => {
         request(
             "/api/user/cancel",
@@ -418,6 +560,7 @@ const Screen = () => {
             .then(() => {setCurrentPage(CONS.LOGIN); WSClose();})
             .catch((err) => message.error(err.message, 1));
     };
+
     const search = () => {
         if(searchName === "") {
             message.error("搜索的用户名不能为空", 1);
@@ -442,6 +585,7 @@ const Screen = () => {
                 });
         }
     };
+
     const accept = (other: string) => {
         const data = {
             "function": "confirm",
@@ -452,6 +596,7 @@ const Screen = () => {
         window.ws.send(JSON.stringify(data));
         message.success("已同意申请", 1);
     };
+
     const decline = (other: string) => {
         const data = {
             "function": "decline",
@@ -461,6 +606,7 @@ const Screen = () => {
         };
         window.ws.send(JSON.stringify(data));
     };
+
     const addFriend = () => {
         const data = {
             "function": "apply",
@@ -471,6 +617,7 @@ const Screen = () => {
         window.ws.send(JSON.stringify(data));
         message.success("申请已发送", 1);
     };
+
     const deleteFriend = () => {
         request(
             "/api/friend/deletefriend",
@@ -488,6 +635,7 @@ const Screen = () => {
             })
             .catch((err) => message.error(err.message, 1));
     };
+
     const checkFriend = () => {
         request(
             "api/friend/checkuser",
@@ -504,6 +652,7 @@ const Screen = () => {
             })
             .catch((err) => console.log(err));
     };
+
     const addToGroup = () => {
         let flag = 0;
         friendList.forEach((arr) => {
@@ -539,6 +688,7 @@ const Screen = () => {
             .then(() => message.success(STRINGS.FRIEND_GROUP_ADDED, 1))
             .catch((err) => message.error(err.message, 1));
     };
+
     const fetchFriendList = () => {
         setFriendListRefreshing(true);
         const data = {
@@ -547,6 +697,7 @@ const Screen = () => {
         };
         window.ws.send(JSON.stringify(data));
     };
+
     const fetchReceiveList = () => {
         setReceiveRefreshing(true);
         const data = {
@@ -555,6 +706,7 @@ const Screen = () => {
         };
         window.ws.send(JSON.stringify(data));
     };
+
     const fetchApplyList = () => {
         setApplyRefreshing(true);
         const data = {
@@ -563,7 +715,9 @@ const Screen = () => {
         };
         window.ws.send(JSON.stringify(data));
     };
-    const fetchRoomList = () => {
+
+    const fetchRoom = () => {
+        console.log("发送fetchroom请求");
         setRoomListRefreshing(true);
         const data = {
             "function": "fetch_room",
@@ -608,6 +762,32 @@ const Screen = () => {
         window.ws.send(JSON.stringify(data));
     };
 
+    function top(element: roomListData, index: number, array: roomListData[]) {
+        return (element.is_top);
+    };
+
+    function notTop(element: roomListData, index: number, array: roomListData[]) {
+        return (!element.is_top);
+    };
+
+    const setTop = (set: boolean) => {
+        console.log("将置顶状态设置为" + set);
+        const data = {
+            "function": "settop",
+            "settop": set,
+        };
+        window.ws.send(JSON.stringify(data));
+    };
+
+    const setNotice = (set: boolean) => {
+        console.log("将免打扰设置为" + !set);
+        const data = {
+            "function": "setnotice",
+            "setnotice": set,
+        };
+        window.ws.send(JSON.stringify(data));
+    };
+
     //会话具体信息
     //todo
     const roomInfoPage = (
@@ -638,10 +818,32 @@ const Screen = () => {
                 <Divider/>
                 <Card title={"群聊名称"}>
                     {currentRoomName}
+                    {roomNotice ? (
+                        <Button type="primary" onClick={() => setNotice(false)}>设置免打扰</Button>
+                    ) : (
+                        <Button type="primary" onClick={() => setNotice(true)}>取消免打扰</Button>
+                    )}
+                    {roomTop ? (
+                        <Button type="primary" onClick={() => setTop(false)}>取消置顶</Button>
+                    ) : (
+                        <Button type="primary" onClick={() => setTop(true)}>设置置顶</Button>
+                    )}
                 </Card>
             </Space>
         </div>
     );
+
+    const App = (
+        <Upload {...props}>
+            <Button icon={<UploadOutlined />}>Click to Upload</Button>
+        </Upload>
+    );
+
+    const appendEmoji = (item: string) => {
+        console.log(item);
+        setMessageBody(messageBody + item);
+    };
+
 
     return (
         <div style={{
@@ -663,6 +865,12 @@ const Screen = () => {
                             paddingTop: "40px", paddingBottom: "30px", border: "1px solid transparent", borderRadius: "20px",
                             alignItems: "center", backgroundColor: "rgba(255,255,255,0.7)"
                         }}>
+                            <Player
+                                playsInline
+                                poster="/assets/poster.png"
+                                src="https://media.w3.org/2010/05/sintel/trailer_hd.mp4"
+                            />
+
                             <Input size="large"
                                 type="text"
                                 placeholder="请填写用户名"
@@ -857,14 +1065,21 @@ const Screen = () => {
                                                         />
                                                     </div>
                                                 )}
-                                                {/* 底部发送框 todo: 文件/图片*/}
+                                                {/* 底部发送框 */}
                                                 <div style={{ padding: "24px", position: "relative", display: "flex", flexDirection: "column", bottom: 0, left: 0, right: 0, height: "16vh" }}>
                                                     <div style={{flexDirection: "row"}}>
                                                         <Space>
-                                                            <Popover placement={"top"}>
-                                                                <Button type={"default"} icon={<SmileOutlined />}/>
+                                                            <Popover content={<Row gutter={0}>
+                                                                {emojiList.map((item) => {
+                                                                    return (
+                                                                        <Col span={1} onClick={() => { appendEmoji(item.emoji);}} key={item.id}>
+                                                                            <div>{item.emoji}</div>
+                                                                        </Col>
+                                                                    );
+                                                                })}
+                                                            </Row>} title="Title" trigger="click">
+                                                                <Button><SmileOutlined />表情</Button>
                                                             </Popover>
-                                                            <Button type={"default"} />
                                                         </Space>
                                                     </div>
                                                     <TextArea
@@ -873,11 +1088,16 @@ const Screen = () => {
                                                         value={messageBody}
                                                         onChange={(e) => setMessageBody(e.target.value)}
                                                     />
-                                                    <Button
-                                                        type="primary"
-                                                        onClick={() => sendMessage()}>
-                                                        发送
-                                                    </Button>
+                                                    <div style={{flexDirection: "row-reverse", display:"flex"}}>
+                                                        <Button
+                                                            type="primary"
+                                                            onClick={() => sendMessage()}>
+                                                            发送
+                                                        </Button>
+                                                        <Upload {...props}>
+                                                            <Button icon={<UploadOutlined />}>Click to Upload</Button>
+                                                        </Upload>
+                                                    </div>
                                                 </div>
                                             </div>
                                         )}
