@@ -763,12 +763,6 @@ const Screen = () => {
                             paddingTop: "40px", paddingBottom: "30px", border: "1px solid transparent", borderRadius: "20px",
                             alignItems: "center", backgroundColor: "rgba(255,255,255,0.7)"
                         }}>
-                            <Player
-                                playsInline
-                                poster="/assets/poster.png"
-                                src="https://media.w3.org/2010/05/sintel/trailer_hd.mp4"
-                            />
-
                             <Input size="large"
                                 type="text"
                                 placeholder="请填写用户名"
@@ -926,43 +920,38 @@ const Screen = () => {
                                                         </Popover>
                                                     </Space>
                                                 </div>
-
-                                                {messageListRefreshing ? (
-                                                    <Spin />
-                                                ) : (
-                                                    <div style={{padding: "24px", position: "relative", height: "74vh", left: 0, right: 0, overflow: "auto"}}>
-                                                        <List
-                                                            dataSource={ messageList }
-                                                            renderItem={(item) => (
-                                                                <List.Item key={ item.id }>
-                                                                    {item.sender === username ? (
-                                                                        <div style={{ display: "flex", flexDirection: "row-reverse", justifyContent: "flex-start", marginLeft: "auto"}}>
-                                                                            <div style={{display: "flex", flexDirection: "column"}}>
-                                                                                <List.Item.Meta avatar={<Avatar src={"https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxgeticon?seq=239472774&username=@c8ef32eea4f34c3becfba86e70bd5320e33c7eba9d35d382ed6185b9c3efbfe0&skey=@crypt_6df0f029_14c4f0a85beaf972ec58feb5ca7dc0e0"}/>}/>
-                                                                                <h6>{item.sender}</h6>
-                                                                            </div>
-                                                                            <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#66B7FF"}}>
-                                                                                <p>{item.body}</p>
-                                                                                <span>{item.time}</span>
-                                                                            </div>
+                                                <div style={{padding: "24px", position: "relative", height: "74vh", left: 0, right: 0, overflow: "auto"}}>
+                                                    <List
+                                                        dataSource={ messageList }
+                                                        renderItem={(item) => (
+                                                            <List.Item key={ item.id }>
+                                                                {item.sender === username ? (
+                                                                    <div style={{ display: "flex", flexDirection: "row-reverse", justifyContent: "flex-start", marginLeft: "auto"}}>
+                                                                        <div style={{display: "flex", flexDirection: "column"}}>
+                                                                            <List.Item.Meta avatar={<Avatar src={"https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxgeticon?seq=239472774&username=@c8ef32eea4f34c3becfba86e70bd5320e33c7eba9d35d382ed6185b9c3efbfe0&skey=@crypt_6df0f029_14c4f0a85beaf972ec58feb5ca7dc0e0"}/>}/>
+                                                                            <h6>{item.sender}</h6>
                                                                         </div>
-                                                                    ) : (
-                                                                        <div style={{ display: "flex", flexDirection: "row"}}>
-                                                                            <div style={{display: "flex", flexDirection: "column"}}>
-                                                                                <List.Item.Meta avatar={<Avatar src={"https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxgeticon?seq=239472774&username=@c8ef32eea4f34c3becfba86e70bd5320e33c7eba9d35d382ed6185b9c3efbfe0&skey=@crypt_6df0f029_14c4f0a85beaf972ec58feb5ca7dc0e0"}/>}/>
-                                                                                <h6>{item.sender}</h6>
-                                                                            </div>
-                                                                            <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF"}}>
-                                                                                <p>{ item.body }</p>
-                                                                                <span>{ item.time }</span>
-                                                                            </div>
+                                                                        <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#66B7FF"}}>
+                                                                            <p>{item.body}</p>
+                                                                            <span>{item.time}</span>
                                                                         </div>
-                                                                    )}
-                                                                </List.Item>
-                                                            )}
-                                                        />
-                                                    </div>
-                                                )}
+                                                                    </div>
+                                                                ) : (
+                                                                    <div style={{ display: "flex", flexDirection: "row"}}>
+                                                                        <div style={{display: "flex", flexDirection: "column"}}>
+                                                                            <List.Item.Meta avatar={<Avatar src={"https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxgeticon?seq=239472774&username=@c8ef32eea4f34c3becfba86e70bd5320e33c7eba9d35d382ed6185b9c3efbfe0&skey=@crypt_6df0f029_14c4f0a85beaf972ec58feb5ca7dc0e0"}/>}/>
+                                                                            <h6>{item.sender}</h6>
+                                                                        </div>
+                                                                        <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF"}}>
+                                                                            <p>{ item.body }</p>
+                                                                            <span>{ item.time }</span>
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </List.Item>
+                                                        )}
+                                                    />
+                                                </div>
                                                 {/* 底部发送框 */}
                                                 <div style={{ padding: "24px", position: "relative", display: "flex", flexDirection: "column", bottom: 0, left: 0, right: 0, height: "16vh" }}>
                                                     <div style={{flexDirection: "row"}}>
