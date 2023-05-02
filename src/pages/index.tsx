@@ -72,8 +72,6 @@ const props: UploadProps = {
     },
 };
 
-
-
 //登录界面
 const Screen = () => {
     const [account, getAccount] = useState<string>("");
@@ -120,7 +118,7 @@ const Screen = () => {
 
     const [messageBody, setMessageBody] = useState<string>("");
 
-    const [currentRoomID, setCurrentRoomID] = useState<number>(-1);
+    const [currentRoomID, setCurrentRoomID] = useState<number>(0);
     const [currentRoomName, setCurrentRoomName] = useState<string>("");
     const [roomInfo, setRoomInfo] = useState<roomInfoData>({mem_list: [], master: "", manager_list: [], mem_count: 0});
     const [roomTop, setRoomTop] = useState<boolean>(false);
@@ -141,6 +139,9 @@ const Screen = () => {
             }
         }
     }, [currentPage, menuItem, addressItem]);
+    useEffect(() => {
+        checkFriend();
+    }, [otherUsername]);
 
     const WSConnect = () => {
         window.ws = new WebSocket("wss://se-im-backend-overflowlab.app.secoder.net/wsconnect");
@@ -742,7 +743,6 @@ const Screen = () => {
         setMessageBody(messageBody + item);
     };
 
-
     return (
         <div style={{
             width: "100%", height: "100%", position: "absolute", top: 0, left: 0, alignItems: "center",
@@ -763,38 +763,38 @@ const Screen = () => {
                             paddingTop: "40px", paddingBottom: "30px", border: "1px solid transparent", borderRadius: "20px",
                             alignItems: "center", backgroundColor: "rgba(255,255,255,0.7)"
                         }}>
-                            <Input size="large"
-                                type="text"
-                                placeholder="请填写用户名"
-                                prefix={<UserOutlined />}
-                                maxLength={50}
-                                value={account}
-                                onChange={(e) => getAccount(e.target.value)}
-                            />
-                            <br />
-                            <Input.Password size="large"
-                                type="text"
-                                maxLength={50}
-                                placeholder="请填写密码"
-                                prefix={<LockOutlined />}
-                                value={password}
-                                onChange={(e) => getPassword(e.target.value)}
-                            />
-                            <br />
-                            <div style={{
-                                width: "400px", height: "50px", margin: "5px", display: "flex", flexDirection: "row"
-                            }}>
-                                <Space size={150}>
-                                    <Button type={"primary"} size={"large"} shape={"round"} icon={<LoginOutlined />}
-                                        onClick={login}>
-                                        登录
-                                    </Button>
-                                    <Button type={"default"} size={"large"} shape={"round"} icon={<ArrowRightOutlined />}
-                                        onClick={() => setCurrentPage(CONS.REGISTER)}>
-                                        注册新账户
-                                    </Button>
-                                </Space>
-                            </div>
+                            <Space>
+                                <Input size="large"
+                                    type="text"
+                                    placeholder="请填写用户名"
+                                    prefix={<UserOutlined />}
+                                    maxLength={50}
+                                    value={account}
+                                    onChange={(e) => getAccount(e.target.value)}
+                                />
+                                <Input.Password size="large"
+                                    type="text"
+                                    maxLength={50}
+                                    placeholder="请填写密码"
+                                    prefix={<LockOutlined />}
+                                    value={password}
+                                    onChange={(e) => getPassword(e.target.value)}
+                                />
+                                <div style={{
+                                    width: "400px", height: "50px", margin: "5px", display: "flex", flexDirection: "row"
+                                }}>
+                                    <Space size={150}>
+                                        <Button type={"primary"} size={"large"} shape={"round"} icon={<LoginOutlined />}
+                                            onClick={login}>
+                                            登录
+                                        </Button>
+                                        <Button type={"default"} size={"large"} shape={"round"} icon={<ArrowRightOutlined />}
+                                            onClick={() => setCurrentPage(CONS.REGISTER)}>
+                                            注册新账户
+                                        </Button>
+                                    </Space>
+                                </div>
+                            </Space>
                         </div>
                     </div>
                 ) : null}
@@ -810,7 +810,7 @@ const Screen = () => {
                         </h1>
                         <div style={{ display: "flex", flexDirection: "column", paddingLeft: "150px", paddingRight: "150px", paddingTop: "40px", paddingBottom: "30px", border: "1px solid transparent", borderRadius: "20px", alignItems: "center", backgroundColor: "rgba(255,255,255,0.7)"}}>
                             <Input size={"large"}
-                                type="text" 
+                                type="text"
                                 placeholder="请填写用户名"
                                 prefix={<UserOutlined />}
                                 maxLength={50}
@@ -910,7 +910,7 @@ const Screen = () => {
                                         </div>
 
                                         {/* 消息页面 */}
-                                        {currentRoomID === -1 ? null : (
+                                        {currentRoomID === 0 ? null : (
                                             <div style={{ padding: "0 24px", backgroundColor:"#FFF5EE",  width:"80%", minHeight:"100vh" }}>
                                                 <div style={{height: "10vh", margin: "5px, 10px", flexDirection: "row"}}>
                                                     <Space>
@@ -1035,8 +1035,8 @@ const Screen = () => {
                                                                                             type="text"
                                                                                             onClick={() => {
                                                                                                 setOtherUsername(subItem);
-                                                                                                console.log(otherUsername);
-                                                                                                checkFriend();
+                                                                                                console.log("otherusername:", otherUsername);
+
                                                                                             }}>
                                                                                             { subItem }
                                                                                         </Button>}
@@ -1155,8 +1155,7 @@ const Screen = () => {
                                                                                     type="primary"
                                                                                     onClick={() => {
                                                                                         setOtherUsername(item.username);
-                                                                                        console.log(otherUsername);
-                                                                                        checkFriend();
+                                                                                        console.log("otherusername:", otherUsername);
                                                                                     }}
                                                                                 >
                                                                                     查看用户界面
