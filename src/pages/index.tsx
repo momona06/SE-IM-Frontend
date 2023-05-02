@@ -192,10 +192,10 @@ const Screen = () => {
                 // 更新消息列表 发送ack(id)
                 if (data.sender != window.username) {
                     let newMessage = {
-                        msg_id: data.msg_id,
-                        msg_type: data.msg_type,
-                        msg_body: data.msg_body,
-                        msg_time: data.msg_time,
+                        id: data.msg_id,
+                        type: data.msg_type,
+                        body: data.msg_body,
+                        time: data.msg_time,
                         sender: data.sender
                     };
                     setMessageList(messageList => messageList.concat(newMessage));
@@ -604,10 +604,10 @@ const Screen = () => {
         const date = new Date();
         const newMessage = {
             // 在收到ACK前暂置为-1， 判断对方是否收到可用-1判断
-            "msg_id": -1,
-            "msg_type": "text",
-            "msg_body": messageBody,
-            "msg_time": moment(date).format("YYYY-MM-DD HH:mm:ss"),
+            "id": -1,
+            "type": "text",
+            "body": messageBody,
+            "time": moment(date).format("YYYY-MM-DD HH:mm:ss"),
             "sender": username
         };
         setMessageList(messageList => messageList.concat(newMessage));
@@ -842,7 +842,7 @@ const Screen = () => {
                                                         <List
                                                             dataSource={ messageList }
                                                             renderItem={(item) => (
-                                                                <List.Item key={ item.msg_id }>
+                                                                <List.Item key={ item.id }>
                                                                     {item.sender === username ? (
                                                                         <div style={{ display: "flex", flexDirection: "row-reverse", justifyContent: "flex-start", marginLeft: "auto"}}>
                                                                             <div style={{display: "flex", flexDirection: "column"}}>
@@ -850,8 +850,8 @@ const Screen = () => {
                                                                                 <h6>{item.sender}</h6>
                                                                             </div>
                                                                             <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#66B7FF"}}>
-                                                                                <p>{item.msg_body}</p>
-                                                                                <span>{item.msg_time}</span>
+                                                                                <p>{item.body}</p>
+                                                                                <span>{item.time}</span>
                                                                             </div>
                                                                         </div>
                                                                     ) : (
@@ -861,8 +861,8 @@ const Screen = () => {
                                                                                 <h6>{item.sender}</h6>
                                                                             </div>
                                                                             <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF"}}>
-                                                                                <p>{ item.msg_body }</p>
-                                                                                <span>{ item.msg_time }</span>
+                                                                                <p>{ item.body }</p>
+                                                                                <span>{ item.time }</span>
                                                                             </div>
                                                                         </div>
                                                                     )}
