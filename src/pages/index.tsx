@@ -18,7 +18,8 @@ import {
     Row,
     Col,
     Upload,
-    Switch
+    Switch,
+    Mentions
 } from "antd";
 import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined, ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined, CommentOutlined, EllipsisOutlined, SmileOutlined, UploadOutlined, ExclamationOutlined } from "@ant-design/icons";
 import type { UploadProps } from "antd";
@@ -27,6 +28,7 @@ import moment from "moment";
 import TextArea from "antd/lib/input/TextArea";
 import { Player, ControlBar,  } from "video-react";
 import emojiList from "../components/emojiList";
+import {MentionsOptionProps} from "antd/es/mentions";
 
 interface friendListData {
     groupname: string;
@@ -214,8 +216,6 @@ const Screen = () => {
                 }
             }
             else if (data.function === "Msg"){
-                let body = document.body;
-                window.scrollTo(0, body.scrollHeight);
                 let newMessage = {
                     msg_id: data.msg_id,
                     msg_type: data.msg_type,
@@ -700,7 +700,6 @@ const Screen = () => {
     };
 
     //会话具体信息
-    //todo
     const roomInfoPage = (
         <div style={{padding: "12px"}}>
             <Space direction={"vertical"}>
@@ -714,7 +713,7 @@ const Screen = () => {
                     <Button type="primary" onClick={ search } icon={<SearchOutlined />}/>
                 </Space.Compact>
                 <List
-                    grid={{gutter: 16} }
+                    grid={{gutter: 16, column: 2}}
                     dataSource={roomInfo.mem_list}
                     renderItem={(item) => (
                         <List.Item>
@@ -732,7 +731,7 @@ const Screen = () => {
                     <Space direction={"vertical"}>
                         <Space direction={"horizontal"}>
                             <p>免打扰</p>
-                            <Switch defaultChecked={roomNotice} onChange={setNotice}/>
+                            <Switch defaultChecked={!roomNotice} onChange={setNotice}/>
                         </Space>
                         <Space direction={"horizontal"}>
                             <p>置顶</p>
@@ -754,6 +753,20 @@ const Screen = () => {
         console.log(item);
         setMessageBody(messageBody + item);
     };
+
+    const onChange = (value: string) => {
+        setMessageBody(value);
+    };
+
+    const onSelect = (options: MentionsOptionProps) => {
+        console.log(options);
+    };
+
+    function Filter(element: string, index: number, array: string[]) {
+        if (element != window.username){
+            return element;
+        }
+    }
 
     return (
         <div style={{
@@ -901,6 +914,7 @@ const Screen = () => {
                                                                                     window.currentRoomID = item.roomid;
                                                                                     window.currentRoomName = item.roomname;
                                                                                     setCurrentRoomName(item.roomname);
+                                                                                    fetchRoomInfo(item.roomid);
                                                                                     setMessageList(messageList => item.message_list);
                                                                                     addRoom(item.roomid, item.roomname);
                                                                                 }}>
@@ -928,13 +942,14 @@ const Screen = () => {
                                                     <Space>
                                                         <h1> { window.currentRoomName } </h1>
                                                         <Popover placement={"bottomRight"} content={ roomInfoPage } trigger={"click"}>
-                                                            <Button type={"primary"} size={"middle"} icon={ <EllipsisOutlined/> } ghost={true} shape={"round"} onClick={() => fetchRoomInfo(window.currentRoomID)}/>
+                                                            <Button type={"primary"} size={"middle"} icon={ <EllipsisOutlined/> } ghost={true} shape={"round"}/>
                                                         </Popover>
                                                     </Space>
                                                 </div>
                                                 <div style={{padding: "24px", position: "relative", height: "74vh", left: 0, right: 0, overflow: "auto"}}>
                                                     <List
                                                         dataSource={ messageList }
+                                                        split={false}
                                                         renderItem={(item) => (
                                                             <List.Item key={ item.msg_id }>
                                                                 { item.sender === window.username ? (
@@ -976,7 +991,7 @@ const Screen = () => {
                                                 {/* 底部发送框 */}
                                                 <div style={{ padding: "24px", position: "relative", display: "flex", flexDirection: "column", bottom: 0, left: 0, right: 0, height: "16vh" }}>
                                                     <div style={{flexDirection: "row"}}>
-                                                        <Space>
+                                                        <Space direction={"horizontal"}>
                                                             <Popover content={<Row gutter={0}>
                                                                 {emojiList.map((item) => {
                                                                     return (
@@ -990,19 +1005,21 @@ const Screen = () => {
                                                             </Popover>
                                                         </Space>
                                                     </div>
-                                                    <TextArea
-                                                        allowClear
+                                                    <Mentions
                                                         style={{left: 0, right: 0}}
-                                                        value={messageBody}
-                                                        onChange={(e) => setMessageBody(e.target.value)}
+                                                        onChange={onChange}
+                                                        onSelect={onSelect}
+                                                        options={(roomInfo.mem_list.filter(Filter)).map((value) => ({
+                                                            key: value,
+                                                            value,
+                                                            label: value,
+                                                        }))}
                                                     />
                                                     <div style={{flexDirection: "row-reverse", display:"flex"}}>
                                                         <Button
                                                             type="primary"
                                                             onClick={() => {
                                                                 sendMessage(messageBody);
-                                                                let body = document.body;
-                                                                window.scrollTo(0, body.scrollHeight);
                                                             }}>
                                                             发送
                                                         </Button>
