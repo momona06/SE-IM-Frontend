@@ -136,7 +136,7 @@ const Screen = () => {
     }, [currentPage, menuItem]);
 
     const WSConnect = () => {
-        let DEBUG = true;
+        let DEBUG = false;
         window.ws = new WebSocket(DEBUG ? "ws://localhost:8000/wsconnect" : "wss://se-im-backend-overflowlab.app.secoder.net/wsconnect");
         window.ws.onopen = function () {
             setMenuItem(CONS.CHATFRAME);
@@ -193,8 +193,11 @@ const Screen = () => {
                     last.msg_id = data.msg_id;
                     messageList.push(last);
                 }
+
             }
             else if (data.function === "Msg"){
+                let body = document.body;
+                window.scrollTo(0, body.scrollHeight);
                 let newMessage = {
                     msg_id: data.msg_id,
                     msg_type: data.msg_type,
@@ -925,7 +928,7 @@ const Screen = () => {
                                                                         <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#66B7FF"}}>
                                                                             <p>{item.msg_body}</p>
                                                                             <span>{item.msg_time}</span>
-                                                                            {item.msg_id === -1 ? (
+                                                                            {/*item.msg_id === -1 ? (
                                                                                 <Button
                                                                                     type={"default"} shape={"circle"}
                                                                                     size={"small"} danger={true} icon={<ExclamationOutlined />}
@@ -933,7 +936,7 @@ const Screen = () => {
                                                                                         sendMessage(item.msg_body);
                                                                                     }}
                                                                                 />
-                                                                            ) : null}
+                                                                            ) : null*/}
                                                                         </div>
                                                                     </div>
                                                                 ) : (
@@ -978,7 +981,11 @@ const Screen = () => {
                                                     <div style={{flexDirection: "row-reverse", display:"flex"}}>
                                                         <Button
                                                             type="primary"
-                                                            onClick={() => sendMessage(messageBody)}>
+                                                            onClick={() => {
+                                                                sendMessage(messageBody);
+                                                                let body = document.body;
+                                                                window.scrollTo(0, body.scrollHeight);
+                                                            }}>
                                                             发送
                                                         </Button>
                                                         <Upload {...props}>
