@@ -112,10 +112,6 @@ const Screen = () => {
     const [roomListRefreshing, setRoomListRefreshing] = useState<boolean>(true);
 
     const [messageList, setMessageList] = useState<messageListData[]>([]);
-    const [messageListRefreshing, setMessageListRefreshing] = useState<boolean>(false);
-
-    const [otherUsername, setOtherUsername] = useState<string>("");
-
     const [messageBody, setMessageBody] = useState<string>("");
 
     const [currentRoomID, setCurrentRoomID] = useState<number>(0);
@@ -138,10 +134,7 @@ const Screen = () => {
                 fetchRoomList();
             }
         }
-    }, [currentPage, menuItem, addressItem]);
-    useEffect(() => {
-        checkFriend();
-    }, [otherUsername]);
+    }, [currentPage, menuItem]);
 
     const WSConnect = () => {
         window.ws = new WebSocket("wss://se-im-backend-overflowlab.app.secoder.net/wsconnect");
@@ -384,6 +377,7 @@ const Screen = () => {
             .then(() => {
                 message.success(STRINGS.USERNAME_CHANGE_SUCCESS, 1);
                 setUsername(newUsername);
+                window.username = newUsername;
             })
             .catch((err) => message.error(err.message, 1));
     };
@@ -509,7 +503,7 @@ const Screen = () => {
         const data = {
             "function": "apply",
             "from": username,
-            "to": otherUsername,
+            "to": window.otherUsername,
             "username": username
         };
         window.ws.send(JSON.stringify(data));
@@ -523,7 +517,7 @@ const Screen = () => {
             {
                 username: username,
                 token: token,
-                friend_name: otherUsername,
+                friend_name: window.otherUsername,
             },
         )
             .then(() => {
@@ -540,7 +534,7 @@ const Screen = () => {
             "POST",
             {
                 my_username: username,
-                check_name: otherUsername,
+                check_name: window.otherUsername,
                 token: token
             },
         )
@@ -580,7 +574,7 @@ const Screen = () => {
                 token: token,
                 username: username,
                 fgroup_name: friendGroup,
-                friend_name: otherUsername,
+                friend_name: window.otherUsername,
             },
         )
             .then(() => message.success(STRINGS.FRIEND_GROUP_ADDED, 1))
@@ -591,7 +585,7 @@ const Screen = () => {
         setFriendListRefreshing(true);
         const data = {
             "function": "fetchfriendlist",
-            "username": username
+            "username": window.username
         };
         console.log(data);
         window.ws.send(JSON.stringify(data));
@@ -601,7 +595,7 @@ const Screen = () => {
         setReceiveRefreshing(true);
         const data = {
             "function": "fetchreceivelist",
-            "username": username
+            "username": window.username
         };
         window.ws.send(JSON.stringify(data));
     };
@@ -610,7 +604,7 @@ const Screen = () => {
         setApplyRefreshing(true);
         const data = {
             "function": "fetchapplylist",
-            "username": username
+            "username": window.username
         };
         window.ws.send(JSON.stringify(data));
     };
@@ -620,7 +614,7 @@ const Screen = () => {
         setRoomListRefreshing(true);
         const data = {
             "function": "fetch_room",
-            "username": username,
+            "username": window.username,
         };
         window.ws.send(JSON.stringify(data));
     };
@@ -647,7 +641,7 @@ const Screen = () => {
             "type": "text",
             "body": messageBody,
             "time": moment(date).format("YYYY-MM-DD HH:mm:ss"),
-            "sender": username
+            "sender": window.username
         };
         setMessageList(messageList => messageList.concat(newMessage));
         console.log(messageList);
@@ -763,38 +757,38 @@ const Screen = () => {
                             paddingTop: "40px", paddingBottom: "30px", border: "1px solid transparent", borderRadius: "20px",
                             alignItems: "center", backgroundColor: "rgba(255,255,255,0.7)"
                         }}>
-                            <Space>
-                                <Input size="large"
-                                    type="text"
-                                    placeholder="请填写用户名"
-                                    prefix={<UserOutlined />}
-                                    maxLength={50}
-                                    value={account}
-                                    onChange={(e) => getAccount(e.target.value)}
-                                />
-                                <Input.Password size="large"
-                                    type="text"
-                                    maxLength={50}
-                                    placeholder="请填写密码"
-                                    prefix={<LockOutlined />}
-                                    value={password}
-                                    onChange={(e) => getPassword(e.target.value)}
-                                />
-                                <div style={{
-                                    width: "400px", height: "50px", margin: "5px", display: "flex", flexDirection: "row"
-                                }}>
-                                    <Space size={150}>
-                                        <Button type={"primary"} size={"large"} shape={"round"} icon={<LoginOutlined />}
-                                            onClick={login}>
-                                            登录
-                                        </Button>
-                                        <Button type={"default"} size={"large"} shape={"round"} icon={<ArrowRightOutlined />}
-                                            onClick={() => setCurrentPage(CONS.REGISTER)}>
-                                            注册新账户
-                                        </Button>
-                                    </Space>
-                                </div>
-                            </Space>
+                            <Input size="large"
+                                type="text"
+                                placeholder="请填写用户名"
+                                prefix={<UserOutlined />}
+                                maxLength={50}
+                                value={account}
+                                onChange={(e) => getAccount(e.target.value)}
+                            />
+                            <br/>
+                            <Input.Password size="large"
+                                type="text"
+                                maxLength={50}
+                                placeholder="请填写密码"
+                                prefix={<LockOutlined />}
+                                value={password}
+                                onChange={(e) => getPassword(e.target.value)}
+                            />
+                            <br/>
+                            <div style={{
+                                width: "400px", height: "50px", margin: "5px", display: "flex", flexDirection: "row"
+                            }}>
+                                <Space size={150}>
+                                    <Button type={"primary"} size={"large"} shape={"round"} icon={<LoginOutlined />}
+                                        onClick={login}>
+                                        登录
+                                    </Button>
+                                    <Button type={"default"} size={"large"} shape={"round"} icon={<ArrowRightOutlined />}
+                                        onClick={() => setCurrentPage(CONS.REGISTER)}>
+                                        注册新账户
+                                    </Button>
+                                </Space>
+                            </div>
                         </div>
                     </div>
                 ) : null}
@@ -925,7 +919,7 @@ const Screen = () => {
                                                         dataSource={ messageList }
                                                         renderItem={(item) => (
                                                             <List.Item key={ item.id }>
-                                                                {item.sender === username ? (
+                                                                {item.sender === window.username ? (
                                                                     <div style={{ display: "flex", flexDirection: "row-reverse", justifyContent: "flex-start", marginLeft: "auto"}}>
                                                                         <div style={{display: "flex", flexDirection: "column"}}>
                                                                             <List.Item.Meta avatar={<Avatar src={"https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxgeticon?seq=239472774&username=@c8ef32eea4f34c3becfba86e70bd5320e33c7eba9d35d382ed6185b9c3efbfe0&skey=@crypt_6df0f029_14c4f0a85beaf972ec58feb5ca7dc0e0"}/>}/>
@@ -1034,9 +1028,8 @@ const Screen = () => {
                                                                                             block
                                                                                             type="text"
                                                                                             onClick={() => {
-                                                                                                setOtherUsername(subItem);
-                                                                                                console.log("otherusername:", otherUsername);
-
+                                                                                                window.otherUsername = subItem;
+                                                                                                checkFriend();
                                                                                             }}>
                                                                                             { subItem }
                                                                                         </Button>}
@@ -1154,8 +1147,8 @@ const Screen = () => {
                                                                                     size={"large"}
                                                                                     type="primary"
                                                                                     onClick={() => {
-                                                                                        setOtherUsername(item.username);
-                                                                                        console.log("otherusername:", otherUsername);
+                                                                                        window.otherUsername = item.username;
+                                                                                        checkFriend();
                                                                                     }}
                                                                                 >
                                                                                     查看用户界面
@@ -1177,7 +1170,7 @@ const Screen = () => {
                                                     paddingTop: "5px", paddingBottom: "25px", border: "1px solid transparent", borderRadius: "20px",
                                                     alignItems: "center", backgroundColor: "rgba(255,255,255,0.7)"
                                                 }}>
-                                                    <h1>{otherUsername}</h1>
+                                                    <h1>{ window.otherUsername }</h1>
                                                     {isFriend ? (
                                                         <div style={{ width: "400px", height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
                                                             <Button
