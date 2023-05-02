@@ -186,18 +186,10 @@ const Screen = () => {
                     time: data.msg_time,
                     sender: data.sender
                 };
-
                 if (data.room_id === currentRoomID){
                     if (data.sender != window.username) {
                         setMessageList(messageList => messageList.concat(newMessage));
                         console.log(messageList);
-                        let ACK = {
-                            "function": "acknowledge_message",
-                            "is_back": false,
-                            "room_id": currentRoomID,
-                            "count": 1
-                        };
-                        window.ws.send(JSON.stringify(ACK));
                     }
                 }
                 else{
@@ -209,6 +201,13 @@ const Screen = () => {
                         }
                     }
                 }
+                let ACK = {
+                    "function": "acknowledge_message",
+                    "is_back": false,
+                    "room_id": data.room_id,
+                    "count": 1
+                };
+                window.ws.send(JSON.stringify(ACK));
             }
         };
     };
