@@ -25,10 +25,10 @@ import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, Contacts
 import type { UploadProps } from "antd";
 import * as CONS from "../constants/constants";
 import moment from "moment";
-import TextArea from "antd/lib/input/TextArea";
 import { Player, ControlBar,  } from "video-react";
 import emojiList from "../components/emojiList";
 import {MentionsOptionProps} from "antd/es/mentions";
+import TextArea from "antd/es/input/TextArea";
 
 interface friendListData {
     groupname: string;
@@ -1005,21 +1005,25 @@ const Screen = () => {
                                                             </Popover>
                                                         </Space>
                                                     </div>
-                                                    <Mentions
-                                                        style={{left: 0, right: 0}}
-                                                        onChange={onChange}
-                                                        onSelect={onSelect}
-                                                        options={(roomInfo.mem_list.filter(Filter)).map((value) => ({
-                                                            key: value,
-                                                            value,
-                                                            label: value,
-                                                        }))}
-                                                    />
+                                                    <TextArea style={{left: 0, right: 0}} allowClear={true}>
+                                                        <Mentions
+                                                            autoSize
+                                                            onChange={onChange}
+                                                            onSelect={onSelect}
+                                                            placement={"top"}
+                                                            options={(roomInfo.mem_list.filter(Filter)).map((value) => ({
+                                                                key: value,
+                                                                value,
+                                                                label: value,
+                                                            }))}
+                                                        />
+                                                    </TextArea>
                                                     <div style={{flexDirection: "row-reverse", display:"flex"}}>
                                                         <Button
                                                             type="primary"
                                                             onClick={() => {
                                                                 sendMessage(messageBody);
+                                                                setMessageBody("");
                                                             }}>
                                                             发送
                                                         </Button>
