@@ -1,11 +1,13 @@
 import React, {useEffect, useRef, useState } from "react";
 import * as STRINGS from "../constants/string";
 import { request } from "../utils/network";
-import {message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar, Popover, Card, Divider} from "antd";
-import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined, ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined, CommentOutlined, EllipsisOutlined } from "@ant-design/icons";
+import { message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar, Popover, Card, Divider, Row, Col, Upload} from "antd";
+import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined, ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined, CommentOutlined, EllipsisOutlined, SmileOutlined, UploadOutlined } from "@ant-design/icons";
+import type { UploadProps } from "antd";
 import * as CONS from "../constants/constants";
 import moment from "moment";
 import TextArea from "antd/lib/input/TextArea";
+import { Player, Controlbar,  } from "video-react";
 
 interface friendListData {
     groupname: string;
@@ -24,27 +26,153 @@ interface receiveData {
 
 interface roomListData {
     roomname: string;
-    roomid: string;
-    unreadnum: number;
+    roomid: number;
+    is_notice: boolean;
+    is_top: boolean;
 }
 
 interface messageListData {
     body: string;
     sender: string;
     time: string;
-    id: string;
+    id: number;
 }
 
 interface roomInfoData {
     name: string;
     id: number;
     members: userData[];
+    //is_notice: boolean;
+    //is_top: boolean;
 }
 
 export const isEmail = (val : string) => {
     //仅保留是否为邮件的判断，其余交给后端
     return /^[A-Za-z0-9\u4e00-\u9fa5]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/i.test(val);
 };
+
+const emojiList = [
+    {id: 1, emoji: "😀"},
+    {id: 2, emoji: "😁"},
+    {id: 3, emoji: "😂"},
+    {id: 4, emoji: "😃"},
+    {id: 5, emoji: "😄"},
+    {id: 6, emoji: "😅"},
+    {id: 7, emoji: "😆"},
+    {id: 8, emoji: "😇"},
+    {id: 9, emoji: "😉"},
+    {id: 10, emoji: "😊"},
+    {id: 11, emoji: "🙂"},
+    {id: 12, emoji: "🙃"},
+    {id: 13, emoji: "🤣"},
+    {id: 14, emoji: "😍"},
+    {id: 15, emoji: "😗"},
+    {id: 16, emoji: "😘"},
+    {id: 17, emoji: "😙"},
+    {id: 18, emoji: "😚"},
+    {id: 19, emoji: "🤩"},
+    {id: 20, emoji: "🥰"},
+    {id: 21, emoji: "😋"},
+    {id: 22, emoji: "😛"},
+    {id: 23, emoji: "😜"},
+    {id: 24, emoji: "😝"},
+    {id: 25, emoji: "🤑"},
+    {id: 26, emoji: "🤪"},
+    {id: 27, emoji: "🤔"},
+    {id: 28, emoji: "🤗"},
+    {id: 29, emoji: "🤫"},
+    {id: 30, emoji: "🤭"},
+    {id: 31, emoji: "😏"},
+    {id: 32, emoji: "😐"},
+    {id: 33, emoji: "😑"},
+    {id: 34, emoji: "😒"},
+    {id: 35, emoji: "😬"},
+    {id: 36, emoji: "😶"},
+    {id: 37, emoji: "🙄"},
+    {id: 38, emoji: "🤐"},
+    {id: 39, emoji: "🤥"},
+    {id: 40, emoji: "🤨"},
+    {id: 41, emoji: "😌"},
+    {id: 42, emoji: "😔"},
+    {id: 43, emoji: "😪"},
+    {id: 44, emoji: "😴"},
+    {id: 45, emoji: "🤤"},
+    {id: 46, emoji: "😵"},
+    {id: 47, emoji: "😷"},
+    {id: 48, emoji: "🤒"},
+    {id: 49, emoji: "🤕"},
+    {id: 50, emoji: "🤢"},
+    {id: 51, emoji: "🤧"},
+    {id: 52, emoji: "🤮"},
+    {id: 53, emoji: "🤯"},
+    {id: 54, emoji: "🥴"},
+    {id: 55, emoji: "🥵"},
+    {id: 56, emoji: "🥶"},
+    {id: 57, emoji: "🤠"},
+    {id: 58, emoji: "🥳"},
+    {id: 59, emoji: "😎"},
+    {id: 60, emoji: "🤓"},
+    {id: 61, emoji: "🧐"},
+    {id: 62, emoji: "😓"},
+    {id: 63, emoji: "😕"},
+    {id: 64, emoji: "😖"},
+    {id: 65, emoji: "😞"},
+    {id: 66, emoji: "😟"},
+    {id: 67, emoji: "😢"},
+    {id: 68, emoji: "😣"},
+    {id: 69, emoji: "😥"},
+    {id: 70, emoji: "😦"},
+    {id: 71, emoji: "😧"},
+    {id: 72, emoji: "😨"},
+    {id: 73, emoji: "😩"},
+    {id: 74, emoji: "😫"},
+    {id: 75, emoji: "😭"},
+    {id: 76, emoji: "😮"},
+    {id: 77, emoji: "😯"},
+    {id: 78, emoji: "😰"},
+    {id: 79, emoji: "😱"},
+    {id: 80, emoji: "😲"},
+    {id: 81, emoji: "😳"},
+    {id: 82, emoji: "🙁"},
+    {id: 83, emoji: "🥱"},
+    {id: 84, emoji: "🥺"},
+    {id: 85, emoji: "☠"},
+    {id: 86, emoji: "👿"},
+    {id: 87, emoji: "💀"},
+    {id: 88, emoji: "😈"},
+    {id: 89, emoji: "😠"},
+    {id: 90, emoji: "😡"},
+    {id: 91, emoji: "😤"},
+    {id: 92, emoji: "🤬"},
+    {id: 93, emoji: "👹"},
+    {id: 94, emoji: "👺"},
+    {id: 95, emoji: "👻"},
+    {id: 96, emoji: "👽"},
+    {id: 97, emoji: "👾"},
+    {id: 98, emoji: "💩"},
+    {id: 99, emoji: "🤖"},
+    {id: 100, emoji: "🤡"}
+];
+
+const props: UploadProps = {
+    name: "file",
+    action: "https://ww.mocky.io/v2/5cc8019d300000980a055e76",
+    headers: {
+        authorization: "authorization-text",
+    },
+    onChange(info) {
+        if(info.file.status !== "uploading") {
+            console.log(info.file, info.fileList);
+        }
+        if(info.file.status === "done") {
+            message.success(`${info.file.name} file uploaded successfully`);
+        } else if (info.file.status === "error") {
+            message.error(`${info.file.name} file upload failed.`);
+        }
+    },
+};
+
+
 
 //登录界面
 const Screen = () => {
@@ -87,17 +215,20 @@ const Screen = () => {
     const [messageList, setMessageList] = useState<messageListData[]>([]);
     const [messageListRefreshing, setMessageListRefreshing] = useState<boolean>(false);
 
-    const otherUsername = useRef("");
+    const [otherUsername, setOtherUsername] = useState<string>("");
 
     const [messageBody, setMessageBody] = useState<string>("");
     //todo: 考虑将roomID roomName加入roomInfo
-    const [roomID, setRoomID] = useState<string>("");
+    const [roomID, setRoomID] = useState<number>(-1);
     const [roomName, setRoomName] = useState<string>("");
+    const [roomTop, setRoomTop] = useState<boolean>(false);
+    const [roomNotice, setRoomNotice] = useState<boolean>(true);
     const [roomInfo, setRoomInfo] = useState<roomInfoData>({id: -1, members: [], name: ""});
 
     const [isFriend, setIsFriend] = useState<boolean>(false);
     const [friendGroup, setFriendGroup] = useState<string>("");
     const [box, setBox] = useState<number>(0);
+
 
     useEffect(() => {
         if(currentPage === CONS.MAIN)
@@ -111,7 +242,7 @@ const Screen = () => {
                 fetchRoom();
             }
         }
-    }, [currentPage, menuItem]);
+    }, [currentPage, menuItem, addressItem]);
 
     const WSConnect = () => {
         window.ws = new WebSocket("wss://se-im-backend-overflowlab.app.secoder.net/wsconnect");
@@ -142,10 +273,28 @@ const Screen = () => {
                 setFriendList(data.friendlist.map((val: any) => ({...val})));
                 setFriendListRefreshing(false);
             }
+            // if (data.function === "fetchroom"){
+            //     console.log(data.roomlist);
+            //     setRoomList(data.roomlist.map((val: any) => ({...val})));
+            //     console.log(roomList);
+            //     sortRoomList();
+            //     setRoomListRefreshing(false);
+            // }
             if (data.function === "fetchroom"){
-                setRoomList(data.roomlist.map((val: any) => ({...val})));
+                //setRoomList(data.roomlist.map((val: any) => ({...val})));
+                setRoomList(((data.roomlist.filter((val: any) => val.is_top === true)).concat(data.roomlist.filter((val: any) => val.is_top === false)).map((val: any) => ({...val}))))
+                console.log(roomList);
+                //console.log(roomList.filter((val) => val.is_top === true));
+                //console.log(roomList.filter((val) => val.is_top === false));
+                //let first = roomList.filter((val) => val.is_top === true);
+                //console.log(first);
+                //let last = roomList.filter((val) => val.is_top === false);
+                //console.log(last);
+        
+                //sortRoomList();
                 setRoomListRefreshing(false);
             }
+
             if (data.function === "fetchmessage"){
                 setMessageList(data.messagelist.map((val: any) => ({...val})));
                 setMessageListRefreshing(false);
@@ -243,6 +392,7 @@ const Screen = () => {
                     setToken(res.token);
                     setUsername(res.username);
                     setCurrentPage(CONS.MAIN);
+                    setMenuItem(CONS.EMPTY);
                 })
                 .catch((err) => {
                     message.error(err.message, 1);
@@ -409,6 +559,7 @@ const Screen = () => {
                 });
         }
     };
+
     const accept = (other: string) => {
         const data = {
             "function": "confirm",
@@ -429,11 +580,11 @@ const Screen = () => {
         window.ws.send(JSON.stringify(data));
     };
 
-    const addFriend = () => {
+    const addFriend = (user: string) => {
         const data = {
             "function": "apply",
             "from": username,
-            "to": otherUsername.current,
+            "to": user,
             "username": username
         };
         window.ws.send(JSON.stringify(data));
@@ -446,7 +597,7 @@ const Screen = () => {
             {
                 username: username,
                 token: token,
-                friend_name: otherUsername.current,
+                friend_name: otherUsername,
             },
         )
             .then(() => {
@@ -457,13 +608,14 @@ const Screen = () => {
             .catch((err) => message.error(err.message, 1));
     };
 
-    const checkFriend = () => {
+    const checkFriend = (user: string) => {
+        console.log("checking" + user + "/" + otherUsername)
         request(
             "api/friend/checkuser",
             "POST",
             {
                 my_username: username,
-                check_name: otherUsername.current,
+                check_name: user,
                 token: token
             },
         )
@@ -503,7 +655,7 @@ const Screen = () => {
                 token: token,
                 username: username,
                 fgroup_name: friendGroup,
-                friend_name: otherUsername.current,
+                friend_name: otherUsername,
             },
         )
             .then(() => message.success(STRINGS.FRIEND_GROUP_ADDED, 1))
@@ -541,13 +693,13 @@ const Screen = () => {
         console.log("发送fetchroom请求");
         setRoomListRefreshing(true);
         const data = {
-            "function": "fetchroom",
+            "function": "fetch_room",
             "username": username,
         };
         window.ws.send(JSON.stringify(data));
     };
 
-    const fetchMessage = (id: string) => {
+    const fetchMessage = (id: number) => {
         // todo: 完成信息抓取
         // setMessageListRefreshing(true);
         // const data = {
@@ -557,31 +709,31 @@ const Screen = () => {
         // };
         // window.ws.send(JSON.stringify((data)));
         const tmessagelist: messageListData[] = [
-            {id: "0", sender: username, body: "Hi", time: "0"},
-            {id: "1", sender: username, body: "I'm Ashitemaru.", time: "1"},
-            {id: "2", sender: "holder", body: "Hello!", time: "3"},
-            {id: "3", sender: username, body: "Hi", time: "4"},
-            {id: "4", sender: username, body: "I'm Ashitemaru.", time: "6"},
-            {id: "5", sender: "holder", body: "Hello!", time: "7"},
-            {id: "6", sender: username, body: "Hi", time: "8"},
-            {id: "7", sender: username, body: "I'm Ashitemaru.", time: "343"},
-            {id: "8", sender: "holder", body: "Hello!", time: "73357"},
-            {id: "9", sender: username, body: "Hi", time: "3273272"},
-            {id: "10", sender: username, body: "I'm Ashitemaru.", time: "5737527"},
-            {id: "11", sender: "holder", body: "Hello!", time: "33333333"},
-            {id: "12", sender: username, body: "Hefwvuyvauyfvboi;awhbfibwaliubfiawleufvawelgykvbwean\nligiluw\naeg\nui\nl\nvbsihhfliuwabeuilgiuawbgiuwaeubgliheakvfiusbiulgbiulsergibloi", time: "44444444"},
-            {id: "13", sender: username, body: "I'm Ashitemaru.", time: "44444445"},
-            {id: "14", sender: "holder", body: "Hello!", time: "55555555"},
-            {id: "15", sender: username, body: "Hi", time: "66666666"},
-            {id: "16", sender: username, body: "I'm Ashitemaru.", time: "66666667"},
-            {id: "17", sender: "holder", body: "Hello!", time: "77777778"},
-            {id: "18", sender: username, body: "Hi", time: "88888888"},
-            {id: "19", sender: username, body: "I'm Ashitemaru.", time: "99999998"},
-            {id: "20", sender: "holder", body: "Hello!", time: "99999999"}];
+            {id: 0, sender: username, body: "Hi", time: "0"},
+            {id: 1, sender: username, body: "I'm Ashitemaru.", time: "1"},
+            {id: 2, sender: "holder", body: "Hello!", time: "3"},
+            {id: 3, sender: username, body: "Hi", time: "4"},
+            {id: 4, sender: username, body: "I'm Ashitemaru.", time: "6"},
+            {id: 5, sender: "holder", body: "Hello!", time: "7"},
+            {id: 6, sender: username, body: "Hi", time: "8"},
+            {id: 7, sender: username, body: "I'm Ashitemaru.", time: "343"},
+            {id: 8, sender: "holder", body: "Hello!", time: "73357"},
+            {id: 9, sender: username, body: "Hi", time: "3273272"},
+            {id: 10, sender: username, body: "I'm Ashitemaru.", time: "5737527"},
+            {id: 11, sender: "holder", body: "Hello!", time: "33333333"},
+            {id: 12, sender: username, body: "Hefwvuyvauyfvboi;awhbfibwaliubfiawleufvawelgykvbwean\nligiluw\naeg\nui\nl\nvbsihhfliuwabeuilgiuawbgiuwaeubgliheakvfiusbiulgbiulsergibloi", time: "44444444"},
+            {id: 13, sender: username, body: "I'm Ashitemaru.", time: "44444445"},
+            {id: 14, sender: "holder", body: "Hello!", time: "55555555"},
+            {id: 15, sender: username, body: "Hi", time: "66666666"},
+            {id: 16, sender: username, body: "I'm Ashitemaru.", time: "66666667"},
+            {id: 17, sender: "holder", body: "Hello!", time: "77777778"},
+            {id: 18, sender: username, body: "Hi", time: "88888888"},
+            {id: 19, sender: username, body: "I'm Ashitemaru.", time: "99999998"},
+            {id: 20, sender: "holder", body: "Hello!", time: "99999999"}];
         setMessageList(tmessagelist);
     };
 
-    const sendMessage = (id: string) => {
+    const sendMessage = (id: number) => {
         const date = new Date();
         const data: messageListData = {
             // "function": "sendmessage",
@@ -592,6 +744,32 @@ const Screen = () => {
         };
         // window.ws.send(JSON.stringify(data));
         setMessageList((messageList) => (messageList.concat([data])));
+    };
+
+    function top(element: roomListData, index: number, array: roomListData[]) {
+        return (element.is_top)
+    };
+
+    function notTop(element: roomListData, index: number, array: roomListData[]) {
+        return (!element.is_top)
+    };
+
+    const setTop = (set: boolean) => {
+        console.log("将置顶状态设置为" + set);
+        const data = {
+            "function": "settop",
+            "settop": set,
+        };
+        window.ws.send(JSON.stringify(data));
+    };
+
+    const setNotice = (set: boolean) => {
+        console.log("将免打扰设置为" + !set);
+        const data = {
+            "function": "setnotice",
+            "setnotice": set,
+        };
+        window.ws.send(JSON.stringify(data));
     };
 
     //会话具体信息
@@ -616,10 +794,32 @@ const Screen = () => {
                 <Divider/>
                 <Card title={"群聊名称"}>
                     {roomName}
+                    {roomNotice ? (
+                        <Button type="primary" onClick={() => setNotice(false)}>设置免打扰</Button>
+                    ) : (
+                        <Button type="primary" onClick={() => setNotice(true)}>取消免打扰</Button>
+                    )}
+                    {roomTop ? (
+                        <Button type="primary" onClick={() => setTop(false)}>取消置顶</Button>
+                    ) : (
+                        <Button type="primary" onClick={() => setTop(true)}>设置置顶</Button>
+                    )}
                 </Card>
             </Space>
         </div>
     );
+
+    const App = (
+        <Upload {...props}>
+            <Button icon={<UploadOutlined />}>Click to Upload</Button>
+        </Upload>
+    );
+
+    const appendEmoji = (item: string) => {
+        console.log(item);
+        setMessageBody(messageBody + item);
+    };
+
 
     return (
         <div style={{
@@ -641,6 +841,12 @@ const Screen = () => {
                             paddingTop: "40px", paddingBottom: "30px", border: "1px solid transparent", borderRadius: "20px",
                             alignItems: "center", backgroundColor: "rgba(255,255,255,0.7)"
                         }}>
+                            <Player
+                                playsInline
+                                poster="/assets/poster.png"
+                                src="https://media.w3.org/2010/05/sintel/trailer_hd.mp4"
+                            />
+
                             <Input size="large"
                                 type="text"
                                 placeholder="请填写用户名"
@@ -767,12 +973,14 @@ const Screen = () => {
                                                                                     fetchMessage(item.roomid);
                                                                                     setRoomID(item.roomid);
                                                                                     setRoomName(item.roomname);
+                                                                                    setRoomTop(item.is_top);
+                                                                                    setRoomNotice(item.is_notice);
                                                                                 }}>
                                                                                 <Space>
-                                                                                    <Badge count={item.unreadnum}>
-                                                                                        {/* TODO: 添加会话的图标 */}
+                                                                                    {/* /*<Badge count={item.unreadnum}>
+                                                                                        {TODO: 添加会话的图标}
                                                                                         <Avatar icon={ <CommentOutlined/> }/>
-                                                                                    </Badge>
+                                                                                    </Badge> */}
                                                                                     { item.roomname }
                                                                                 </Space>
                                                                             </Button>}
@@ -786,7 +994,7 @@ const Screen = () => {
                                         </div>
 
                                         {/* 消息页面 */}
-                                        {roomID === "" ? null : (
+                                        {roomID === -1 ? null : (
                                             <div style={{ padding: "0 24px", backgroundColor:"#FFF5EE",  width:"80%", minHeight:"100vh" }}>
                                                 <div style={{height: "10vh", margin: "5px, 10px", flexDirection: "row"}}>
                                                     <Space>
@@ -837,7 +1045,17 @@ const Screen = () => {
                                                 <div style={{ padding: "24px", position: "relative", display: "flex", flexDirection: "column", bottom: 0, left: 0, right: 0, height: "16vh" }}>
                                                     <div style={{flexDirection: "row"}}>
                                                         <Space>
-                                                            <Button type={"text"} />
+                                                            <Popover content={<Row gutter={0}>
+                                                                {emojiList.map((item) => {
+                                                                    return (
+                                                                        <Col span={1} onClick={() => { appendEmoji(item.emoji);}} key={item.id}>
+                                                                            <div>{item.emoji}</div>
+                                                                        </Col>
+                                                                    );
+                                                                })}
+                                                            </Row>} title="Title" trigger="click">
+                                                                <Button><SmileOutlined />表情</Button>
+                                                            </Popover>
                                                         </Space>
                                                     </div>
                                                     <TextArea
@@ -846,11 +1064,16 @@ const Screen = () => {
                                                         value={messageBody}
                                                         onChange={(e) => setMessageBody(e.target.value)}
                                                     />
-                                                    <Button
-                                                        type="primary"
-                                                        onClick={() => sendMessage(roomID)}>
-                                                        发送
-                                                    </Button>
+                                                    <div style={{flexDirection: "row-reverse", display:"flex"}}>
+                                                        <Button
+                                                            type="primary"
+                                                            onClick={() => sendMessage(roomID)}>
+                                                            发送
+                                                        </Button>
+                                                        <Upload {...props}>
+                                                            <Button icon={<UploadOutlined />}>Click to Upload</Button>
+                                                        </Upload>
+                                                    </div>
                                                 </div>
                                             </div>
                                         )}
@@ -900,8 +1123,8 @@ const Screen = () => {
                                                                                             block
                                                                                             type="text"
                                                                                             onClick={() => {
-                                                                                                otherUsername.current = subItem;
-                                                                                                checkFriend();
+                                                                                                setOtherUsername(subItem);
+                                                                                                checkFriend(subItem);
                                                                                             }}>
                                                                                             { subItem }
                                                                                         </Button>}
@@ -1019,8 +1242,8 @@ const Screen = () => {
                                                                                     size={"large"}
                                                                                     type="primary"
                                                                                     onClick={() => {
-                                                                                        otherUsername.current = item.username;
-                                                                                        checkFriend();
+                                                                                        setOtherUsername(item.username);
+                                                                                        checkFriend(item.username);
                                                                                     }}
                                                                                 >
                                                                                     查看用户界面
@@ -1042,7 +1265,7 @@ const Screen = () => {
                                                     paddingTop: "5px", paddingBottom: "25px", border: "1px solid transparent", borderRadius: "20px",
                                                     alignItems: "center", backgroundColor: "rgba(255,255,255,0.7)"
                                                 }}>
-                                                    <h1>{otherUsername.current}</h1>
+                                                    <h1>{otherUsername}</h1>
                                                     {isFriend ? (
                                                         <div style={{ width: "400px", height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
                                                             <Button
@@ -1060,7 +1283,7 @@ const Screen = () => {
                                                         </div>
                                                     ) : (
                                                         <div style={{ width: "200px", height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
-                                                            <Button type="primary" onClick={() => {addFriend();}}>
+                                                            <Button type="primary" onClick={() => {addFriend(otherUsername);}}>
                                                                 添加好友
                                                             </Button>
                                                         </div>
