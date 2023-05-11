@@ -751,8 +751,12 @@ const Screen = () => {
     );
 
     const appendEmoji = (item: string) => {
-        console.log(item);
-        form.setFieldsValue({box: form.getFieldsValue + item});
+        if (form.getFieldValue("box")){
+            form.setFieldsValue({box: form.getFieldValue("box") + item});
+        }
+        else {
+            form.setFieldsValue({box: item});
+        }
     };
 
     const onChange = (value: string) => {
@@ -940,18 +944,18 @@ const Screen = () => {
                                         {/* 消息页面 */}
                                         {window.currentRoomID === 0 ? null : (
                                             <div style={{ padding: "0 24px", backgroundColor:"#FFF5EE",  width:"80%", minHeight:"100vh" }}>
-                                                <div style={{height: "10vh", margin: "5px, 10px", flexDirection: "row"}}>
+                                                <div style={{height: "5vh", margin: "10px, 10px", flexDirection: "row"}}>
                                                     <Space>
                                                         <h1> { window.currentRoomName } </h1>
                                                         <Popover placement={"bottomRight"} content={ roomInfoPage } trigger={"click"}>
-                                                            <Button type={"primary"} size={"middle"} icon={ <EllipsisOutlined/> } ghost={true} shape={"round"}/>
+                                                            <Button type={"primary"} size={"middle"} icon={ <EllipsisOutlined/> } ghost={true} shape={"circle"}/>
                                                         </Popover>
                                                     </Space>
                                                 </div>
-                                                <div style={{padding: "24px", position: "relative", height: "74vh", left: 0, right: 0, overflow: "auto"}}>
+                                                <div style={{padding: "24px", position: "relative", height: "70vh", left: 0, right: 0, overflow: "auto"}}>
                                                     <List
                                                         dataSource={ messageList }
-                                                        split={false}
+                                                        split={ false }
                                                         renderItem={(item) => (
                                                             <List.Item key={ item.msg_id }>
                                                                 { item.sender === window.username ? (
@@ -991,18 +995,18 @@ const Screen = () => {
                                                     />
                                                 </div>
                                                 {/* 底部发送框 */}
-                                                <div style={{ padding: "24px", position: "relative", display: "flex", flexDirection: "column", bottom: 0, left: 0, right: 0, height: "16vh" }}>
+                                                <div style={{ padding: "24px", position: "relative", display: "flex", flexDirection: "column", bottom: 0, left: 0, right: 0}}>
                                                     <div style={{flexDirection: "row"}}>
                                                         <Space direction={"horizontal"}>
                                                             <Popover content={<Row gutter={0}>
                                                                 {emojiList.map((item) => {
                                                                     return (
-                                                                        <Col span={1} onClick={() => { appendEmoji(item.emoji);}} key={item.id}>
+                                                                        <Col span={1} onClick={() => {appendEmoji(item.emoji);}} key={item.id}>
                                                                             <div>{ item.emoji }</div>
                                                                         </Col>
                                                                     );
                                                                 })}
-                                                            </Row>} title="Title" trigger="click">
+                                                            </Row>} title="Title" trigger="click" placement={"topRight"}>
                                                                 <Button><SmileOutlined />表情</Button>
                                                             </Popover>
                                                         </Space>
