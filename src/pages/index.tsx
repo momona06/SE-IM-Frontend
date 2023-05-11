@@ -943,7 +943,7 @@ const Screen = () => {
                                 {menuItem === CONS.CHATFRAME ? (
                                     <div style={{ display: "flex", flexDirection: "row" }}>
 
-                                        <Modal title={"创建群聊"} open={ isModalOpen } onOk={ newGroup } onCancel={() => setIsModalOpen(false)}>
+                                        <Modal title={ "创建群聊" } open={ isModalOpen } onOk={ newGroup } onCancel={() => setIsModalOpen(false)}>
                                             <Checkbox.Group
                                                 onChange={ onCheckChange }
                                                 options={ allFriend.map((value) => ({
