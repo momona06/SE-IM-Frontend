@@ -752,7 +752,7 @@ const Screen = () => {
 
     const appendEmoji = (item: string) => {
         console.log(item);
-        form.setFieldsValue({box: messageBody + item});
+        form.setFieldsValue({box: form.getFieldsValue + item});
     };
 
     const onChange = (value: string) => {
@@ -1010,7 +1010,7 @@ const Screen = () => {
                                                     <Form form={form} layout={"horizontal"}>
                                                         <Form.Item name={"box"}>
                                                             <Mentions
-                                                                rows={6}
+                                                                rows={4}
                                                                 onChange={onChange}
                                                                 onSelect={onSelect}
                                                                 placement={"top"}
