@@ -154,6 +154,7 @@ const Screen = () => {
             }
             if(menuItem === CONS.CHATFRAME) {
                 fetchRoomList();
+                fetchFriendList();
                 window.currentRoomID = 0;
             }
         }
@@ -773,9 +774,15 @@ const Screen = () => {
     let newGroupMemberList: string[] = [];
     // 全部好友username
     let allFriend: string[] = [];
-    friendList.forEach((arr) => {
-        allFriend = allFriend.concat(arr.username);
-    });
+    const setAllFriendList = () => {
+        friendList.forEach((arr) => {
+            allFriend = allFriend.concat(arr.username);
+        });
+    };
+
+    useEffect(() => {
+        setAllFriendList();
+    }, [friendList]);
 
     //todo
     const newGroup = () => {
@@ -791,6 +798,7 @@ const Screen = () => {
     const onCheckChange = (checkedValues: CheckboxValueType[]) => {
         checkedValues.forEach((arr) => {
             newGroupMemberList.push(typeof arr === "string" ? arr : "");
+            console.log("new mem_list", newGroupMemberList);
         });
     };
 
