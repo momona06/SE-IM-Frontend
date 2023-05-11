@@ -154,7 +154,6 @@ const Screen = () => {
             }
         }
     }, [currentPage, menuItem]);
-    const { TextArea } = Input;
 
     const WSConnect = () => {
         let DEBUG = false;
@@ -1007,8 +1006,7 @@ const Screen = () => {
                                                         </Space>
                                                     </div>
                                                     <Mentions
-                                                        autoSize
-                                                        rows={3}
+                                                        rows={6}
                                                         onChange={onChange}
                                                         onSelect={onSelect}
                                                         placement={"top"}
@@ -1022,8 +1020,8 @@ const Screen = () => {
                                                         <Button
                                                             type="primary"
                                                             onClick={() => {
+                                                                message.success(messageBody);
                                                                 sendMessage(messageBody);
-                                                                setMessageBody("");
                                                             }}>
                                                             发送
                                                         </Button>
@@ -1082,6 +1080,7 @@ const Screen = () => {
                                                                                             onClick={() => {
                                                                                                 window.otherUsername = subItem;
                                                                                                 checkFriend();
+                                                                                                // todo: 已选择A时无法跳转B
                                                                                             }}>
                                                                                             { subItem }
                                                                                         </Button>}
