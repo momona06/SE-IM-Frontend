@@ -19,7 +19,8 @@ import {
     Col,
     Upload,
     Switch,
-    Mentions
+    Mentions,
+    Form
 } from "antd";
 import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined, ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined, CommentOutlined, EllipsisOutlined, SmileOutlined, UploadOutlined, LoadingOutlined } from "@ant-design/icons";
 import type { UploadProps } from "antd";
@@ -154,6 +155,7 @@ const Screen = () => {
             }
         }
     }, [currentPage, menuItem]);
+    const [form] = Form.useForm();
 
     const WSConnect = () => {
         let DEBUG = false;
@@ -750,7 +752,7 @@ const Screen = () => {
 
     const appendEmoji = (item: string) => {
         console.log(item);
-        setMessageBody(messageBody + item);
+        form.setFieldsValue({box: messageBody + item});
     };
 
     const onChange = (value: string) => {
@@ -1005,22 +1007,25 @@ const Screen = () => {
                                                             </Popover>
                                                         </Space>
                                                     </div>
-                                                    <Mentions
-                                                        rows={6}
-                                                        onChange={onChange}
-                                                        onSelect={onSelect}
-                                                        placement={"top"}
-                                                        options={(roomInfo.mem_list.filter(Filter)).map((value) => ({
-                                                            key: value,
-                                                            value,
-                                                            label: value,
-                                                        }))}
-                                                    />
+                                                    <Form form={form} layout={"horizontal"}>
+                                                        <Form.Item name={"box"}>
+                                                            <Mentions
+                                                                rows={6}
+                                                                onChange={onChange}
+                                                                onSelect={onSelect}
+                                                                placement={"top"}
+                                                                options={(roomInfo.mem_list.filter(Filter)).map((value) => ({
+                                                                    key: value,
+                                                                    value,
+                                                                    label: value,
+                                                                }))}
+                                                            />
+                                                        </Form.Item>
+                                                    </Form>
                                                     <div style={{flexDirection: "row-reverse", display:"flex"}}>
                                                         <Button
                                                             type="primary"
                                                             onClick={() => {
-                                                                message.success(messageBody);
                                                                 sendMessage(messageBody);
                                                             }}>
                                                             发送
