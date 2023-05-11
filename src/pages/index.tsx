@@ -944,16 +944,6 @@ const Screen = () => {
                                 { /*聊天组件*/}
                                 {menuItem === CONS.CHATFRAME ? (
                                     <div style={{ display: "flex", flexDirection: "row" }}>
-
-                                        <Modal title={ "创建群聊" } open={ isModalOpen } onOk={ newGroup } onCancel={() => setIsModalOpen(false)}>
-                                            <Checkbox.Group
-                                                onChange={ onCheckChange }
-                                                options={ window.allFriendList.map((value) => ({
-                                                    value,
-                                                    label: value,
-                                                }))}/>
-                                        </Modal>
-
                                         <div style={{ padding: "0 24px", backgroundColor:"#FAF0E6",  width:"20%", minHeight:"100vh" }}>
                                             <div style={{height: "5vh", margin: "10px, 10px", flexDirection: "row"}}>
                                                 <Space direction={"horizontal"}>
@@ -961,6 +951,10 @@ const Screen = () => {
                                                     <Button icon={<PlusOutlined />} type={"default"} onClick={ () => setIsModalOpen(true) }/>
                                                 </Space>
                                             </div>
+                                            <Modal title={ "创建群聊" } open={ isModalOpen } onOk={ newGroup } onCancel={() => setIsModalOpen(false)}>
+                                                <Checkbox.Group
+                                                    onChange={ onCheckChange }/>
+                                            </Modal>
                                             {roomListRefreshing ? (
                                                 <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />}/>
                                             ) : (
