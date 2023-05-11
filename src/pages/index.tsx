@@ -21,14 +21,13 @@ import {
     Switch,
     Mentions
 } from "antd";
-import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined, ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined, CommentOutlined, EllipsisOutlined, SmileOutlined, UploadOutlined, ExclamationOutlined } from "@ant-design/icons";
+import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined, ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined, CommentOutlined, EllipsisOutlined, SmileOutlined, UploadOutlined, LoadingOutlined } from "@ant-design/icons";
 import type { UploadProps } from "antd";
 import * as CONS from "../constants/constants";
 import moment from "moment";
 import { Player, ControlBar,  } from "video-react";
 import emojiList from "../components/emojiList";
 import {MentionsOptionProps} from "antd/es/mentions";
-import TextArea from "antd/es/input/TextArea";
 
 interface friendListData {
     groupname: string;
@@ -155,6 +154,7 @@ const Screen = () => {
             }
         }
     }, [currentPage, menuItem]);
+    const { TextArea } = Input;
 
     const WSConnect = () => {
         let DEBUG = false;
@@ -895,7 +895,7 @@ const Screen = () => {
                                         <div style={{ padding: "0 24px", backgroundColor:"#FAF0E6",  width:"20%", minHeight:"100vh" }}>
                                             <h3> 会话列表 </h3>
                                             {roomListRefreshing ? (
-                                                <Spin />
+                                                <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />}/>
                                             ) : (
                                                 <div>
                                                     {roomList.length === 0 ? (
@@ -1005,19 +1005,18 @@ const Screen = () => {
                                                             </Popover>
                                                         </Space>
                                                     </div>
-                                                    <TextArea style={{left: 0, right: 0}} allowClear={true}>
-                                                        <Mentions
-                                                            autoSize
-                                                            onChange={onChange}
-                                                            onSelect={onSelect}
-                                                            placement={"top"}
-                                                            options={(roomInfo.mem_list.filter(Filter)).map((value) => ({
-                                                                key: value,
-                                                                value,
-                                                                label: value,
-                                                            }))}
-                                                        />
-                                                    </TextArea>
+                                                    <Mentions
+                                                        autoSize
+                                                        rows={5}
+                                                        onChange={onChange}
+                                                        onSelect={onSelect}
+                                                        placement={"top"}
+                                                        options={(roomInfo.mem_list.filter(Filter)).map((value) => ({
+                                                            key: value,
+                                                            value,
+                                                            label: value,
+                                                        }))}
+                                                    />
                                                     <div style={{flexDirection: "row-reverse", display:"flex"}}>
                                                         <Button
                                                             type="primary"
@@ -1046,7 +1045,7 @@ const Screen = () => {
 
                                             <h3> 好友列表 </h3>
                                             {friendListRefreshing ? (
-                                                <Spin />
+                                                <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />}/>
                                             ) : (
                                                 <div style={{ padding: 12}}>
                                                     {friendList.length === 0 ? (
@@ -1103,7 +1102,7 @@ const Screen = () => {
                                             {addressItem === CONS.NEWFRIEND ? (
                                                 <div>
                                                     {receiveRefreshing ? (
-                                                        <Spin />
+                                                        <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />}/>
                                                     ) : (
                                                         <div style={{ padding: 12}}>
                                                             {receiveList.length === 0 ? (
@@ -1141,7 +1140,7 @@ const Screen = () => {
                                                     )}
 
                                                     {applyRefreshing ? (
-                                                        <Spin />
+                                                        <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />}/>
                                                     ) : (
                                                         <div style={{ padding: 12}}>
                                                             {applyList.length === 0 ? (
@@ -1181,7 +1180,7 @@ const Screen = () => {
                                                     </Space.Compact>
 
                                                     {searchRefreshing ? (
-                                                        <p> 未搜索 </p>
+                                                        <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />}/>
                                                     ) : (
                                                         <div style={{ padding: 12}}>
                                                             {searchList.length === 0 ? (
