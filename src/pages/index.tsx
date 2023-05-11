@@ -750,9 +750,11 @@ const Screen = () => {
     const appendEmoji = (item: string) => {
         if (form.getFieldValue("box")){
             form.setFieldsValue({box: form.getFieldValue("box") + item});
+            setMessageBody(form.getFieldValue("box") + item);
         }
         else {
             form.setFieldsValue({box: item});
+            setMessageBody(item);
         }
     };
 
@@ -772,11 +774,11 @@ const Screen = () => {
     }
 
     let newGroupMemberList: string[] = [];
+
     // 全部好友username
-    let allFriend: string[] = [];
     const setAllFriendList = () => {
         friendList.forEach((arr) => {
-            allFriend = allFriend.concat(arr.username);
+            window.allFriendList = window.allFriendList.concat(arr.username);
         });
     };
 
@@ -946,7 +948,7 @@ const Screen = () => {
                                         <Modal title={ "创建群聊" } open={ isModalOpen } onOk={ newGroup } onCancel={() => setIsModalOpen(false)}>
                                             <Checkbox.Group
                                                 onChange={ onCheckChange }
-                                                options={ allFriend.map((value) => ({
+                                                options={ window.allFriendList.map((value) => ({
                                                     value,
                                                     label: value,
                                                 }))}/>

@@ -11,5 +11,6 @@ declare global {
         otherUsername: string
         currentRoomID: number
         currentRoomName: string
+        allFriendList: string[]
     }
 }
