@@ -917,6 +917,7 @@ const Screen = () => {
                                                                                     fetchRoomInfo(item.roomid);
                                                                                     setMessageList(messageList => item.message_list);
                                                                                     addRoom(item.roomid, item.roomname);
+                                                                                    console.log(messageList);
                                                                                 }}>
                                                                                 <Space>
                                                                                     <Badge count={114514}>
@@ -1007,7 +1008,7 @@ const Screen = () => {
                                                     </div>
                                                     <Mentions
                                                         autoSize
-                                                        rows={5}
+                                                        rows={3}
                                                         onChange={onChange}
                                                         onSelect={onSelect}
                                                         placement={"top"}
