@@ -776,14 +776,14 @@ const Screen = () => {
     let newGroupMemberList: string[] = [];
 
     // 全部好友username
-    const setAllFriendList = () => {
-        friendList.forEach((arr) => {
-            window.allFriendList = window.allFriendList.concat(arr.username);
-        });
-    };
+    const [allFriendList, setAllFriendList] = useState<string[]>([]);
 
     useEffect(() => {
-        setAllFriendList();
+        let temp:string[] = [];
+        friendList.forEach((arr) => {
+            temp = temp.concat(arr.username);
+        });
+        setAllFriendList(temp);
     }, [friendList]);
 
     //todo
@@ -944,14 +944,20 @@ const Screen = () => {
                                 { /*聊天组件*/}
                                 {menuItem === CONS.CHATFRAME ? (
                                     <div style={{ display: "flex", flexDirection: "row" }}>
-
-
+                                        <Modal title={ "创建群聊" } open={ isModalOpen } onOk={ newGroup } onCancel={() => setIsModalOpen(false)}>
+                                            <Checkbox.Group
+                                                onChange={ onCheckChange }
+                                                options={ allFriendList.map((value) => ({
+                                                    value,
+                                                    label: value,
+                                                }))}/>
+                                        </Modal>
 
                                         <div style={{ padding: "0 24px", backgroundColor:"#FAF0E6",  width:"20%", minHeight:"100vh" }}>
                                             <div style={{height: "5vh", margin: "10px, 10px", flexDirection: "row"}}>
                                                 <Space direction={"horizontal"}>
                                                     <h3> 会话列表 </h3>
-                                                    {/*<Button icon={<PlusOutlined />} type={"default"} onClick={ () => setIsModalOpen(true) }/>*/}
+                                                    <Button icon={<PlusOutlined />} type={"default"} onClick={ () => setIsModalOpen(true) }/>
                                                 </Space>
                                             </div>
                                             {roomListRefreshing ? (
