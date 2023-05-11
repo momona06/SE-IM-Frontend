@@ -20,15 +20,16 @@ import {
     Upload,
     Switch,
     Mentions,
-    Form
+    Form, Modal, Checkbox
 } from "antd";
-import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined, ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined, CommentOutlined, EllipsisOutlined, SmileOutlined, UploadOutlined, LoadingOutlined } from "@ant-design/icons";
+import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined, ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined, CommentOutlined, EllipsisOutlined, SmileOutlined, UploadOutlined, LoadingOutlined, PlusOutlined } from "@ant-design/icons";
 import type { UploadProps } from "antd";
 import * as CONS from "../constants/constants";
 import moment from "moment";
 import { Player, ControlBar,  } from "video-react";
 import emojiList from "../components/emojiList";
 import {MentionsOptionProps} from "antd/es/mentions";
+import {CheckboxValueType} from "antd/es/checkbox/Group";
 
 interface friendListData {
     groupname: string;
@@ -142,6 +143,8 @@ const Screen = () => {
     const [isFriend, setIsFriend] = useState<boolean>(false);
     const [friendGroup, setFriendGroup] = useState<string>("");
     const [box, setBox] = useState<number>(0);
+
+    const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
     useEffect(() => {
         if(currentPage === CONS.MAIN)
@@ -633,6 +636,7 @@ const Screen = () => {
         };
         window.ws.send(JSON.stringify(data));
     };
+
     const addRoom = (ID: number, Name: string) => {
         let data = {
             "function": "add_chat",
@@ -641,6 +645,7 @@ const Screen = () => {
         };
         window.ws.send(JSON.stringify(data));
     };
+
     const sendMessage = (Message: string) => {
         if (Message != ""){
             let data = {
@@ -673,14 +678,6 @@ const Screen = () => {
         };
         window.ws.send(JSON.stringify(data));
     };
-
-    function top(element: roomListData, index: number, array: roomListData[]) {
-        return (element.is_top);
-    }
-
-    function notTop(element: roomListData, index: number, array: roomListData[]) {
-        return (!element.is_top);
-    }
 
     const setTop = (set: boolean) => {
         console.log("将置顶状态设置为" + set);
@@ -727,8 +724,7 @@ const Screen = () => {
                     )}
                 />
                 <Divider type={"horizontal"}/>
-                <Card title={"群聊名称"}>
-                    <p> { currentRoomName } </p>
+                <Card title={ `群聊名称 ${currentRoomName}` }>
                     <Space direction={"vertical"}>
                         <Space direction={"horizontal"}>
                             <p>免打扰</p>
@@ -767,11 +763,52 @@ const Screen = () => {
         console.log(options);
     };
 
-    function Filter(element: string, index: number, array: string[]) {
+    // @过滤自己
+    function selfFilter(element: string, index: number, array: string[]) {
         if (element != window.username){
             return element;
         }
     }
+
+    let newGroupMemberList: string[] = [];
+    // 全部好友username
+    let allFriend: string[] = [];
+    friendList.forEach((arr) => {
+        allFriend = allFriend.concat(arr.username);
+    });
+
+    //todo
+    const newGroup = () => {
+        let data = {
+            function: "create_group",
+            member_list: newGroupMemberList,
+            room_name: ""
+        };
+        window.ws.send(JSON.stringify(data));
+        newGroupMemberList = [];
+    };
+
+    const onCheckChange = (checkedValues: CheckboxValueType[]) => {
+        checkedValues.forEach((arr) => {
+            newGroupMemberList.push(typeof arr === "string" ? arr : "");
+        });
+    };
+
+    const leaveChatGroup = () => {
+        let data = {
+            function: "leave_chatgroup",
+            chatroom_id: window.currentRoomID
+        };
+        window.ws.send(JSON.stringify(data));
+    };
+
+    const deleteChatGroup = () => {
+        let data = {
+            function: "delete_chatgroup",
+            chatroom_id: window.currentRoomID
+        };
+        window.ws.send(JSON.stringify(data));
+    };
 
     return (
         <div style={{
@@ -897,8 +934,23 @@ const Screen = () => {
                                 { /*聊天组件*/}
                                 {menuItem === CONS.CHATFRAME ? (
                                     <div style={{ display: "flex", flexDirection: "row" }}>
+
+                                        <Modal title={"创建群聊"} open={ isModalOpen } onOk={ newGroup } onCancel={() => setIsModalOpen(false)}>
+                                            <Checkbox.Group
+                                                onChange={ onCheckChange }
+                                                options={ allFriend.map((value) => ({
+                                                    value,
+                                                    label: value,
+                                                }))}/>
+                                        </Modal>
+
                                         <div style={{ padding: "0 24px", backgroundColor:"#FAF0E6",  width:"20%", minHeight:"100vh" }}>
-                                            <h3> 会话列表 </h3>
+                                            <div style={{height: "5vh", margin: "10px, 10px", flexDirection: "row"}}>
+                                                <Space direction={"horizontal"}>
+                                                    <h3> 会话列表 </h3>
+                                                    <Button icon={<PlusOutlined />} type={"default"} onClick={ () => setIsModalOpen(true) }/>
+                                                </Space>
+                                            </div>
                                             {roomListRefreshing ? (
                                                 <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />}/>
                                             ) : (
@@ -1018,7 +1070,7 @@ const Screen = () => {
                                                                 onChange={onChange}
                                                                 onSelect={onSelect}
                                                                 placement={"top"}
-                                                                options={(roomInfo.mem_list.filter(Filter)).map((value) => ({
+                                                                options={(roomInfo.mem_list.filter(selfFilter)).map((value) => ({
                                                                     key: value,
                                                                     value,
                                                                     label: value,
