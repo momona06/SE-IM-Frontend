@@ -953,7 +953,8 @@ const Screen = () => {
                                             </div>
                                             <Modal title={ "创建群聊" } open={ isModalOpen } onOk={ newGroup } onCancel={() => setIsModalOpen(false)}>
                                                 <Checkbox.Group
-                                                    onChange={ onCheckChange }/>
+                                                    onChange={ onCheckChange }
+                                                />
                                             </Modal>
                                             {roomListRefreshing ? (
                                                 <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />}/>
