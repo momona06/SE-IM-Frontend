@@ -1054,7 +1054,7 @@ const Screen = () => {
                                                                             <h6>{item.sender}</h6>
                                                                         </div>
                                                                         <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#66B7FF"}}>
-                                                                            <p> { str2addr(item.msg_body) } </p>
+                                                                            { str2addr(item.msg_body) }
                                                                             <span> { item.msg_time } </span>
                                                                             {/*item.msg_id === -1 ? (
                                                                                 <Button
