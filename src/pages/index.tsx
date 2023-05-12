@@ -797,9 +797,10 @@ const Screen = () => {
 
     const leaveChatGroup = () => {
         let data = {
-            function: "leave_chatgroup",
+            function: "leave_group",
             chatroom_id: window.currentRoomID
         };
+        console.log("leave", data);
         for (let room of roomList){
             if (room.roomid === window.currentRoomID){
                 setRoomList(roomList => roomList.filter(room => room.roomid != window.currentRoomID));
@@ -1053,8 +1054,8 @@ const Screen = () => {
                                                                             <h6>{item.sender}</h6>
                                                                         </div>
                                                                         <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#66B7FF"}}>
-                                                                            <p>{item.msg_body}</p>
-                                                                            <span>{item.msg_time}</span>
+                                                                            <p> { str2addr(item.msg_body) } </p>
+                                                                            <span> { item.msg_time } </span>
                                                                             {/*item.msg_id === -1 ? (
                                                                                 <Button
                                                                                     type={"default"} shape={"circle"}
