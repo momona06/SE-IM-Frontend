@@ -1,26 +1,7 @@
-import React, {useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import * as STRINGS from "../constants/string";
 import { request } from "../utils/network";
-import { message,
-    Input,
-    Button,
-    Space,
-    Layout,
-    List,
-    Menu,
-    Spin,
-    Badge,
-    Avatar,
-    Popover,
-    Card,
-    Divider,
-    Row,
-    Col,
-    Upload,
-    Switch,
-    Mentions,
-    Form, Modal, Checkbox
-} from "antd";
+import { message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar, Popover, Card, Divider, Row, Col, Upload, Switch, Mentions, Form, Modal, Checkbox } from "antd";
 import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined, ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined, CommentOutlined, EllipsisOutlined, SmileOutlined, UploadOutlined, LoadingOutlined, PlusOutlined } from "@ant-design/icons";
 import type { UploadProps } from "antd";
 import * as CONS from "../constants/constants";
@@ -70,7 +51,6 @@ interface roomInfoData {
 }
 
 export const isEmail = (val : string) => {
-    //仅保留是否为邮件的判断，其余交给后端
     return /^[A-Za-z0-9\u4e00-\u9fa5]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/i.test(val);
 };
 
@@ -82,7 +62,7 @@ const props: UploadProps = {
     },
     onChange(info) {
         if(info.file.status !== "uploading") {
-            console.log(info.file, info.fileList);
+            console.log("upload:", info.file, info.fileList);
         }
         if(info.file.status === "done") {
             message.success(`${info.file.name} file uploaded successfully`);
@@ -144,13 +124,11 @@ const Screen = () => {
     const [box, setBox] = useState<number>(0);
 
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+    const [chatGroupName, setChatGroupName] = useState<string>("");
 
     useEffect(() => {
         if(currentPage === CONS.MAIN)
         {
-            if(menuItem === CONS.ADDRESSBOOK) {
-                fetchFriendList();
-            }
             if(menuItem === CONS.CHATFRAME) {
                 fetchRoomList();
                 fetchFriendList();
@@ -159,6 +137,14 @@ const Screen = () => {
         }
     }, [currentPage, menuItem]);
     const [form] = Form.useForm();
+
+    useEffect(() => {
+        let temp:string[] = [];
+        friendList.forEach((arr) => {
+            temp = temp.concat(arr.username);
+        });
+        setAllFriendList(temp);
+    }, [friendList]);
 
     const WSConnect = () => {
         let DEBUG = false;
@@ -199,7 +185,7 @@ const Screen = () => {
             else if (data.function === "fetchroom") {
                 setRoomList(((data.roomlist.filter((val: any) => val.is_top)).concat(data.roomlist.filter((val: any) => !val.is_top)).map((val: any) => ({...val}))));
                 setRoomListRefreshing(false);
-                console.log(roomList);
+                console.log("roomlist:", roomList);
             }
             // 会话具体信息， 包括成员列表，管理员等
             else if (data.function === "fetchroominfo"){
@@ -762,7 +748,7 @@ const Screen = () => {
     };
 
     const onSelect = (options: MentionsOptionProps) => {
-        console.log(options);
+        console.log("选中:", options);
     };
 
     // @过滤自己
@@ -772,27 +758,24 @@ const Screen = () => {
         }
     }
 
-    let newGroupMemberList: string[] = [window.username];
+    let newGroupMemberList: string[] = [];
 
     // 全部好友username
     const [allFriendList, setAllFriendList] = useState<string[]>([]);
 
-    useEffect(() => {
-        let temp:string[] = [];
-        friendList.forEach((arr) => {
-            temp = temp.concat(arr.username);
-        });
-        setAllFriendList(temp);
-    }, [friendList]);
-
     //todo
     const newGroup = () => {
+        newGroupMemberList.push(window.username);
+        if (chatGroupName == ""){
+            message.warning("群聊名不能为空");
+        }
         let data = {
             function: "create_group",
             member_list: newGroupMemberList,
-            room_name: "1"
+            room_name: chatGroupName
         };
         window.ws.send(JSON.stringify(data));
+        console.log("new mem_list", newGroupMemberList);
         newGroupMemberList = [];
         setIsModalOpen(false);
     };
@@ -800,7 +783,6 @@ const Screen = () => {
     const onCheckChange = (checkedValues: CheckboxValueType[]) => {
         checkedValues.forEach((arr) => {
             newGroupMemberList.push(typeof arr === "string" ? arr : "");
-            console.log("new mem_list", newGroupMemberList);
         });
     };
 
@@ -944,7 +926,14 @@ const Screen = () => {
                                 { /*聊天组件*/}
                                 {menuItem === CONS.CHATFRAME ? (
                                     <div style={{ display: "flex", flexDirection: "row" }}>
+
                                         <Modal title={ "创建群聊" } open={ isModalOpen } onOk={ newGroup } onCancel={() => setIsModalOpen(false)}>
+                                            <Input
+                                                type="text"
+                                                placeholder="请填写群聊名称"
+                                                value={ chatGroupName }
+                                                onChange={(e) => setChatGroupName(e.target.value)}
+                                            />
                                             <Checkbox.Group
                                                 onChange={ onCheckChange }
                                                 options={ allFriendList.map((value) => ({
@@ -957,7 +946,7 @@ const Screen = () => {
                                             <div style={{height: "5vh", margin: "10px, 10px", flexDirection: "row"}}>
                                                 <Space direction={"horizontal"}>
                                                     <h3> 会话列表 </h3>
-                                                    <Button icon={<PlusOutlined />} type={"default"} onClick={ () => setIsModalOpen(true) }/>
+                                                    <Button icon={<PlusOutlined />} type={"default"} onClick={() => setIsModalOpen(true) }/>
                                                 </Space>
                                             </div>
                                             {roomListRefreshing ? (
@@ -980,10 +969,11 @@ const Screen = () => {
                                                                                     window.currentRoomID = item.roomid;
                                                                                     window.currentRoomName = item.roomname;
                                                                                     setCurrentRoomName(item.roomname);
-                                                                                    fetchRoomInfo(item.roomid);
-                                                                                    setMessageList(messageList => item.message_list);
                                                                                     addRoom(item.roomid, item.roomname);
-                                                                                    console.log(messageList);
+                                                                                    fetchRoomInfo(item.roomid);
+                                                                                    fetchRoomList();
+                                                                                    setMessageList(messageList => item.message_list);
+                                                                                    console.log("messagelist:", messageList);
                                                                                 }}>
                                                                                 <Space>
                                                                                     <Badge count={114514}>
