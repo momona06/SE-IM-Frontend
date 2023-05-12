@@ -222,7 +222,9 @@ const Screen = () => {
                     }
                 }
                 if (data.room_id === window.currentRoomID){
-                    setMessageList(messageList => messageList.concat(newMessage));
+                    if (data.sender != window.username) {
+                        setMessageList(messageList => messageList.concat(newMessage));
+                    }
                 }
                 let ACK = {
                     "function": "acknowledge_message",
@@ -593,6 +595,7 @@ const Screen = () => {
             "username": window.username
         };
         window.ws.send(JSON.stringify(data));
+        console.log(data);
     };
 
     const fetchReceiveList = () => {
@@ -675,7 +678,7 @@ const Screen = () => {
             "function": "settop",
             "settop": set,
         };
-        setTop(set);
+        setRoomTop(set);
         window.ws.send(JSON.stringify(data));
     };
 
@@ -685,55 +688,9 @@ const Screen = () => {
             "function": "setnotice",
             "setnotice": set,
         };
-        setNotice(set);
+        setRoomNotice(set);
         window.ws.send(JSON.stringify(data));
     };
-
-    //会话具体信息
-    const roomInfoPage = (
-        <div style={{padding: "12px"}}>
-            <Space direction={"vertical"}>
-                <Space.Compact style={{ width: "80%" }}>
-                    <Input
-                        type="text"
-                        placeholder="请填写用户名"
-                        value={ searchName }
-                        onChange={(e) => setSearchName(e.target.value)}
-                    />
-                    <Button type="primary" onClick={ search } icon={<SearchOutlined />}/>
-                </Space.Compact>
-                <List
-                    grid={{gutter: 16, column: 2}}
-                    dataSource={roomInfo.mem_list}
-                    renderItem={(item) => (
-                        <List.Item>
-                            <Popover placement={"rightBottom"} content={"这里是点击成员后的弹出卡片，应当显示publicInfo"}>
-                                <Card cover={"头像"}>
-                                    { item }
-                                </Card>
-                            </Popover>
-                        </List.Item>
-                    )}
-                />
-                <Divider type={"horizontal"}/>
-                <Card title={ `群聊名称 ${currentRoomName}` }>
-                    <Space direction={"vertical"}>
-                        <Space direction={"horizontal"}>
-                            <p>免打扰</p>
-                            <Switch defaultChecked={!roomNotice} onChange={setNotice}/>
-                        </Space>
-                        <Space direction={"horizontal"}>
-                            <p>置顶</p>
-                            <Switch defaultChecked={roomTop} onChange={setTop}/>
-                        </Space>
-                        <Button type={"text"} danger={true} onClick={() => leaveChatGroup()}>
-                            退出群聊
-                        </Button>
-                    </Space>
-                </Card>
-            </Space>
-        </div>
-    );
 
     const App = (
         <Upload {...props}>
@@ -840,6 +797,52 @@ const Screen = () => {
             </div>
         );
     };
+
+    //会话具体信息
+    const roomInfoPage = (
+        <div style={{padding: "12px"}}>
+            <Space direction={"vertical"}>
+                <Space.Compact style={{ width: "80%" }}>
+                    <Input
+                        type="text"
+                        placeholder="请填写用户名"
+                        value={ searchName }
+                        onChange={(e) => setSearchName(e.target.value)}
+                    />
+                    <Button type="primary" onClick={ search } icon={<SearchOutlined />}/>
+                </Space.Compact>
+                <List
+                    grid={{gutter: 16, column: 2}}
+                    dataSource={roomInfo.mem_list}
+                    renderItem={(item) => (
+                        <List.Item>
+                            <Popover placement={"rightBottom"} content={"这里是点击成员后的弹出卡片，应当显示publicInfo"}>
+                                <Card cover={"头像"}>
+                                    { item }
+                                </Card>
+                            </Popover>
+                        </List.Item>
+                    )}
+                />
+                <Divider type={"horizontal"}/>
+                <Card title={ `群聊名称 ${currentRoomName}` }>
+                    <Space direction={"vertical"}>
+                        <Space direction={"horizontal"}>
+                            <p>免打扰</p>
+                            <Switch defaultChecked={!roomNotice} onChange={setNotice}/>
+                        </Space>
+                        <Space direction={"horizontal"}>
+                            <p>置顶</p>
+                            <Switch defaultChecked={roomTop} onChange={setTop}/>
+                        </Space>
+                        <Button type={"text"} danger={true} onClick={() => leaveChatGroup()}>
+                            退出群聊
+                        </Button>
+                    </Space>
+                </Card>
+            </Space>
+        </div>
+    );
 
     return (
         <div style={{
