@@ -625,6 +625,7 @@ const Screen = () => {
         window.ws.send(JSON.stringify(data));
     };
 
+    // 加入分组
     const addRoom = (ID: number, Name: string) => {
         let data = {
             "function": "add_chat",
@@ -737,8 +738,8 @@ const Screen = () => {
             member_list: newGroupMemberList,
             room_name: chatGroupName
         };
+        console.log(data);
         window.ws.send(JSON.stringify(data));
-        console.log("new mem_list", newGroupMemberList);
         newGroupMemberList = [];
         setChatGroupName("");
         setIsModalOpen(false);
@@ -791,7 +792,7 @@ const Screen = () => {
                             </a>
                         );
                     } else {
-                        return <span key={i}>{part}</span>;
+                        return <span key={ i }>{part}</span>;
                     }
                 })}
             </div>
@@ -835,6 +836,7 @@ const Screen = () => {
                             <p>置顶</p>
                             <Switch defaultChecked={roomTop} onChange={setTop}/>
                         </Space>
+
                         <Button type={"text"} danger={true} onClick={() => leaveChatGroup()}>
                             退出群聊
                         </Button>
