@@ -729,7 +729,6 @@ const Screen = () => {
                         <Button type={"text"} danger={true} onClick={() => leaveChatGroup()}>
                             退出群聊
                         </Button>
-
                     </Space>
                 </Card>
             </Space>
@@ -806,10 +805,10 @@ const Screen = () => {
                 setRoomList(roomList => roomList.filter(room => room.roomid != window.currentRoomID));
             }
         }
-        window.ws.send(JSON.stringify(data));
         window.currentRoomID = 0;
         window.currentRoomName = "";
         setCurrentRoomName("");
+        window.ws.send(JSON.stringify(data));
     };
 
     const deleteChatGroup = () => {
