@@ -213,16 +213,15 @@ const Screen = () => {
                     msg_time: data.msg_time,
                     sender: data.sender
                 };
+
+                for (let room of roomList){
+                    if (room.roomid === data.room_id){
+                        room.message_list.push(newMessage);
+                    }
+                }
                 if (data.room_id === window.currentRoomID){
                     if (data.sender != window.username) {
                         setMessageList(messageList => messageList.concat(newMessage));
-                    }
-                }
-                else{
-                    for (let room of roomList){
-                        if (room.roomid === data.room_id){
-                            room.message_list.push(newMessage);
-                        }
                     }
                 }
                 let ACK = {
@@ -651,6 +650,11 @@ const Screen = () => {
                 "sender": window.username
             };
             setMessageList(messageList => messageList.concat(newMessage));
+            for (let room of roomList){
+                if (room.roomid === window.currentRoomID){
+                    room.message_list.push(newMessage);
+                }
+            }
         }
         else {
             message.error("消息不能为空", 1);
@@ -743,7 +747,7 @@ const Screen = () => {
         }
     };
 
-    const onChange = (value: string) => {
+    const onMsgChange = (value: string) => {
         setMessageBody(value);
     };
 
@@ -781,9 +785,11 @@ const Screen = () => {
     };
 
     const onCheckChange = (checkedValues: CheckboxValueType[]) => {
+        let temp: string[] = [];
         checkedValues.forEach((arr) => {
-            newGroupMemberList.push(typeof arr === "string" ? arr : "");
+            temp.push(typeof arr === "string" ? arr : "");
         });
+        newGroupMemberList = temp;
     };
 
     const leaveChatGroup = () => {
@@ -971,7 +977,6 @@ const Screen = () => {
                                                                                     setCurrentRoomName(item.roomname);
                                                                                     addRoom(item.roomid, item.roomname);
                                                                                     fetchRoomInfo(item.roomid);
-                                                                                    fetchRoomList();
                                                                                     setMessageList(messageList => item.message_list);
                                                                                     console.log("messagelist:", messageList);
                                                                                 }}>
@@ -1066,7 +1071,7 @@ const Screen = () => {
                                                         <Form.Item name={"box"}>
                                                             <Mentions
                                                                 rows={4}
-                                                                onChange={onChange}
+                                                                onChange={onMsgChange}
                                                                 onSelect={onSelect}
                                                                 placement={"top"}
                                                                 options={(roomInfo.mem_list.filter(selfFilter)).map((value) => ({
