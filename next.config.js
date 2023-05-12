@@ -11,8 +11,8 @@ const nextConfig = {
             source: "/api/:path*",
             destination: DEBUG ? "http://localhost:8000/:path*" : "https://se-im-backend-overflowlab.app.secoder.net/:path*",
         }, {
-            source: "/translate:path*",
-            destination: "https://fanyi.youdao.com/translate?&doctype=json&type=AUTO&i=:path*"
+            source: "/translate/:path*",
+            destination: "https://fanyi.youdao.com/:path*"
         }];
     }
 };

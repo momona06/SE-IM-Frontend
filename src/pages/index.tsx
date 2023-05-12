@@ -1,7 +1,7 @@
 import React, {useEffect, useState } from "react";
 import * as STRINGS from "../constants/string";
 import { request } from "../utils/network";
-import { message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar, Popover, Card, Divider, Row, Col, Upload, Modal, TreeSelect} from "antd";
+import { message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar, Popover, Card, Divider, Row, Col, Upload, Modal, TreeSelect, UploadFile} from "antd";
 import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined, ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined, CommentOutlined, EllipsisOutlined, SmileOutlined, UploadOutlined } from "@ant-design/icons";
 import type { UploadProps } from "antd";
 import * as CONS from "../constants/constants";
@@ -10,6 +10,7 @@ import TextArea from "antd/lib/input/TextArea";
 import { Player, ControlBar,  } from "video-react";
 import emojiList from "../components/emojiList";
 import axios, { AxiosError, AxiosResponse } from "axios";
+import $ from "jquery";
 
 
 interface friendListData {
@@ -59,23 +60,37 @@ export const isEmail = (val : string) => {
     return /^[A-Za-z0-9\u4e00-\u9fa5]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/i.test(val);
 };
 
-const props: UploadProps = {
-    name: "file",
-    action: "https://ww.mocky.io/v2/5cc8019d300000980a055e76",
-    headers: {
-        authorization: "authorization-text",
-    },
-    onChange(info) {
-        if(info.file.status !== "uploading") {
-            console.log(info.file, info.fileList);
-        }
-        if(info.file.status === "done") {
-            message.success(`${info.file.name} file uploaded successfully`);
-        } else if (info.file.status === "error") {
-            message.error(`${info.file.name} file upload failed.`);
-        }
-    },
-};
+// const props: UploadProps = {
+//     name: "avatar",
+//     action: "https://se-im-backend-overflowlab.app.secoder.net/upload",
+//     data: {"username": window.username},
+//     onChange(info) {
+//         if(info.file.status !== "uploading") {
+//             console.log(info.file, info.fileList);
+//         }
+//         if(info.file.status === "done") {
+//             message.success(`${info.file.name} file uploaded successfully`);
+//         } else if (info.file.status === "error") {
+//             message.error(`${info.file.name} file upload failed.`);
+//         }
+//     },
+// };
+
+// const avatarprops: UploadProps = {
+//     name: "avatar",
+//     action: "https://se-im-backend-overflowlab.app.secoder.net/upload",
+//     data: {"username": window.username},
+//     onChange(info) {
+//         if(info.file.status !== "uploading") {
+//             console.log(info.file, info.fileList);
+//         }
+//         if(info.file.status === "done") {
+//             message.success(`${info.file.name} file uploaded successfully`);
+//         } else if (info.file.status === "error") {
+//             message.error(`${info.file.name} file upload failed.`);
+//         }
+//     },
+// }
 
 //登录界面
 const Screen = () => {
@@ -140,6 +155,9 @@ const Screen = () => {
     const [translateResult, setTranslateResult] = useState<string>("");
 
     const [forwardModal, setForwardModal] = useState<boolean>(false);
+
+    const [fileList, setFileList] = useState<UploadFile[]>([]);
+    const [avatarModal, setAvatarModal] = useState<boolean>(false);
 
     useEffect(() => {
         if(currentPage === CONS.MAIN)
@@ -315,6 +333,7 @@ const Screen = () => {
                 .then((res) => {
                     message.success(STRINGS.LOGIN_SUCCESS, 1);
                     window.username = res.username;
+                    setUsername(res.username);
                     setToken(res.token);
                     setCurrentPage(CONS.MAIN);
                     WSConnect();
@@ -337,6 +356,7 @@ const Screen = () => {
                     message.success(STRINGS.LOGIN_SUCCESS, 1);
                     setToken(res.token);
                     window.username = res.username;
+                    setUsername(res.username);
                     setCurrentPage(CONS.MAIN);
                     WSConnect();
                 })
@@ -768,9 +788,14 @@ const Screen = () => {
         }
     };
 
+    const translateconfig = {
+        headers:{
+            "Access-Control-Allow-Origin": "*"
+        }
+    }
     const translate = (message: string) =>{
         // e.preventDefault();
-        axios.post(`https://fanyi.youdao.com/translate?&doctype=json&type=AUTO&i=${message}`)
+        axios.post(`/translate/${"translate?&doctype=json&type=AUTO&i="+message}`,{}, translateconfig)
         .then((res) => {
             console.log(res);
             setTranslateResult(res.data.translateResult[0][0].tgt);
@@ -845,8 +870,13 @@ const Screen = () => {
         </div>
     );
 
-
-    
+    const logReturn = () => {
+        $("#loader").load(function() {
+            var text = $("#loader").contents().find("body").text();
+            var j = $.JSON.parse(text);
+            console.log(j);
+        })
+    }
 
     return (
         <div style={{
@@ -891,7 +921,7 @@ const Screen = () => {
                             }}>
                                 <Space size={150}>
                                     <Button type={"primary"} size={"large"} shape={"round"} icon={<LoginOutlined />}
-                                        onClick={login}>
+                                        onClick={() => login()}>
                                         登录
                                     </Button>
                                     <Button type={"default"} size={"large"} shape={"round"} icon={<ArrowRightOutlined />}
@@ -1125,9 +1155,19 @@ const Screen = () => {
                                                             onClick={() => sendMessage()}>
                                                             发送
                                                         </Button>
-                                                        <Upload {...props}>
+                                                        <Upload name="avatar" action="https://se-im-backend-test-overflowlab.app.secoder.net/upload" data={{username: window.username}} onChange={(info) => {
+                                                            if(info.file.status !== "uploading") {
+                                                                console.log(info.file, info.fileList);
+                                                            };
+                                                            if(info.file.status === "done") {
+                                                                message.success(`${info.file.name} file uploaded successfully`);
+                                                            } else if (info.file.status === "error") {
+                                                                message.error(`${info.file.name} file upload failed.`);
+                                                            };
+                                                        }}>
                                                             <Button icon={<UploadOutlined />}>Click to Upload</Button>
                                                         </Upload>
+                                                        
                                                     </div>
                                                 </div>
                                             </div>
@@ -1397,6 +1437,19 @@ const Screen = () => {
                                                         onClick={() => ((changeUserInfo === CONS.REVISE_EMAIL) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.REVISE_EMAIL))}>
                                                         修改邮箱
                                                     </Button>
+                                                    {/* <div>
+                                                        <form action="/api/upload" method="post" encType="multipart/form-data">
+                                                            <input id="image-uploadify" name="pic" type="file" accept="image/*">
+                                                                <button type="submit">
+                                                                    选择文件
+                                                                </button>
+                                                            </input>
+                                                        </form>
+                                                    </div> */}
+                                                    <Button size={"large"} type={"primary"}
+                                                        onClick={() => setAvatarModal(true)}>
+                                                        上传头像
+                                                    </Button>
                                                 </Space>
                                             </div>
                                             {changeUserInfo === CONS.REVISE_USERNAME ? (
@@ -1542,6 +1595,38 @@ const Screen = () => {
             </Modal>
             <Modal title="翻译结果" open={translateModal} onOk={() => setTranslateModal(false)} onCancel={() => setTranslateModal(false)}>
                 <p>{translateResult}</p>
+            </Modal>
+            <Modal title="上传" open={avatarModal} onOk={() => setAvatarModal(false)}/*onOk={() => {
+                if(!fileList.length) {
+                    message.warning("请选择上传的文件");
+                }
+                else{
+                    console.log(fileList);
+                    console.log(fileList[0]);
+                    console.log(fileList[0].originFileObj);
+                    axios.post("/api/user/upload", {"username": window.username, "avatar": fileList[0].originFileObj})
+                    .then((res) => message.success("成功"))
+                    .catch((err) => message.warning(err.message));
+                    }
+            }} */onCancel={() => setAvatarModal(false)}>
+                <div>
+                    <iframe id="loader" name="loader" onChange={() => logReturn()}></iframe>
+                    <form action="/api/user/upload" method="post" encType="multipart/form-data" target="loader">
+                        <input id="image-uploadify" name="avatar" type="file" accept="image/*" multiple/>
+                        <input id="text" name="username" type="text" value={"111111"} style={{display: "none"}}/>
+                            <button type="submit">
+                                确认上传
+                            </button>
+                    </form>
+
+                </div>
+                {/* <Upload fileList={fileList} beforeUpload={(f, fList) => false} onChange={(info) => {
+                    setFileList(() => info.fileList.length ? [info.fileList[info.fileList.length - 1]] : []);
+                }} >
+                    <Button>
+                        <UploadOutlined /> 选择文件
+                    </Button>
+                </Upload> */}
             </Modal>
         </div>
     );
