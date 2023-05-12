@@ -126,6 +126,9 @@ const Screen = () => {
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [chatGroupName, setChatGroupName] = useState<string>("");
 
+    // 全部好友username
+    const [allFriendList, setAllFriendList] = useState<string[]>([]);
+
     useEffect(() => {
         if(currentPage === CONS.MAIN)
         {
@@ -185,7 +188,6 @@ const Screen = () => {
             else if (data.function === "fetchroom") {
                 setRoomList(((data.roomlist.filter((val: any) => val.is_top)).concat(data.roomlist.filter((val: any) => !val.is_top)).map((val: any) => ({...val}))));
                 setRoomListRefreshing(false);
-                console.log("roomlist:", roomList);
             }
             // 会话具体信息， 包括成员列表，管理员等
             else if (data.function === "fetchroominfo"){
@@ -220,9 +222,7 @@ const Screen = () => {
                     }
                 }
                 if (data.room_id === window.currentRoomID){
-                    if (data.sender != window.username) {
-                        setMessageList(messageList => messageList.concat(newMessage));
-                    }
+                    setMessageList(messageList => messageList.concat(newMessage));
                 }
                 let ACK = {
                     "function": "acknowledge_message",
@@ -435,7 +435,7 @@ const Screen = () => {
             "DELETE",
             {
                 token: token,
-                username: username,
+                username: window.username,
             },
         )
             .then(() => {
@@ -450,7 +450,7 @@ const Screen = () => {
             "/api/user/cancel",
             "DELETE",
             {
-                username: username,
+                username: window.username,
                 input_password: password,
             },
         )
@@ -675,6 +675,7 @@ const Screen = () => {
             "function": "settop",
             "settop": set,
         };
+        setTop(set);
         window.ws.send(JSON.stringify(data));
     };
 
@@ -684,6 +685,7 @@ const Screen = () => {
             "function": "setnotice",
             "setnotice": set,
         };
+        setNotice(set);
         window.ws.send(JSON.stringify(data));
     };
 
@@ -724,6 +726,10 @@ const Screen = () => {
                             <p>置顶</p>
                             <Switch defaultChecked={roomTop} onChange={setTop}/>
                         </Space>
+                        <Button type={"text"} danger={true} onClick={() => leaveChatGroup()}>
+                            退出群聊
+                        </Button>
+
                     </Space>
                 </Card>
             </Space>
@@ -764,10 +770,7 @@ const Screen = () => {
 
     let newGroupMemberList: string[] = [];
 
-    // 全部好友username
-    const [allFriendList, setAllFriendList] = useState<string[]>([]);
-
-    //todo
+    //todo 创建第二个群聊bug
     const newGroup = () => {
         newGroupMemberList.push(window.username);
         if (chatGroupName == ""){
@@ -781,6 +784,7 @@ const Screen = () => {
         window.ws.send(JSON.stringify(data));
         console.log("new mem_list", newGroupMemberList);
         newGroupMemberList = [];
+        setChatGroupName("");
         setIsModalOpen(false);
     };
 
@@ -797,7 +801,15 @@ const Screen = () => {
             function: "leave_chatgroup",
             chatroom_id: window.currentRoomID
         };
+        for (let room of roomList){
+            if (room.roomid === window.currentRoomID){
+                setRoomList(roomList => roomList.filter(room => room.roomid != window.currentRoomID));
+            }
+        }
         window.ws.send(JSON.stringify(data));
+        window.currentRoomID = 0;
+        window.currentRoomName = "";
+        setCurrentRoomName("");
     };
 
     const deleteChatGroup = () => {
@@ -1145,7 +1157,6 @@ const Screen = () => {
                                                                                             onClick={() => {
                                                                                                 window.otherUsername = subItem;
                                                                                                 checkFriend();
-                                                                                                // todo: 已选择A时无法跳转B
                                                                                             }}>
                                                                                             { subItem }
                                                                                         </Button>}
@@ -1365,6 +1376,7 @@ const Screen = () => {
                                                     </Button>
                                                 </Space>
                                             </div>
+
                                             {changeUserInfo === CONS.REVISE_USERNAME ? (
                                                 <div style={{margin: "5px", display: "flex", flexDirection: "column", alignItems: "center"}}>
                                                     <Input size={"large"} maxLength={50}
