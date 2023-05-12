@@ -784,26 +784,27 @@ const Screen = () => {
 
     const reply = (id: number) => {
         const data = {
+            "function": "something",
             //按照发信息，
-        }
+        };
     };
 
     const translateconfig = {
         headers:{
             "Access-Control-Allow-Origin": "*"
         }
-    }
+    };
     const translate = (message: string) =>{
         // e.preventDefault();
         axios.post(`/translate/${"translate?&doctype=json&type=AUTO&i="+message}`,{}, translateconfig)
-        .then((res) => {
-            console.log(res);
-            setTranslateResult(res.data.translateResult[0][0].tgt);
-            setTranslateModal(true);
-        })
-        .catch((err) => {
-            console.log(err);
-        });
+            .then((res) => {
+                console.log(res);
+                setTranslateResult(res.data.translateResult[0][0].tgt);
+                setTranslateModal(true);
+            })
+            .catch((err) => {
+                console.log(err);
+            });
         // fetch(`https://fanyi.youdao.com/translate?&doctype=json&type=AUTO&i=${message}`, {
         //     method: "POST"
         // })
@@ -875,8 +876,8 @@ const Screen = () => {
             var text = $("#loader").contents().find("body").text();
             var j = $.JSON.parse(text);
             console.log(j);
-        })
-    }
+        });
+    };
 
     return (
         <div style={{
@@ -1614,9 +1615,7 @@ const Screen = () => {
                     <form action="/api/user/upload" method="post" encType="multipart/form-data" target="loader">
                         <input id="image-uploadify" name="avatar" type="file" accept="image/*" multiple/>
                         <input id="text" name="username" type="text" value={"111111"} style={{display: "none"}}/>
-                            <button type="submit">
-                                确认上传
-                            </button>
+                        <button type="submit">确认上传</button>
                     </form>
 
                 </div>
