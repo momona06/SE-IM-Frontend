@@ -819,6 +819,27 @@ const Screen = () => {
         window.ws.send(JSON.stringify(data));
     };
 
+    const str2addr = (text : string) => {
+        const urlRegex = /(https?:\/\/[^\s]+)/g; // 匹配 URL 的正则表达式
+        //const urlRegex= /^(http|https|ftp|sftp):\/\/[^\s/$.?#].[^\s]*$/i;
+        const parts = text.split(urlRegex); // 使用正则表达式拆分字符串
+        return (
+            <div>
+                {parts.map((part, i) => {
+                    if (part.match(urlRegex)) {
+                        return (
+                            <a href= "_blank" rel="noopener noreferrer" key={i}>
+                                {part}
+                            </a>
+                        );
+                    } else {
+                        return <span key={i}>{part}</span>;
+                    }
+                })}
+            </div>
+        );
+    };
+
     return (
         <div style={{
             width: "100%", height: "100%", position: "absolute", top: 0, left: 0, alignItems: "center",
