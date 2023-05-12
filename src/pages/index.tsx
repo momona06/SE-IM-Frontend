@@ -791,10 +791,12 @@ const Screen = () => {
         let data = {
             function: "create_group",
             member_list: newGroupMemberList,
-            room_name: ""
+            room_name: "1"
         };
         window.ws.send(JSON.stringify(data));
         newGroupMemberList = [];
+        console.log("rst new mem_list:", newGroupMemberList);
+        setIsModalOpen(false);
     };
 
     const onCheckChange = (checkedValues: CheckboxValueType[]) => {
