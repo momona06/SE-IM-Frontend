@@ -1,8 +1,7 @@
 import React, {useEffect, useState } from "react";
 import * as STRINGS from "../constants/string";
 import { request } from "../utils/network";
-import {
-    message,
+import { message,
     Input,
     Button,
     Space,
@@ -773,7 +772,7 @@ const Screen = () => {
         }
     }
 
-    let newGroupMemberList: string[] = [];
+    let newGroupMemberList: string[] = [window.username];
 
     // 全部好友username
     const [allFriendList, setAllFriendList] = useState<string[]>([]);
@@ -795,7 +794,6 @@ const Screen = () => {
         };
         window.ws.send(JSON.stringify(data));
         newGroupMemberList = [];
-        console.log("rst new mem_list:", newGroupMemberList);
         setIsModalOpen(false);
     };
 
