@@ -8,6 +8,15 @@ interface messageListData {
     sender: string;
 }
 
+interface roomListData {
+    roomname: string;
+    roomid: number;
+    is_notice: boolean;
+    is_top: boolean;
+    is_private: boolean;
+    message_list: messageListData[];
+}
+
 declare global {
     interface Window {
         ws: WebSocket
@@ -20,5 +29,6 @@ declare global {
         currentRoomID: number
         currentRoomName: string
         messageList: messageListData[]
+        roomList: roomListData[]
     }
 }

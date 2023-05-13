@@ -191,6 +191,10 @@ const Screen = () => {
         window.messageList = messageList;
     }, [messageList]);
 
+    useEffect(() => {
+        window.roomList = roomList;
+    }, [roomList]);
+
     const WSConnect = () => {
         let DEBUG = false;
         window.ws = new WebSocket(DEBUG ? "ws://localhost:8000/wsconnect" : "wss://se-im-backend-overflowlab.app.secoder.net/wsconnect");
@@ -852,12 +856,10 @@ const Screen = () => {
     };
 
     const recall = (id: number) => {
-        console.log("撤回id:" + id);
         const data = {
             "function": "withdraw_message",
             "msg_id": id,
         };
-        console.log(JSON.stringify(data));
         window.ws.send(JSON.stringify(data));
     };
 
