@@ -10,6 +10,9 @@ const nextConfig = {
         return [{
             source: "/api/:path*",
             destination: DEBUG ? "http://localhost:8000/:path*" : "https://se-im-backend-overflowlab.app.secoder.net/:path*",
+        }, {
+            source: "/translate/:path*",
+            destination: "https://fanyi.youdao.com/:path*"
         }];
     }
 };
