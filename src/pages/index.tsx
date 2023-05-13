@@ -246,6 +246,7 @@ const Screen = () => {
                     last.msg_id = data.msg_id;
                     let temp = [last];
                     setMessageList(messageList => messageList.slice(0, messageList.length - 1).concat(temp));
+                    console.log("修改id");
                 }
                 console.log("message list:", messageList);
             }
@@ -728,6 +729,7 @@ const Screen = () => {
                 "sender": window.username
             };
             setMessageList(messageList => messageList.concat(newMessage));
+            console.log("msg:", messageList);
             for (let room of roomList){
                 if (room.roomid === window.currentRoomID){
                     room.message_list.push(newMessage);
@@ -1142,9 +1144,7 @@ const Screen = () => {
                                                                                     window.currentRoomName = item.roomname;
                                                                                     setRoomNotice(item.is_notice);
                                                                                     setRoomTop(item.is_top);// setRoomPrivate(item.is_private);
-                                                                                    console.log("item message list:", item.message_list);
                                                                                     setMessageList(messageList => item.message_list);
-                                                                                    console.log("msg:", messageList);
                                                                                     fetchRoomInfo(item.roomid);
                                                                                 }}>
                                                                                 <Space>
