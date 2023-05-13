@@ -402,6 +402,7 @@ const Screen = () => {
                 setCurrentPage(CONS.LOGIN);
                 setUsername(username => "");
                 getPassword(password => "");
+                getVerification(verification => "");
             })
             .catch((err) => message.error(err.message, 1));
     };
@@ -410,7 +411,6 @@ const Screen = () => {
         if (verification === password){
             if (currentPage === CONS.REGISTER) {
                 register();
-                getVerification(verification => "");
             }
             if (currentPage === CONS.MAIN && menuItem === CONS.SETTINGS) {
                 changePassword();
@@ -1065,7 +1065,7 @@ const Screen = () => {
                             </Button>
                             <br />
                             <Button type={"link"} icon={<ArrowLeftOutlined/>} size={"large"}
-                                onClick={() => setCurrentPage(CONS.LOGIN)}>
+                                onClick={() => {setCurrentPage(CONS.LOGIN); getPassword(password => "");}}>
                                     返回登录
                             </Button>
                         </div>
