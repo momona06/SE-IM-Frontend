@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from "react";
 import * as STRINGS from "../constants/string";
 import { request } from "../utils/network";
-import { message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar, Popover, Card, Divider, Row, Col, Upload, Switch, Mentions, Form, Modal, Checkbox } from "antd";
+import { message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar, Popover, Card, Divider, Row, Col, Upload, Switch, Mentions, Form, Modal, Checkbox, TreeSelect, UploadFile } from "antd";
 import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined, ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined, CommentOutlined, EllipsisOutlined, SmileOutlined, UploadOutlined, LoadingOutlined, PlusOutlined } from "@ant-design/icons";
 import type { UploadProps } from "antd";
 import * as CONS from "../constants/constants";
 import moment from "moment";
-import { Player, ControlBar,  } from "video-react";
 import emojiList from "../components/emojiList";
 import {MentionsOptionProps} from "antd/es/mentions";
 import {CheckboxValueType} from "antd/es/checkbox/Group";
+import axios, { AxiosError, AxiosResponse } from "axios";
+import $ from "jquery";
 
 interface friendListData {
     groupname: string;
@@ -31,6 +32,7 @@ interface roomListData {
     roomid: number;
     is_notice: boolean;
     is_top: boolean;
+    is_private: boolean;
     message_list: messageListData[];
 }
 
@@ -54,6 +56,8 @@ export const isEmail = (val : string) => {
     return /^[A-Za-z0-9\u4e00-\u9fa5]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/i.test(val);
 };
 
+const { SHOW_PARENT } = TreeSelect;
+
 const props: UploadProps = {
     name: "file",
     action: "https://ww.mocky.io/v2/5cc8019d300000980a055e76",
@@ -71,6 +75,22 @@ const props: UploadProps = {
         }
     },
 };
+
+// const props: UploadProps = {
+//     name: "avatar",
+//     action: "https://se-im-backend-overflowlab.app.secoder.net/upload",
+//     data: {"username": window.username},
+//     onChange(info) {
+//         if(info.file.status !== "uploading") {
+//             console.log(info.file, info.fileList);
+//         }
+//         if(info.file.status === "done") {
+//             message.success(`${info.file.name} file uploaded successfully`);
+//         } else if (info.file.status === "error") {
+//             message.error(`${info.file.name} file upload failed.`);
+//         }
+//     },
+// };
 
 //登录界面
 const Screen = () => {
@@ -116,19 +136,34 @@ const Screen = () => {
     const [messageList, setMessageList] = useState<messageListData[]>([]);
     const [messageBody, setMessageBody] = useState<string>("");
 
+    // 回复消息
+    const [replyMessageID, setReplyMessageID] = useState<number>(-1);
+    const [replyMessageBody, setReplyMessageBody] = useState<string>("");
+    const [replying, setReplying] = useState<boolean>(false);
+
+    // 会话信息
     const [roomInfo, setRoomInfo] = useState<roomInfoData>({mem_list: [], master: "", manager_list: [], mem_count: 0});
     const [roomTop, setRoomTop] = useState<boolean>(false);
     const [roomNotice, setRoomNotice] = useState<boolean>(true);
+    const [roomPrivate, setRoomPrivate] = useState<boolean>(true);
 
+    // 全部好友username
+    const [allFriendList, setAllFriendList] = useState<string[]>([]);
     const [isFriend, setIsFriend] = useState<boolean>(false);
     const [friendGroup, setFriendGroup] = useState<string>("");
     const [box, setBox] = useState<number>(0);
 
+    // 创建群聊
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [chatGroupName, setChatGroupName] = useState<string>("");
 
-    // 全部好友username
-    const [allFriendList, setAllFriendList] = useState<string[]>([]);
+    // 翻译模块
+    const [translateModal, setTranslateModal] = useState<boolean>(false);
+    const [translateResult, setTranslateResult] = useState<string>("");
+
+    const [forwardModal, setForwardModal] = useState<boolean>(false);
+    const [fileList, setFileList] = useState<UploadFile[]>([]);
+    const [avatarModal, setAvatarModal] = useState<boolean>(false);
 
     useEffect(() => {
         if(currentPage === CONS.MAIN)
@@ -217,7 +252,6 @@ const Screen = () => {
                     msg_time: data.msg_time,
                     sender: data.sender
                 };
-
                 for (let room of roomList){
                     if (room.roomid === data.room_id){
                         room.message_list.push(newMessage);
@@ -242,6 +276,21 @@ const Screen = () => {
                 }
                 if (data.message === "Is Already a Friend"){
                     message.warning("对方已经是你的好友", 1);
+                }
+            }
+            else if (data.function === "withdraw") {
+                for (let room of roomList) {
+                    if (room.roomid === data.room_id) {
+                        let temp = room.message_list;
+                        temp.forEach((msg) => {
+                            if (msg.msg_id === data.msg_id) {
+                                msg.msg_body = "该消息已被撤回";
+                            }
+                        });
+                        if (room.roomid === window.currentRoomID) {
+                            setMessageList(temp);
+                        }
+                    }
                 }
             }
             else {
@@ -361,6 +410,7 @@ const Screen = () => {
         if (verification === password){
             if (currentPage === CONS.REGISTER) {
                 register();
+                getVerification(verification => "");
             }
             if (currentPage === CONS.MAIN && menuItem === CONS.SETTINGS) {
                 changePassword();
@@ -507,6 +557,7 @@ const Screen = () => {
             "to": window.username,
             "username": window.username,
         };
+        console.log(data);
         window.ws.send(JSON.stringify(data));
         message.success("已同意申请", 1);
     };
@@ -691,8 +742,9 @@ const Screen = () => {
     const setTop = (set: boolean) => {
         console.log("将置顶状态设置为" + set);
         const data = {
-            "function": "settop",
-            "settop": set,
+            "function": "revise_is_top",
+            "chatroom_id": window.currentRoomID,
+            "is_top": set,
         };
         setRoomTop(set);
         window.ws.send(JSON.stringify(data));
@@ -701,8 +753,9 @@ const Screen = () => {
     const setNotice = (set: boolean) => {
         console.log("将免打扰设置为" + set);
         const data = {
-            "function": "setnotice",
-            "setnotice": set,
+            "function": "revise_is_notice",
+            "chatroom_id": window.currentRoomID,
+            "is_notice": set,
         };
         setRoomNotice(set);
         window.ws.send(JSON.stringify(data));
@@ -784,9 +837,61 @@ const Screen = () => {
         window.ws.send(JSON.stringify(data));
     };
 
+    const recall = (id: number) => {
+        console.log("撤回id:" + id);
+        const data = {
+            "function": "withdraw_message",
+            "msg_id": id,
+        };
+        console.log(JSON.stringify(data));
+        window.ws.send(JSON.stringify(data));
+    };
+
+    const reply = (id: number) => {
+        const data = {
+            "function": "something",
+            //按照发信息，
+        };
+    };
+
+    const translateconfig = {
+        headers:{
+            "Access-Control-Allow-Origin": "*"
+        }
+    };
+
+    const translate = (message: string) =>{
+        // e.preventDefault();
+        axios.post(`/translate/${"translate?&doctype=json&type=AUTO&i="+message}`,{}, translateconfig)
+            .then((res) => {
+                console.log(res);
+                setTranslateResult(res.data.translateResult[0][0].tgt);
+                setTranslateModal(true);
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+        // fetch(`https://fanyi.youdao.com/translate?&doctype=json&type=AUTO&i=${message}`, {
+        //     method: "POST"
+        // })
+        // .then((res) => res.json())
+        // .then((data) => setTranslateResult(data.translateResult[0][0].tgt));
+        // setTranslateModal(true);
+    };
+
+    // 合并转发
+    const forward = () => {
+        //单条直接重新发
+        /*{
+            "function": "send_message"
+            "msg_type": "combine"
+            "combine_list": id列表
+            "transroom_list": id列表
+        } */
+    };
+
     const str2addr = (text : string) => {
         const urlRegex = /(https?:\/\/\s+)/g; // 匹配 URL 的正则表达式
-        //const urlRegex= /^(http|https|ftp|sftp):\/\/[^\s/$.?#].[^\s]*$/i;
         const parts = text.split(urlRegex); // 使用正则表达式拆分字符串
         return (
             <div>
@@ -803,6 +908,14 @@ const Screen = () => {
                 })}
             </div>
         );
+    };
+
+    const logReturn = () => {
+        $("#loader").load(function() {
+            var text = $("#loader").contents().find("body").text();
+            var j = $.JSON.parse(text);
+            console.log(j);
+        });
     };
 
     //会话具体信息
@@ -924,7 +1037,7 @@ const Screen = () => {
                                 placeholder="请填写用户名"
                                 prefix={<UserOutlined />}
                                 maxLength={50}
-                                value={username} 
+                                value={username}
                                 onChange={(e) => setUsername(e.target.value)}
                             />
                             <br />
@@ -939,7 +1052,7 @@ const Screen = () => {
                             <br />
                             <Input.Password size="large"
                                 maxLength={50}
-                                type="text" 
+                                type="text"
                                 placeholder="请确认密码"
                                 prefix={<ContactsOutlined />}
                                 value={verification}
@@ -1017,12 +1130,13 @@ const Screen = () => {
                                                                                 block
                                                                                 type={"text"}
                                                                                 onClick={()=>{
+                                                                                    addRoom(item.roomid, item.roomname);
                                                                                     window.currentRoomID = item.roomid;
                                                                                     window.currentRoomName = item.roomname;
-                                                                                    setCurrentRoomName(item.roomname);
-                                                                                    addRoom(item.roomid, item.roomname);
-                                                                                    fetchRoomInfo(item.roomid);
+                                                                                    setRoomNotice(item.is_notice);
+                                                                                    setRoomTop(item.is_top);// setRoomPrivate(item.is_private);
                                                                                     setMessageList(messageList => item.message_list);
+                                                                                    fetchRoomInfo(item.roomid);
                                                                                     console.log("messagelist:", messageList);
                                                                                 }}>
                                                                                 <Space>
@@ -1059,28 +1173,65 @@ const Screen = () => {
                                                         split={ false }
                                                         renderItem={(item) => (
                                                             <List.Item key={ item.msg_id }>
-                                                                { item.sender === window.username ? (
-                                                                    <div style={{ display: "flex", flexDirection: "row-reverse", justifyContent: "flex-start", marginLeft: "auto"}}>
-                                                                        <div style={{display: "flex", flexDirection: "column"}}>
-                                                                            <List.Item.Meta avatar={<Avatar src={"https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxgeticon?seq=239472774&username=@c8ef32eea4f34c3becfba86e70bd5320e33c7eba9d35d382ed6185b9c3efbfe0&skey=@crypt_6df0f029_14c4f0a85beaf972ec58feb5ca7dc0e0"}/>}/>
-                                                                            <h6>{item.sender}</h6>
-                                                                        </div>
-                                                                        <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#66B7FF"}}>
-                                                                            { str2addr(item.msg_body) }
-                                                                            <span> { item.msg_time } </span>
-                                                                        </div>
-                                                                    </div>
+                                                                { item.msg_body != "该消息已被撤回" ? (
+                                                                    <Popover placement={"top"} content={
+                                                                        <Space direction={"horizontal"} size={"small"}>
+                                                                            <Button type={"text"} onClick={() => forward()}> 转发 </Button>
+                                                                            <Button type={"text"} onClick={() => reply(item.msg_id)}> 回复 </Button>
+                                                                            <Button type={"text"} onClick={() => recall(item.msg_id)}> 撤回 </Button>
+                                                                            <Button type={"text"} onClick={() => translate(item.msg_body)}> 翻译 </Button>
+                                                                        </Space>
+                                                                    }>
+                                                                        { item.sender === window.username ? (
+                                                                            <div style={{ display: "flex", flexDirection: "row-reverse", justifyContent: "flex-start", marginLeft: "auto"}}>
+                                                                                <div style={{display: "flex", flexDirection: "column"}}>
+                                                                                    <List.Item.Meta avatar={<Avatar src={"https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxgeticon?seq=239472774&username=@c8ef32eea4f34c3becfba86e70bd5320e33c7eba9d35d382ed6185b9c3efbfe0&skey=@crypt_6df0f029_14c4f0a85beaf972ec58feb5ca7dc0e0"}/>}/>
+                                                                                    <h6>{item.sender}</h6>
+                                                                                </div>
+                                                                                <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#66B7FF"}}>
+                                                                                    { str2addr(item.msg_body) }
+                                                                                    <span> { item.msg_time } </span>
+                                                                                </div>
+                                                                            </div>
+                                                                        ) : (
+                                                                            <div style={{ display: "flex", flexDirection: "row"}}>
+                                                                                <div style={{display: "flex", flexDirection: "column"}}>
+                                                                                    <List.Item.Meta avatar={<Avatar src={"https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxgeticon?seq=239472774&username=@c8ef32eea4f34c3becfba86e70bd5320e33c7eba9d35d382ed6185b9c3efbfe0&skey=@crypt_6df0f029_14c4f0a85beaf972ec58feb5ca7dc0e0"}/>}/>
+                                                                                    <h6>{item.sender}</h6>
+                                                                                </div>
+                                                                                <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF"}}>
+                                                                                    <p>{ item.msg_body }</p>
+                                                                                    <span>{ item.msg_time }</span>
+                                                                                </div>
+                                                                            </div>
+                                                                        )}
+                                                                    </Popover>
                                                                 ) : (
-                                                                    <div style={{ display: "flex", flexDirection: "row"}}>
-                                                                        <div style={{display: "flex", flexDirection: "column"}}>
-                                                                            <List.Item.Meta avatar={<Avatar src={"https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxgeticon?seq=239472774&username=@c8ef32eea4f34c3becfba86e70bd5320e33c7eba9d35d382ed6185b9c3efbfe0&skey=@crypt_6df0f029_14c4f0a85beaf972ec58feb5ca7dc0e0"}/>}/>
-                                                                            <h6>{item.sender}</h6>
-                                                                        </div>
-                                                                        <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF"}}>
-                                                                            <p>{ item.msg_body }</p>
-                                                                            <span>{ item.msg_time }</span>
-                                                                        </div>
-                                                                    </div>
+                                                                    <>
+                                                                        { item.sender === window.username ? (
+                                                                            <div style={{ display: "flex", flexDirection: "row-reverse", justifyContent: "flex-start", marginLeft: "auto"}}>
+                                                                                <div style={{display: "flex", flexDirection: "column"}}>
+                                                                                    <List.Item.Meta avatar={<Avatar src={"https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxgeticon?seq=239472774&username=@c8ef32eea4f34c3becfba86e70bd5320e33c7eba9d35d382ed6185b9c3efbfe0&skey=@crypt_6df0f029_14c4f0a85beaf972ec58feb5ca7dc0e0"}/>}/>
+                                                                                    <h6>{item.sender}</h6>
+                                                                                </div>
+                                                                                <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#66B7FF"}}>
+                                                                                    { str2addr(item.msg_body) }
+                                                                                    <span> { item.msg_time } </span>
+                                                                                </div>
+                                                                            </div>
+                                                                        ) : (
+                                                                            <div style={{ display: "flex", flexDirection: "row"}}>
+                                                                                <div style={{display: "flex", flexDirection: "column"}}>
+                                                                                    <List.Item.Meta avatar={<Avatar src={"https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxgeticon?seq=239472774&username=@c8ef32eea4f34c3becfba86e70bd5320e33c7eba9d35d382ed6185b9c3efbfe0&skey=@crypt_6df0f029_14c4f0a85beaf972ec58feb5ca7dc0e0"}/>}/>
+                                                                                    <h6>{item.sender}</h6>
+                                                                                </div>
+                                                                                <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF"}}>
+                                                                                    <p>{ item.msg_body }</p>
+                                                                                    <span>{ item.msg_time }</span>
+                                                                                </div>
+                                                                            </div>
+                                                                        )}
+                                                                    </>
                                                                 )}
                                                             </List.Item>
                                                         )}
@@ -1126,7 +1277,16 @@ const Screen = () => {
                                                             }}>
                                                             发送
                                                         </Button>
-                                                        <Upload {...props}>
+                                                        <Upload name="avatar" action="https://se-im-backend-test-overflowlab.app.secoder.net/upload" data={{username: window.username}} onChange={(info) => {
+                                                            if(info.file.status !== "uploading") {
+                                                                console.log(info.file, info.fileList);
+                                                            }
+                                                            if(info.file.status === "done") {
+                                                                message.success(`${info.file.name} file uploaded successfully`);
+                                                            } else if (info.file.status === "error") {
+                                                                message.error(`${info.file.name} file upload failed.`);
+                                                            }
+                                                        }}>
                                                             <Button icon={<UploadOutlined />}>Click to Upload</Button>
                                                         </Upload>
                                                     </div>
@@ -1217,7 +1377,7 @@ const Screen = () => {
                                                                                     disabled={item.make_sure}
                                                                                     key = {item.username + "1"}
                                                                                     type="primary"
-                                                                                    onClick={() => {accept(item.username); fetchReceiveList();}}
+                                                                                    onClick={() => accept(item.username)}
                                                                                 >
                                                                                     接受申请
                                                                                 </Button>,
@@ -1225,7 +1385,7 @@ const Screen = () => {
                                                                                     disabled={item.make_sure}
                                                                                     key={item.username + "2"}
                                                                                     type="primary"
-                                                                                    onClick={() => {decline(item.username); fetchReceiveList();}}
+                                                                                    onClick={() => decline(item.username)}
                                                                                 >
                                                                                     拒绝申请
                                                                                 </Button>
@@ -1398,6 +1558,19 @@ const Screen = () => {
                                                         onClick={() => ((changeUserInfo === CONS.REVISE_EMAIL) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.REVISE_EMAIL))}>
                                                         修改邮箱
                                                     </Button>
+                                                    {/* <div>
+                                                        <form action="/api/upload" method="post" encType="multipart/form-data">
+                                                            <input id="image-uploadify" name="pic" type="file" accept="image/*">
+                                                                <button type="submit">
+                                                                    选择文件
+                                                                </button>
+                                                            </input>
+                                                        </form>
+                                                    </div> */}
+                                                    <Button size={"large"} type={"primary"}
+                                                        onClick={() => setAvatarModal(true)}>
+                                                        上传头像
+                                                    </Button>
                                                 </Space>
                                             </div>
 
@@ -1525,6 +1698,40 @@ const Screen = () => {
                     </div>
                 ) : null}
             </div>
+
+            <Modal title="翻译结果" open={translateModal} onOk={() => setTranslateModal(false)} onCancel={() => setTranslateModal(false)}>
+                <p>{translateResult}</p>
+            </Modal>
+            <Modal title="上传" open={avatarModal} onOk={() => setAvatarModal(false)}/*onOk={() => {
+                if(!fileList.length) {
+                    message.warning("请选择上传的文件");
+                }
+                else{
+                    console.log(fileList);
+                    console.log(fileList[0]);
+                    console.log(fileList[0].originFileObj);
+                    axios.post("/api/user/upload", {"username": window.username, "avatar": fileList[0].originFileObj})
+                    .then((res) => message.success("成功"))
+                    .catch((err) => message.warning(err.message));
+                    }
+            }} */ onCancel={() => setAvatarModal(false)}>
+                <div>
+                    <iframe id="loader" name="loader" onChange={() => logReturn()}></iframe>
+                    <form action="/api/user/upload" method="post" encType="multipart/form-data" target="loader">
+                        <input id="image-uploadify" name="avatar" type="file" accept="image/*" multiple/>
+                        <input id="text" name="username" type="text" value={"111111"} style={{display: "none"}}/>
+                        <button type="submit"> 确认上传 </button>
+                    </form>
+
+                </div>
+                {/* <Upload fileList={fileList} beforeUpload={(f, fList) => false} onChange={(info) => {
+                    setFileList(() => info.fileList.length ? [info.fileList[info.fileList.length - 1]] : []);
+                }} >
+                    <Button>
+                        <UploadOutlined /> 选择文件
+                    </Button>
+                </Upload> */}
+            </Modal>
         </div>
     );
 };
