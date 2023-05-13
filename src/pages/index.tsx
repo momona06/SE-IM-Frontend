@@ -907,7 +907,7 @@ const Screen = () => {
     };
 
     const str2addr = (text : string) => {
-        const urlRegex = /(https?:\/\/\s+)/g; // 匹配 URL 的正则表达式
+        const urlRegex = /(https?:\/\/[^\s]+)/g; // 匹配 URL 的正则表达式
         const parts = text.split(urlRegex); // 使用正则表达式拆分字符串
         return (
             <div>
