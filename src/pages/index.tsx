@@ -11,6 +11,8 @@ import {MentionsOptionProps} from "antd/es/mentions";
 import {CheckboxValueType} from "antd/es/checkbox/Group";
 import axios, { AxiosError, AxiosResponse } from "axios";
 import $ from "jquery";
+import {Simulate} from "react-dom/test-utils";
+import scroll = Simulate.scroll;
 
 interface friendListData {
     groupname: string;
@@ -50,6 +52,7 @@ interface roomInfoData {
     manager_list: string[];
     master: string;
     mem_count: number;
+    is_private: boolean;
 }
 
 export const isEmail = (val : string) => {
@@ -57,6 +60,8 @@ export const isEmail = (val : string) => {
 };
 
 const { SHOW_PARENT } = TreeSelect;
+const { Meta } = Card;
+const { TextArea } = Input;
 
 const props: UploadProps = {
     name: "file",
@@ -142,10 +147,10 @@ const Screen = () => {
     const [replying, setReplying] = useState<boolean>(false);
 
     // 会话信息
-    const [roomInfo, setRoomInfo] = useState<roomInfoData>({mem_list: [], master: "", manager_list: [], mem_count: 0});
+    const [roomInfo, setRoomInfo] = useState<roomInfoData>({mem_list: [], master: "", manager_list: [], mem_count: 0, is_private: true});
     const [roomTop, setRoomTop] = useState<boolean>(false);
     const [roomNotice, setRoomNotice] = useState<boolean>(true);
-    const [roomPrivate, setRoomPrivate] = useState<boolean>(true);
+    const [boardModal, setBoardModal] = useState<boolean>(false);
 
     // 全部好友username
     const [allFriendList, setAllFriendList] = useState<string[]>([]);
@@ -154,7 +159,7 @@ const Screen = () => {
     const [box, setBox] = useState<number>(0);
 
     // 创建群聊
-    const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+    const [createGroupModal, setCreateGroupModal] = useState<boolean>(false);
     const [chatGroupName, setChatGroupName] = useState<string>("");
 
     // 翻译模块
@@ -232,7 +237,8 @@ const Screen = () => {
                     mem_list: data.mem_list,
                     manager_list: data.manager_list,
                     master: data.master,
-                    mem_count: data.mem_count
+                    mem_count: data.mem_count,
+                    is_private: data.is_private
                 };
                 setRoomInfo(info);
             }
@@ -809,7 +815,7 @@ const Screen = () => {
         window.ws.send(JSON.stringify(data));
         setNewRoomMemberList([]);
         setChatGroupName("");
-        setIsModalOpen(false);
+        setCreateGroupModal(false);
     };
 
     const onCheckChange = (checkedValues: CheckboxValueType[]) => {
@@ -921,50 +927,65 @@ const Screen = () => {
         });
     };
 
+    function identity(mem: string) {
+        if (mem === roomInfo.master){
+            return "群主";
+        }
+        else {
+            return roomInfo.manager_list.indexOf(mem) === -1 ? "" : "管理员";
+        }
+    }
+
     //会话具体信息
     const roomInfoPage = (
         <div style={{padding: "12px"}}>
             <Space direction={"vertical"}>
-                <Space.Compact style={{ width: "80%" }}>
-                    <Input
-                        type="text"
-                        placeholder="请填写用户名"
-                        value={ searchName }
-                        onChange={(e) => setSearchName(e.target.value)}
-                    />
-                    <Button type="primary" onClick={ search } icon={<SearchOutlined />}/>
-                </Space.Compact>
                 <List
-                    grid={{gutter: 16, column: 2}}
+                    grid={{gutter: 16, column: 4}}
                     dataSource={ roomInfo.mem_list }
                     renderItem={(item) => (
                         <List.Item>
-                            <Popover placement={"rightBottom"} content={"这里是点击成员后的弹出卡片，应当显示publicInfo"}>
-                                <Card cover={"头像"}>
-                                    { item }
+                            <Popover placement={"rightBottom"} content={"这里是点击成员后的弹出卡片，应当显示publicInfo"} trigger={"click"}>
+                                <Card bordered={false} actions={[<UserAddOutlined key={"add_friend"} onClick={() => {
+                                    window.otherUsername = item;
+                                    addFriend();
+                                }}/>]}>
+                                    <Meta
+                                        avatar = {<Avatar src="https://xsgames.co/randomusers/avatar.php?g=pixel" />}
+                                        title = { item }
+                                        description = {identity(item)}
+                                    />
                                 </Card>
                             </Popover>
                         </List.Item>
                     )}
                 />
                 <Divider type={"horizontal"}/>
-                <Card title={ `群聊名称 ${currentRoomName}` }>
-                    <Space direction={"vertical"}>
-                        <Space direction={"horizontal"}>
-                            <p>免打扰</p>
-                            <Switch defaultChecked={!roomNotice} onChange={setNotice}/>
+                { roomInfo.is_private ? null : (
+                    <Card title={ `群聊名称 ${currentRoomName}` }>
+                        <Space direction={"vertical"}>
+                            <Button type={"text"} onClick={() => setBoardModal(true)}>
+                                群公告
+                            </Button>
+                            <Button type={"text"} danger={true} onClick={leaveChatGroup}>
+                                退出群聊
+                            </Button>
+                            {identity(window.username) === "群主" ? (
+                                <Button type={"text"} danger={true} onClick={deleteChatGroup}>
+                                    解散群聊
+                                </Button>
+                            ) : null}
                         </Space>
-                        <Space direction={"horizontal"}>
-                            <p>置顶</p>
-                            <Switch defaultChecked={roomTop} onChange={setTop}/>
-                        </Space>
-                        <>
-                        </>
-                        <Button type={"text"} danger={true} onClick={() => leaveChatGroup()}>
-                            退出群聊
-                        </Button>
-                    </Space>
-                </Card>
+                    </Card>
+                )}
+                <Space direction={"horizontal"}>
+                    <p>免打扰</p>
+                    <Switch defaultChecked={!roomNotice} onChange={setRoomNotice}/>
+                </Space>
+                <Space direction={"horizontal"}>
+                    <p>置顶</p>
+                    <Switch defaultChecked={roomTop} onChange={setRoomTop}/>
+                </Space>
             </Space>
         </div>
     );
@@ -1093,33 +1114,17 @@ const Screen = () => {
                                 { /*聊天组件*/}
                                 {menuItem === CONS.CHATFRAME ? (
                                     <div style={{ display: "flex", flexDirection: "row" }}>
-
-                                        <Modal title={ "创建群聊" } open={ isModalOpen } onOk={ newGroup } onCancel={() => setIsModalOpen(false)}>
-                                            <Input
-                                                type="text"
-                                                placeholder="请填写群聊名称"
-                                                value={ chatGroupName }
-                                                onChange={(e) => setChatGroupName(e.target.value)}
-                                            />
-                                            <Checkbox.Group
-                                                onChange={ onCheckChange }
-                                                options={ allFriendList.map((value) => ({
-                                                    value,
-                                                    label: value,
-                                                }))}/>
-                                        </Modal>
-
                                         <div style={{ padding: "0 24px", backgroundColor:"#FAF0E6",  width:"20%", minHeight:"100vh" }}>
                                             <div style={{height: "5vh", margin: "10px, 10px", flexDirection: "row"}}>
                                                 <Space direction={"horizontal"}>
                                                     <h3> 会话列表 </h3>
-                                                    <Button icon={<PlusOutlined />} type={"default"} onClick={() => setIsModalOpen(true) }/>
+                                                    <Button icon={<PlusOutlined />} type={"default"} onClick={() => setCreateGroupModal(true) }/>
                                                 </Space>
                                             </div>
                                             {roomListRefreshing ? (
                                                 <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />}/>
                                             ) : (
-                                                <div>
+                                                <div style={{overflow: "scroll"}}>
                                                     {roomList.length === 0 ? (
                                                         <p>暂无会话</p>
                                                     ) : (
@@ -1169,7 +1174,7 @@ const Screen = () => {
                                                         </Popover>
                                                     </Space>
                                                 </div>
-                                                <div style={{padding: "24px", position: "relative", height: "70vh", left: 0, right: 0, overflow: "auto"}}>
+                                                <div style={{padding: "24px", position: "relative", height: "70vh", left: 0, right: 0, overflow: "scroll"}}>
                                                     <List
                                                         dataSource={ messageList }
                                                         split={ false }
@@ -1701,9 +1706,42 @@ const Screen = () => {
                 ) : null}
             </div>
 
+            <Modal title={"群公告"} open={ boardModal } >
+                <div style={{overflow: "scroll"}}>
+                    <List
+                        dataSource = {messageList.filter((message) => (message.msg_type === "notice"))}
+                        split = {false}
+                        renderItem = {(item) => (
+                            <Space direction={"vertical"}>
+                                <List.Item>
+                                    <Card title={item.sender} content={item.msg_body}/>
+                                    {item.msg_time}
+                                </List.Item>
+                            </Space>
+                        )}
+                    />
+                </div>
+            </Modal>
+
+            <Modal title={ "创建群聊" } open={ createGroupModal } onOk={ newGroup } onCancel={() => setCreateGroupModal(false)}>
+                <Input
+                    type="text"
+                    placeholder="请填写群聊名称"
+                    value={ chatGroupName }
+                    onChange={(e) => setChatGroupName(e.target.value)}
+                />
+                <Checkbox.Group
+                    onChange={ onCheckChange }
+                    options={ allFriendList.map((value) => ({
+                        value,
+                        label: value,
+                    }))}/>
+            </Modal>
+
             <Modal title="翻译结果" open={translateModal} onOk={() => setTranslateModal(false)} onCancel={() => setTranslateModal(false)}>
                 <p>{translateResult}</p>
             </Modal>
+
             <Modal title="上传" open={avatarModal} onOk={() => setAvatarModal(false)}/*onOk={() => {
                 if(!fileList.length) {
                     message.warning("请选择上传的文件");
