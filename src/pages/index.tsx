@@ -758,16 +758,11 @@ const Screen = () => {
             function: "leave_group",
             chatroom_id: window.currentRoomID
         };
+        window.ws.send(JSON.stringify(data));
         console.log("leave", data);
-        for (let room of roomList){
-            if (room.roomid === window.currentRoomID){
-                setRoomList(roomList => roomList.filter(room => room.roomid != window.currentRoomID));
-            }
-        }
         window.currentRoomID = 0;
         window.currentRoomName = "";
         setCurrentRoomName("");
-        window.ws.send(JSON.stringify(data));
     };
 
     const deleteChatGroup = () => {
@@ -814,7 +809,7 @@ const Screen = () => {
                 </Space.Compact>
                 <List
                     grid={{gutter: 16, column: 2}}
-                    dataSource={roomInfo.mem_list}
+                    dataSource={ roomInfo.mem_list }
                     renderItem={(item) => (
                         <List.Item>
                             <Popover placement={"rightBottom"} content={"这里是点击成员后的弹出卡片，应当显示publicInfo"}>
@@ -836,7 +831,8 @@ const Screen = () => {
                             <p>置顶</p>
                             <Switch defaultChecked={roomTop} onChange={setTop}/>
                         </Space>
-
+                        <>
+                        </>
                         <Button type={"text"} danger={true} onClick={() => leaveChatGroup()}>
                             退出群聊
                         </Button>
