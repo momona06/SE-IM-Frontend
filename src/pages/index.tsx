@@ -6,10 +6,9 @@ import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, Contacts
 import type { UploadProps } from "antd";
 import * as CONS from "../constants/constants";
 import moment from "moment";
-import { Player, ControlBar,  } from "video-react";
 import emojiList from "../components/emojiList";
 import {MentionsOptionProps} from "antd/es/mentions";
-import {CheckboxValueType} from "antd/es/checkbox/Group";
+import { CheckboxValueType } from "antd/es/checkbox/Group";
 import axios, { AxiosError, AxiosResponse } from "axios";
 import $ from "jquery";
 
@@ -879,8 +878,7 @@ const Screen = () => {
     };
 
     const str2addr = (text : string) => {
-        const urlRegex = /(https?:\/\/[^\s]+)/g; // 匹配 URL 的正则表达式
-        //const urlRegex= /^(http|https|ftp|sftp):\/\/[^\s/$.?#].[^\s]*$/i;
+        const urlRegex = /(https?:\/\/\s+)/g; // 匹配 URL 的正则表达式
         const parts = text.split(urlRegex); // 使用正则表达式拆分字符串
         return (
             <div>
@@ -897,6 +895,14 @@ const Screen = () => {
                 })}
             </div>
         );
+    };
+
+    const logReturn = () => {
+        $("#loader").load(function() {
+            var text = $("#loader").contents().find("body").text();
+            var j = $.JSON.parse(text);
+            console.log(j);
+        });
     };
 
     //会话具体信息
@@ -946,14 +952,6 @@ const Screen = () => {
             </Space>
         </div>
     );
-
-    const logReturn = () => {
-        $("#loader").load(function() {
-            var text = $("#loader").contents().find("body").text();
-            var j = $.JSON.parse(text);
-            console.log(j);
-        });
-    };
 
     return (
         <div style={{
@@ -1026,7 +1024,7 @@ const Screen = () => {
                                 placeholder="请填写用户名"
                                 prefix={<UserOutlined />}
                                 maxLength={50}
-                                value={username} 
+                                value={username}
                                 onChange={(e) => setUsername(e.target.value)}
                             />
                             <br />
@@ -1041,7 +1039,7 @@ const Screen = () => {
                             <br />
                             <Input.Password size="large"
                                 maxLength={50}
-                                type="text" 
+                                type="text"
                                 placeholder="请确认密码"
                                 prefix={<ContactsOutlined />}
                                 value={verification}
@@ -1119,13 +1117,13 @@ const Screen = () => {
                                                                                 block
                                                                                 type={"text"}
                                                                                 onClick={()=>{
+                                                                                    addRoom(item.roomid, item.roomname);
                                                                                     window.currentRoomID = item.roomid;
                                                                                     window.currentRoomName = item.roomname;
                                                                                     setRoomNotice(item.is_notice);
                                                                                     setRoomTop(item.is_top);
                                                                                     setRoomPrivate(item.is_private);
                                                                                     setMessageList(messageList => item.message_list);
-                                                                                    addRoom(item.roomid, item.roomname);
                                                                                     fetchRoomInfo(item.roomid);
                                                                                     console.log("messagelist:", messageList);
                                                                                 }}>
@@ -1163,37 +1161,41 @@ const Screen = () => {
                                                         split={ false }
                                                         renderItem={(item) => (
                                                             <List.Item key={ item.msg_id }>
-                                                                { item.sender === window.username ? (
-                                                                    <div style={{ display: "flex", flexDirection: "row-reverse", justifyContent: "flex-start", marginLeft: "auto"}}>
-                                                                        <div style={{display: "flex", flexDirection: "column"}}>
-                                                                            <List.Item.Meta avatar={<Avatar src={"https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxgeticon?seq=239472774&username=@c8ef32eea4f34c3becfba86e70bd5320e33c7eba9d35d382ed6185b9c3efbfe0&skey=@crypt_6df0f029_14c4f0a85beaf972ec58feb5ca7dc0e0"}/>}/>
-                                                                            <h6>{item.sender}</h6>
-                                                                        </div>
-                                                                        <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#66B7FF"}}>
-                                                                            { str2addr(item.msg_body) }
-                                                                            <span> { item.msg_time } </span>
-                                                                            {/*item.msg_id === -1 ? (
-                                                                                <Button
-                                                                                    type={"default"} shape={"circle"}
-                                                                                    size={"small"} danger={true} icon={<ExclamationOutlined />}
-                                                                                    onClick={() => {
-                                                                                        sendMessage(item.msg_body);
-                                                                                    }}
-                                                                                />
-                                                                            ) : null*/}
-                                                                        </div>
-                                                                    </div>
+                                                                { item.msg_body != "该消息已被撤回" ? (
+                                                                    <Popover placement={"top"} content={
+                                                                        <Space direction={"horizontal"} size={"small"}>
+                                                                            <Button type={"text"} onClick={() => forward()}> 转发 </Button>
+                                                                            <Button type={"text"} onClick={() => reply(item.msg_id)}> 回复 </Button>
+                                                                            <Button type={"text"} onClick={() => recall(item.msg_id)}> 撤回 </Button>
+                                                                            <Button type={"text"} onClick={() => translate(item.msg_body)}> 翻译 </Button>
+                                                                        </Space>
+                                                                    }/>
                                                                 ) : (
-                                                                    <div style={{ display: "flex", flexDirection: "row"}}>
-                                                                        <div style={{display: "flex", flexDirection: "column"}}>
-                                                                            <List.Item.Meta avatar={<Avatar src={"https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxgeticon?seq=239472774&username=@c8ef32eea4f34c3becfba86e70bd5320e33c7eba9d35d382ed6185b9c3efbfe0&skey=@crypt_6df0f029_14c4f0a85beaf972ec58feb5ca7dc0e0"}/>}/>
-                                                                            <h6>{item.sender}</h6>
-                                                                        </div>
-                                                                        <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF"}}>
-                                                                            <p>{ item.msg_body }</p>
-                                                                            <span>{ item.msg_time }</span>
-                                                                        </div>
-                                                                    </div>
+                                                                    <>
+                                                                        { item.sender === window.username ? (
+                                                                            <div style={{ display: "flex", flexDirection: "row-reverse", justifyContent: "flex-start", marginLeft: "auto"}}>
+                                                                                <div style={{display: "flex", flexDirection: "column"}}>
+                                                                                    <List.Item.Meta avatar={<Avatar src={"https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxgeticon?seq=239472774&username=@c8ef32eea4f34c3becfba86e70bd5320e33c7eba9d35d382ed6185b9c3efbfe0&skey=@crypt_6df0f029_14c4f0a85beaf972ec58feb5ca7dc0e0"}/>}/>
+                                                                                    <h6>{item.sender}</h6>
+                                                                                </div>
+                                                                                <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#66B7FF"}}>
+                                                                                    { str2addr(item.msg_body) }
+                                                                                    <span> { item.msg_time } </span>
+                                                                                </div>
+                                                                            </div>
+                                                                        ) : (
+                                                                            <div style={{ display: "flex", flexDirection: "row"}}>
+                                                                                <div style={{display: "flex", flexDirection: "column"}}>
+                                                                                    <List.Item.Meta avatar={<Avatar src={"https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxgeticon?seq=239472774&username=@c8ef32eea4f34c3becfba86e70bd5320e33c7eba9d35d382ed6185b9c3efbfe0&skey=@crypt_6df0f029_14c4f0a85beaf972ec58feb5ca7dc0e0"}/>}/>
+                                                                                    <h6>{item.sender}</h6>
+                                                                                </div>
+                                                                                <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF"}}>
+                                                                                    <p>{ item.msg_body }</p>
+                                                                                    <span>{ item.msg_time }</span>
+                                                                                </div>
+                                                                            </div>
+                                                                        )}
+                                                                    </>
                                                                 )}
                                                             </List.Item>
                                                         )}
@@ -1676,13 +1678,13 @@ const Screen = () => {
                     .then((res) => message.success("成功"))
                     .catch((err) => message.warning(err.message));
                     }
-            }} */onCancel={() => setAvatarModal(false)}>
+            }} */ onCancel={() => setAvatarModal(false)}>
                 <div>
                     <iframe id="loader" name="loader" onChange={() => logReturn()}></iframe>
                     <form action="/api/user/upload" method="post" encType="multipart/form-data" target="loader">
                         <input id="image-uploadify" name="avatar" type="file" accept="image/*" multiple/>
                         <input id="text" name="username" type="text" value={"111111"} style={{display: "none"}}/>
-                        <button type="submit">确认上传</button>
+                        <button type="submit"> 确认上传 </button>
                     </form>
 
                 </div>
