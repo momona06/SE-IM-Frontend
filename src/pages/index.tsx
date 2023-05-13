@@ -287,7 +287,7 @@ const Screen = () => {
                     message.warning("对方已经是你的好友", 1);
                 }
             }
-            else if (data.function === "withdraw") {
+            else if (data.function === "withdraw_message") {
                 for (let room of roomList) {
                     if (room.roomid === data.room_id) {
                         let temp = room.message_list;
