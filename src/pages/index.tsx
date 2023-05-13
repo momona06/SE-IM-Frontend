@@ -9,10 +9,8 @@ import moment from "moment";
 import emojiList from "../components/emojiList";
 import {MentionsOptionProps} from "antd/es/mentions";
 import {CheckboxValueType} from "antd/es/checkbox/Group";
-import axios, { AxiosError, AxiosResponse } from "axios";
+import axios from "axios";
 import $ from "jquery";
-import {Simulate} from "react-dom/test-utils";
-import scroll = Simulate.scroll;
 
 interface friendListData {
     groupname: string;
@@ -61,7 +59,6 @@ export const isEmail = (val : string) => {
 
 const { SHOW_PARENT } = TreeSelect;
 const { Meta } = Card;
-const { TextArea } = Input;
 
 const props: UploadProps = {
     name: "file",
@@ -244,14 +241,13 @@ const Screen = () => {
             }
             else if (data.function === "Ack2"){
                 // 将消息id置为已发送
-                let last = messageList.pop();
-                if (last) {
+                let last = messageList.at(-1);
+                if (last){
                     last.msg_id = data.msg_id;
-                    console.log("data.msg ID:", data.msg_id);
-                    console.log("last:", last.msg_id);
-                    messageList.push(last);
-                    console.log("msg_list:", messageList);
+                    let temp = [last];
+                    setMessageList(messageList => messageList.slice(0, messageList.length - 1).concat(temp));
                 }
+                console.log("message list:", messageList);
             }
             else if (data.function === "Msg"){
                 let newMessage = {
