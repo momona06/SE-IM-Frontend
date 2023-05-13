@@ -111,6 +111,7 @@ const Screen = () => {
 
     const [roomList, setRoomList] = useState<roomListData[]>([]);
     const [roomListRefreshing, setRoomListRefreshing] = useState<boolean>(true);
+    const [newRoomMemberList, setNewRoomMemberList] = useState<string[]>([]);
 
     const [messageList, setMessageList] = useState<messageListData[]>([]);
     const [messageBody, setMessageBody] = useState<string>("");
@@ -739,32 +740,28 @@ const Screen = () => {
         }
     }
 
-    let newGroupMemberList: string[] = [];
-
-    //todo 创建第二个群聊bug
     const newGroup = () => {
-        newGroupMemberList.push(window.username);
         if (chatGroupName == ""){
             message.warning("群聊名不能为空");
         }
         let data = {
             function: "create_group",
-            member_list: newGroupMemberList,
+            member_list: newRoomMemberList,
             room_name: chatGroupName
         };
-        console.log(data);
+        console.log("创建群聊", data);
         window.ws.send(JSON.stringify(data));
-        newGroupMemberList = [];
+        setNewRoomMemberList([]);
         setChatGroupName("");
         setIsModalOpen(false);
     };
 
     const onCheckChange = (checkedValues: CheckboxValueType[]) => {
-        let temp: string[] = [];
+        let temp: string[] = [window.username];
         checkedValues.forEach((arr) => {
             temp.push(typeof arr === "string" ? arr : "");
         });
-        newGroupMemberList = temp;
+        setNewRoomMemberList(temp);
     };
 
     const leaveChatGroup = () => {
