@@ -1,5 +1,13 @@
 export {};
 
+interface messageListData {
+    msg_id: number;
+    msg_type: string;
+    msg_body: string;
+    msg_time: string;
+    sender: string;
+}
+
 declare global {
     interface Window {
         ws: WebSocket
@@ -11,5 +19,6 @@ declare global {
         otherUsername: string
         currentRoomID: number
         currentRoomName: string
+        messageList: messageListData[]
     }
 }

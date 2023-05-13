@@ -187,6 +187,10 @@ const Screen = () => {
         setAllFriendList(temp);
     }, [friendList]);
 
+    useEffect(() => {
+        window.messageList = messageList;
+    }, [messageList]);
+
     const WSConnect = () => {
         let DEBUG = false;
         window.ws = new WebSocket(DEBUG ? "ws://localhost:8000/wsconnect" : "wss://se-im-backend-overflowlab.app.secoder.net/wsconnect");
@@ -241,14 +245,12 @@ const Screen = () => {
             }
             else if (data.function === "Ack2"){
                 // 将消息id置为已发送
-                let last = messageList.at(-1);
+                let last = window.messageList.at(-1);
                 if (last){
                     last.msg_id = data.msg_id;
                     let temp = [last];
-                    setMessageList(messageList => messageList.slice(0, messageList.length - 1).concat(temp));
-                    console.log("修改id");
+                    setMessageList(messageList => window.messageList.slice(0, window.messageList.length - 1).concat(temp));
                 }
-                console.log("message list:", messageList);
             }
             else if (data.function === "Msg"){
                 let newMessage = {
@@ -287,15 +289,17 @@ const Screen = () => {
             else if (data.function === "withdraw_message") {
                 for (let room of roomList) {
                     if (room.roomid === data.room_id) {
-                        let temp = room.message_list;
-                        temp.forEach((msg) => {
-                            if (msg.msg_id === data.msg_id) {
-                                msg.msg_body = "该消息已被撤回";
+                        console.log("msg list of withdraw", room.message_list);
+                        for (let i = room.message_list.length-1; i >= 0; i--){
+                            if (room.message_list[i].msg_id === data.msg_id) {
+                                room.message_list[i].msg_body = "该消息已被撤回";
+                                break;
                             }
-                        });
-                        if (room.roomid === window.currentRoomID) {
-                            setMessageList(temp);
                         }
+                        if (room.roomid === window.currentRoomID) {
+                            setMessageList(room.message_list);
+                        }
+                        break;
                     }
                 }
             }
