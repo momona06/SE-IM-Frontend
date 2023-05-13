@@ -241,7 +241,10 @@ const Screen = () => {
                 let last = messageList.pop();
                 if (last) {
                     last.msg_id = data.msg_id;
+                    console.log("data.msg ID:", data.msg_id);
+                    console.log("last:", last.msg_id);
                     messageList.push(last);
+                    console.log("msg_list:", messageList);
                 }
             }
             else if (data.function === "Msg"){
@@ -1137,7 +1140,6 @@ const Screen = () => {
                                                                                     setRoomTop(item.is_top);// setRoomPrivate(item.is_private);
                                                                                     setMessageList(messageList => item.message_list);
                                                                                     fetchRoomInfo(item.roomid);
-                                                                                    console.log("messagelist:", messageList);
                                                                                 }}>
                                                                                 <Space>
                                                                                     <Badge count={114514}>
