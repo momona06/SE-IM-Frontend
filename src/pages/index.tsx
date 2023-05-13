@@ -1142,7 +1142,9 @@ const Screen = () => {
                                                                                     window.currentRoomName = item.roomname;
                                                                                     setRoomNotice(item.is_notice);
                                                                                     setRoomTop(item.is_top);// setRoomPrivate(item.is_private);
+                                                                                    console.log("item message list:", item.message_list);
                                                                                     setMessageList(messageList => item.message_list);
+                                                                                    console.log("msg:", messageList);
                                                                                     fetchRoomInfo(item.roomid);
                                                                                 }}>
                                                                                 <Space>
