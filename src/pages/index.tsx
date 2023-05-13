@@ -302,6 +302,9 @@ const Screen = () => {
                     }
                 }
             }
+            else if (data.function === "withdraw_overtime"){
+                message.error("消息超时", 1);
+            }
             else {
                 return;
             }
@@ -1181,7 +1184,7 @@ const Screen = () => {
                                                         renderItem={(item) => (
                                                             <List.Item key={ item.msg_id }>
                                                                 { item.msg_body != "该消息已被撤回" ? (
-                                                                    <Popover placement={"top"} content={
+                                                                    <Popover trigger={"click"} placement={"top"} content={
                                                                         <Space direction={"horizontal"} size={"small"}>
                                                                             <Button type={"text"} onClick={() => forward()}> 转发 </Button>
                                                                             <Button type={"text"} onClick={() => reply(item.msg_id)}> 回复 </Button>
