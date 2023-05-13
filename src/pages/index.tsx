@@ -1121,8 +1121,7 @@ const Screen = () => {
                                                                                     window.currentRoomID = item.roomid;
                                                                                     window.currentRoomName = item.roomname;
                                                                                     setRoomNotice(item.is_notice);
-                                                                                    setRoomTop(item.is_top);
-                                                                                    setRoomPrivate(item.is_private);
+                                                                                    setRoomTop(item.is_top);// setRoomPrivate(item.is_private);
                                                                                     setMessageList(messageList => item.message_list);
                                                                                     fetchRoomInfo(item.roomid);
                                                                                     console.log("messagelist:", messageList);
@@ -1365,7 +1364,7 @@ const Screen = () => {
                                                                                     disabled={item.make_sure}
                                                                                     key = {item.username + "1"}
                                                                                     type="primary"
-                                                                                    onClick={() => {accept(item.username); fetchReceiveList();}}
+                                                                                    onClick={() => accept(item.username)}
                                                                                 >
                                                                                     接受申请
                                                                                 </Button>,
@@ -1373,7 +1372,7 @@ const Screen = () => {
                                                                                     disabled={item.make_sure}
                                                                                     key={item.username + "2"}
                                                                                     type="primary"
-                                                                                    onClick={() => {decline(item.username); fetchReceiveList();}}
+                                                                                    onClick={() => decline(item.username)}
                                                                                 >
                                                                                     拒绝申请
                                                                                 </Button>
