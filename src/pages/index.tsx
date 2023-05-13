@@ -170,6 +170,7 @@ const Screen = () => {
         window.ws.onmessage = async function (event) {
             const data = JSON.parse(event.data);
             console.log(JSON.stringify(data));
+
             if (data.function === "heartbeatconfirm") {
                 WSHeartBeat();
             }
@@ -234,6 +235,14 @@ const Screen = () => {
                 };
                 window.ws.send(JSON.stringify(ACK));
             }
+            else if (data.function === "apply_friend") {
+                if (data.message === "Has Been Sent"){
+                    message.warning("申请已发送", 1);
+                }
+                if (data.message === "Is Already a Friend"){
+                    message.warning("对方已经是你的好友", 1);
+                }
+            }
             else {
                 return;
             }
@@ -295,6 +304,8 @@ const Screen = () => {
                     message.success(STRINGS.LOGIN_SUCCESS, 1);
                     window.username = res.username;
                     setToken(res.token);
+                    getAccount(account => "");
+                    getPassword(password => "");
                     setCurrentPage(CONS.MAIN);
                     WSConnect();
                 })
@@ -315,6 +326,8 @@ const Screen = () => {
                 .then((res) => {
                     message.success(STRINGS.LOGIN_SUCCESS, 1);
                     setToken(res.token);
+                    getAccount(account => "");
+                    getPassword(password => "");
                     window.username = res.username;
                     setCurrentPage(CONS.MAIN);
                     WSConnect();
@@ -337,7 +350,8 @@ const Screen = () => {
             .then(() => {
                 message.success(STRINGS.REGISTER_SUCCESS, 1);
                 setCurrentPage(CONS.LOGIN);
-                getPassword("");
+                setUsername(username => "");
+                getPassword(password => "");
             })
             .catch((err) => message.error(err.message, 1));
     };
@@ -363,7 +377,7 @@ const Screen = () => {
             {
                 token: token,
                 fgroup_name: group,
-                username: username,
+                username: window.username,
             }
         )
             .then(() => fetchFriendList())
@@ -377,7 +391,7 @@ const Screen = () => {
             {
                 revise_field: "username",
                 revise_content: newUsername,
-                username: username,
+                username: window.username,
                 input_password: password,
                 token: token,
             },
@@ -408,7 +422,7 @@ const Screen = () => {
             {
                 code: sms,
                 email: email,
-                username: username,
+                username: window.username,
             },
         )
             .then(() => message.success("验证通过", 1))
@@ -422,7 +436,7 @@ const Screen = () => {
             {
                 revise_field: "password",
                 revise_content: newPassword,
-                username: username,
+                username: window.username,
                 input_password: password,
                 token: token,
             },
@@ -489,8 +503,8 @@ const Screen = () => {
         const data = {
             "function": "confirm",
             "from": other,
-            "to": username,
-            "username": username,
+            "to": window.username,
+            "username": window.username,
         };
         window.ws.send(JSON.stringify(data));
         message.success("已同意申请", 1);
@@ -500,8 +514,8 @@ const Screen = () => {
         const data = {
             "function": "decline",
             "from": other,
-            "to": username,
-            "username": username,
+            "to": window.username,
+            "username": window.username,
         };
         window.ws.send(JSON.stringify(data));
     };
@@ -509,9 +523,9 @@ const Screen = () => {
     const addFriend = () => {
         const data = {
             "function": "apply",
-            "from": username,
+            "from": window.username,
             "to": window.otherUsername,
-            "username": username
+            "username": window.username
         };
         window.ws.send(JSON.stringify(data));
         message.success("申请已发送", 1);
@@ -522,7 +536,7 @@ const Screen = () => {
             "/api/friend/deletefriend",
             "DELETE",
             {
-                username: username,
+                username: window.username,
                 token: token,
                 friend_name: window.otherUsername,
             },
@@ -566,7 +580,7 @@ const Screen = () => {
                 "api/friend/createfgroup",
                 "POST",
                 {
-                    username: username,
+                    username: window.username,
                     token: token,
                     fgroup_name: friendGroup,
                 },
@@ -579,7 +593,7 @@ const Screen = () => {
             "PUT",
             {
                 token: token,
-                username: username,
+                username: window.username,
                 fgroup_name: friendGroup,
                 friend_name: window.otherUsername,
             },
@@ -774,7 +788,7 @@ const Screen = () => {
     };
 
     const str2addr = (text : string) => {
-        const urlRegex = /(https?:\/\/[^\s]+)/g; // 匹配 URL 的正则表达式
+        const urlRegex = /(https?:\/\/\s+)/g; // 匹配 URL 的正则表达式
         //const urlRegex= /^(http|https|ftp|sftp):\/\/[^\s/$.?#].[^\s]*$/i;
         const parts = text.split(urlRegex); // 使用正则表达式拆分字符串
         return (
@@ -1057,15 +1071,6 @@ const Screen = () => {
                                                                         <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#66B7FF"}}>
                                                                             { str2addr(item.msg_body) }
                                                                             <span> { item.msg_time } </span>
-                                                                            {/*item.msg_id === -1 ? (
-                                                                                <Button
-                                                                                    type={"default"} shape={"circle"}
-                                                                                    size={"small"} danger={true} icon={<ExclamationOutlined />}
-                                                                                    onClick={() => {
-                                                                                        sendMessage(item.msg_body);
-                                                                                    }}
-                                                                                />
-                                                                            ) : null*/}
                                                                         </div>
                                                                     </div>
                                                                 ) : (
