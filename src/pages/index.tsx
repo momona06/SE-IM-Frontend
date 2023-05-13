@@ -1169,7 +1169,31 @@ const Screen = () => {
                                                                             <Button type={"text"} onClick={() => recall(item.msg_id)}> 撤回 </Button>
                                                                             <Button type={"text"} onClick={() => translate(item.msg_body)}> 翻译 </Button>
                                                                         </Space>
-                                                                    }/>
+                                                                    }>
+                                                                        { item.sender === window.username ? (
+                                                                            <div style={{ display: "flex", flexDirection: "row-reverse", justifyContent: "flex-start", marginLeft: "auto"}}>
+                                                                                <div style={{display: "flex", flexDirection: "column"}}>
+                                                                                    <List.Item.Meta avatar={<Avatar src={"https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxgeticon?seq=239472774&username=@c8ef32eea4f34c3becfba86e70bd5320e33c7eba9d35d382ed6185b9c3efbfe0&skey=@crypt_6df0f029_14c4f0a85beaf972ec58feb5ca7dc0e0"}/>}/>
+                                                                                    <h6>{item.sender}</h6>
+                                                                                </div>
+                                                                                <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#66B7FF"}}>
+                                                                                    { str2addr(item.msg_body) }
+                                                                                    <span> { item.msg_time } </span>
+                                                                                </div>
+                                                                            </div>
+                                                                        ) : (
+                                                                            <div style={{ display: "flex", flexDirection: "row"}}>
+                                                                                <div style={{display: "flex", flexDirection: "column"}}>
+                                                                                    <List.Item.Meta avatar={<Avatar src={"https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxgeticon?seq=239472774&username=@c8ef32eea4f34c3becfba86e70bd5320e33c7eba9d35d382ed6185b9c3efbfe0&skey=@crypt_6df0f029_14c4f0a85beaf972ec58feb5ca7dc0e0"}/>}/>
+                                                                                    <h6>{item.sender}</h6>
+                                                                                </div>
+                                                                                <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF"}}>
+                                                                                    <p>{ item.msg_body }</p>
+                                                                                    <span>{ item.msg_time }</span>
+                                                                                </div>
+                                                                            </div>
+                                                                        )}
+                                                                    </Popover>
                                                                 ) : (
                                                                     <>
                                                                         { item.sender === window.username ? (
