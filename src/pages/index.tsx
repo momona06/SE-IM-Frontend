@@ -1,4 +1,4 @@
-import React, {useEffect, useState } from "react";
+import React, {useEffect, useRef, useState } from "react";
 import * as STRINGS from "../constants/string";
 import { request } from "../utils/network";
 import { message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar, Popover, Card, Divider, Row, Col, Upload, Modal, TreeSelect, UploadFile} from "antd";
@@ -12,6 +12,11 @@ import emojiList from "../components/emojiList";
 import axios, { AxiosError, AxiosResponse } from "axios";
 import $ from "jquery";
 
+// Object.defineProperty(HTMLFormElement.prototype, "formdata", {
+//     get() {
+//         return new FormData(this);
+//     }
+// });
 
 interface friendListData {
     groupname: string;
@@ -158,6 +163,8 @@ const Screen = () => {
 
     const [fileList, setFileList] = useState<UploadFile[]>([]);
     const [avatarModal, setAvatarModal] = useState<boolean>(false);
+
+    const avatarF = useRef<HTMLFormElement>(null);
 
     useEffect(() => {
         if(currentPage === CONS.MAIN)
@@ -794,6 +801,13 @@ const Screen = () => {
             "Access-Control-Allow-Origin": "*"
         }
     };
+
+    const avatarconfig = {
+        headers:{
+            'Content-Type': 'multipart/form-data'
+        }
+    };
+
     const translate = (message: string) =>{
         // e.preventDefault();
         axios.post(`/translate/${"translate?&doctype=json&type=AUTO&i="+message}`,{}, translateconfig)
@@ -1612,7 +1626,23 @@ const Screen = () => {
             }} */onCancel={() => setAvatarModal(false)}>
                 <div>
                     <iframe id="loader" name="loader" onChange={() => logReturn()}></iframe>
-                    <form action="/api/user/upload" method="post" encType="multipart/form-data" target="loader">
+                    <form id="avatarform" ref={avatarF}action="/api/user/upload" method="post" encType="multipart/form-data" target="_blank" onSubmit={() => {
+                        //console.log($("#avatarform").formdata());
+                        if(avatarF.current) {
+                            var fromdata = new FormData(avatarF.current);
+                            console.log(fromdata.get("username"));
+                            console.log(fromdata.get("avatar"));
+                            axios.post("/api/user/upload", fromdata , avatarconfig)
+                                .then((res) => {
+                                    console.log(res);
+                                })
+                                .catch((err) => {
+                                    console.log(err);
+                                });
+                        }
+                        setAvatarModal(false);
+                        return true;
+                    }}>
                         <input id="image-uploadify" name="avatar" type="file" accept="image/*" multiple/>
                         <input id="text" name="username" type="text" value={"111111"} style={{display: "none"}}/>
                         <button type="submit">确认上传</button>
