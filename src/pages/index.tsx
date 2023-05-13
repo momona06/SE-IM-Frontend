@@ -541,6 +541,7 @@ const Screen = () => {
             "to": username,
             "username": username,
         };
+        console.log(data);
         window.ws.send(JSON.stringify(data));
         message.success("已同意申请", 1);
     };
