@@ -1,7 +1,32 @@
 import React, { useEffect, useState } from "react";
 import * as STRINGS from "../constants/string";
 import { request } from "../utils/network";
-import { message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar, Popover, Card, Divider, Row, Col, Upload, Switch, Mentions, Form, Modal, Checkbox, TreeSelect, UploadFile } from "antd";
+import {
+    message,
+    Input,
+    Button,
+    Space,
+    Layout,
+    List,
+    Menu,
+    Spin,
+    Badge,
+    Avatar,
+    Popover,
+    Card,
+    Divider,
+    Row,
+    Col,
+    Upload,
+    Switch,
+    Mentions,
+    Form,
+    Modal,
+    Checkbox,
+    TreeSelect,
+    UploadFile,
+    Result
+} from "antd";
 import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined, ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined, CommentOutlined, EllipsisOutlined, SmileOutlined, UploadOutlined, LoadingOutlined, PlusOutlined } from "@ant-design/icons";
 import type { UploadProps } from "antd";
 import * as CONS from "../constants/constants";
@@ -59,6 +84,7 @@ export const isEmail = (val : string) => {
 
 const { SHOW_PARENT } = TreeSelect;
 const { Meta } = Card;
+const { TextArea } = Input;
 
 const props: UploadProps = {
     name: "file",
@@ -148,6 +174,7 @@ const Screen = () => {
     const [roomTop, setRoomTop] = useState<boolean>(false);
     const [roomNotice, setRoomNotice] = useState<boolean>(true);
     const [boardModal, setBoardModal] = useState<boolean>(false);
+    const [board, setBoard] = useState<string>("");
 
     // 全部好友username
     const [allFriendList, setAllFriendList] = useState<string[]>([]);
@@ -718,11 +745,11 @@ const Screen = () => {
         window.ws.send(JSON.stringify(data));
     };
 
-    const sendMessage = (Message: string) => {
+    const sendMessage = (Message: string, MessageType: string) => {
         if (Message != ""){
             let data = {
                 "function": "send_message",
-                "msg_type": "text",
+                "msg_type": MessageType,
                 "msg_body": Message
             };
             window.ws.send(JSON.stringify(data));
@@ -845,14 +872,19 @@ const Screen = () => {
         window.currentRoomID = 0;
         window.currentRoomName = "";
         setCurrentRoomName("");
+        setCreateGroupModal(false);
     };
 
     const deleteChatGroup = () => {
         let data = {
-            function: "delete_chatgroup",
+            function: "delete_chat_group",
             chatroom_id: window.currentRoomID
         };
         window.ws.send(JSON.stringify(data));
+        window.currentRoomID = 0;
+        window.currentRoomName = "";
+        setCurrentRoomName("");
+        setCreateGroupModal(false);
     };
 
     const recall = (id: number) => {
@@ -928,8 +960,8 @@ const Screen = () => {
 
     const logReturn = () => {
         $("#loader").load(function() {
-            var text = $("#loader").contents().find("body").text();
-            var j = $.JSON.parse(text);
+            let text = $("#loader").contents().find("body").text();
+            let j = $.JSON.parse(text);
             console.log(j);
         });
     };
@@ -1183,17 +1215,19 @@ const Screen = () => {
                                                 </div>
                                                 <div style={{padding: "24px", position: "relative", height: "70vh", left: 0, right: 0, overflow: "scroll"}}>
                                                     <List
-                                                        dataSource={ messageList }
+                                                        dataSource={ messageList.filter((msg) => msg.msg_type != "notice") }
                                                         split={ false }
                                                         renderItem={(item) => (
                                                             <List.Item key={ item.msg_id }>
                                                                 { item.msg_body != "该消息已被撤回" ? (
-                                                                    <Popover trigger={"click"} placement={"top"} content={
+                                                                    <Popover trigger={"contextMenu"} placement={"top"} content={
                                                                         <Space direction={"horizontal"} size={"small"}>
                                                                             <Button type={"text"} onClick={() => forward()}> 转发 </Button>
                                                                             <Button type={"text"} onClick={() => reply(item.msg_id)}> 回复 </Button>
-                                                                            <Button type={"text"} onClick={() => recall(item.msg_id)}> 撤回 </Button>
                                                                             <Button type={"text"} onClick={() => translate(item.msg_body)}> 翻译 </Button>
+                                                                            { item.sender === window.username ? (
+                                                                                <Button type={"text"} onClick={() => recall(item.msg_id)}> 撤回 </Button>
+                                                                            ) : null }
                                                                         </Space>
                                                                     }>
                                                                         { item.sender === window.username ? (
@@ -1214,7 +1248,7 @@ const Screen = () => {
                                                                                     <h6>{item.sender}</h6>
                                                                                 </div>
                                                                                 <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF"}}>
-                                                                                    <p>{ item.msg_body }</p>
+                                                                                    { str2addr(item.msg_body) }
                                                                                     <span>{ item.msg_time }</span>
                                                                                 </div>
                                                                             </div>
@@ -1287,7 +1321,7 @@ const Screen = () => {
                                                         <Button
                                                             type="primary"
                                                             onClick={() => {
-                                                                sendMessage(messageBody);
+                                                                sendMessage(messageBody, "text");
                                                             }}>
                                                             发送
                                                         </Button>
@@ -1713,7 +1747,7 @@ const Screen = () => {
                 ) : null}
             </div>
 
-            <Modal title={"群公告"} open={ boardModal } >
+            <Modal title={"群公告"} open={ boardModal } onCancel={() => setBoardModal(false)} onOk={() => {sendMessage(board, "notice"); }} okButtonProps={{disabled: identity(window.username) == ""}}>
                 <div style={{overflow: "scroll"}}>
                     <List
                         dataSource = {messageList.filter((message) => (message.msg_type === "notice"))}
@@ -1728,6 +1762,11 @@ const Screen = () => {
                         )}
                     />
                 </div>
+                <>
+                    {identity(window.username) != "" ? (
+                        <TextArea showCount={true} rows={4} value={board}/>
+                    ) : <Result status={"warning"} title={"只有群管理与群主可编辑群公告"}/>}
+                </>
             </Modal>
 
             <Modal title={ "创建群聊" } open={ createGroupModal } onOk={ newGroup } onCancel={() => setCreateGroupModal(false)}>
