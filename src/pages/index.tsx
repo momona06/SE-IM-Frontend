@@ -149,7 +149,6 @@ const Screen = () => {
     const [roomTop, setRoomTop] = useState<boolean>(false);
     const [roomNotice, setRoomNotice] = useState<boolean>(true);
     const [boardModal, setBoardModal] = useState<boolean>(false);
-    const [board, setBoard] = useState<string>("");
 
     // 全部好友username
     const [allFriendList, setAllFriendList] = useState<string[]>([]);
@@ -803,6 +802,10 @@ const Screen = () => {
         setMessageBody(value);
     };
 
+    const onBoardChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        setMessageBody(e.target.value);
+    };
+
     const onSelect = (options: MentionsOptionProps) => {
         console.log("选中:", options);
     };
@@ -1305,6 +1308,7 @@ const Screen = () => {
                                                             type="primary"
                                                             onClick={() => {
                                                                 sendMessage(messageBody, "text");
+                                                                setMessageBody("");
                                                             }}>
                                                             发送
                                                         </Button>
@@ -1730,7 +1734,7 @@ const Screen = () => {
                 ) : null}
             </div>
 
-            <Modal title={"群公告"} open={ boardModal } onCancel={() => setBoardModal(false)} onOk={() => {sendMessage(board, "notice"); }} okButtonProps={{disabled: identity(username) == "成员"}}>
+            <Modal title={"群公告"} open={ boardModal } onCancel={() => setBoardModal(false)} onOk={() => {sendMessage(messageBody, "notice"); }} okButtonProps={{disabled: identity(username) == "成员"}}>
                 <div style={{overflow: "scroll"}}>
                     <List
                         dataSource = {messageList.filter((message) => (message.msg_type === "notice"))}
@@ -1747,7 +1751,7 @@ const Screen = () => {
                 </div>
                 <>
                     {identity(username) != "成员" ? (
-                        <TextArea showCount={true} rows={4} value={board}/>
+                        <TextArea showCount={true} rows={4} onChange={onBoardChange}/>
                     ) : <Result status={"warning"} title={"只有群管理与群主可编辑群公告"}/>}
                 </>
             </Modal>
