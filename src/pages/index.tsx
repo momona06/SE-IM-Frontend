@@ -1741,7 +1741,6 @@ const Screen = () => {
                     <List
                         itemLayout={"vertical"}
                         dataSource = {messageList.filter((message) => (message.msg_type === "notice"))}
-                        split = {false}
                         footer={
                             <>
                                 {identity(username) != "成员" ? (
@@ -1750,16 +1749,14 @@ const Screen = () => {
                             </>
                         }
                         renderItem = {(item) => (
-                            <Space direction={"vertical"}>
-                                <List.Item>
-                                    <List.Item.Meta
-                                        avatar = {<Avatar src={"https://xsgames.co/randomusers/avatar.php?g=pixel"} />}
-                                        title = {item.sender}
-                                        description={item.msg_time}
-                                    />
-                                    {item.msg_body}
-                                </List.Item>
-                            </Space>
+                            <List.Item>
+                                <List.Item.Meta
+                                    avatar = {<Avatar src={"https://xsgames.co/randomusers/avatar.php?g=pixel"} />}
+                                    title = {item.sender}
+                                    description={item.msg_time}
+                                />
+                                {item.msg_body}
+                            </List.Item>
                         )}
                     />
                 </div>
