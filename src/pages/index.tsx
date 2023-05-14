@@ -1220,7 +1220,7 @@ const Screen = () => {
                                                                     <>
                                                                         <Popover trigger={"contextMenu"} placement={"top"} content={
                                                                             <Space direction={"horizontal"} size={"small"}>
-                                                                                <Button type={"text"} onClick={() => forward()}> 转发 </Button>
+                                                                                <Button type={"text"} onClick={() => setForwardModal(true)}> 转发 </Button>
                                                                                 <Button type={"text"} onClick={() => {setReplying(true); setReplyMessageID(item.msg_id); setReplyMessageBody(item.msg_body);}}> 回复 </Button>
                                                                                 <Button type={"text"} onClick={() => translate(item.msg_body)}> 翻译 </Button>
                                                                                 { item.sender === window.username ? (
