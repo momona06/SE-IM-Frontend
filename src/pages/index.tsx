@@ -318,9 +318,8 @@ const Screen = () => {
                 }
             }
             else if (data.function === "withdraw_message") {
-                for (let room of roomList) {
+                for (let room of window.roomList) {
                     if (room.roomid === data.room_id) {
-                        console.log("msg list of withdraw", room.message_list);
                         for (let i = room.message_list.length-1; i >= 0; i--){
                             if (room.message_list[i].msg_id === data.msg_id) {
                                 room.message_list[i].msg_body = "该消息已被撤回";
@@ -397,6 +396,7 @@ const Screen = () => {
                 .then((res) => {
                     message.success(STRINGS.LOGIN_SUCCESS, 1);
                     window.username = res.username;
+                    setUsername(res.username);
                     setToken(res.token);
                     getAccount(account => "");
                     getPassword(password => "");
@@ -1747,7 +1747,7 @@ const Screen = () => {
                 ) : null}
             </div>
 
-            <Modal title={"群公告"} open={ boardModal } onCancel={() => setBoardModal(false)} onOk={() => {sendMessage(board, "notice"); }} okButtonProps={{disabled: identity(window.username) == ""}}>
+            <Modal title={"群公告"} open={ boardModal } onCancel={() => setBoardModal(false)} onOk={() => {sendMessage(board, "notice"); }} okButtonProps={{disabled: identity(username) == ""}}>
                 <div style={{overflow: "scroll"}}>
                     <List
                         dataSource = {messageList.filter((message) => (message.msg_type === "notice"))}
@@ -1763,7 +1763,7 @@ const Screen = () => {
                     />
                 </div>
                 <>
-                    {identity(window.username) != "" ? (
+                    {identity(username) != "" ? (
                         <TextArea showCount={true} rows={4} value={board}/>
                     ) : <Result status={"warning"} title={"只有群管理与群主可编辑群公告"}/>}
                 </>
