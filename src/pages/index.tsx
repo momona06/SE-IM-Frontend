@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import * as STRINGS from "../constants/string";
 import { request } from "../utils/network";
-import {message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar, Popover, Card, Divider, Row, Col, Upload, Switch, Mentions, Form, Modal, Checkbox, Tag, UploadFile, Result} from "antd";
+import {message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar, Popover, Card, Divider, Row, Col, Upload, Switch, Mentions, Form, Modal, Checkbox, Select, UploadFile, Result} from "antd";
 import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined, ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined, CommentOutlined, EllipsisOutlined, SmileOutlined, UploadOutlined, LoadingOutlined, PlusOutlined } from "@ant-design/icons";
 import type { UploadProps } from "antd";
 import * as CONS from "../constants/constants";
@@ -163,7 +163,10 @@ const Screen = () => {
     const [translateModal, setTranslateModal] = useState<boolean>(false);
     const [translateResult, setTranslateResult] = useState<string>("");
 
+    // 消息转发
     const [forwardModal, setForwardModal] = useState<boolean>(false);
+    const [forwardList, setForwardList] = useState<number[]>([]);
+
     const [fileList, setFileList] = useState<UploadFile[]>([]);
     const [avatarModal, setAvatarModal] = useState<boolean>(false);
 
@@ -722,45 +725,14 @@ const Screen = () => {
 
     const sendMessage = (Message: string, MessageType: string, reply_id?: number) => {
         if (Message != ""){
-            let data = {}, newMessage = {};
-            let date = new Date();
-            // if (MessageType === "reply"){
-            //     data = {
-            //         "function": "send_message",
-            //         "msg_type": MessageType,
-            //         "msg_body": Message,
-            //         "reply_id": reply_id
-            //     };
-            //     newMessage = {
-            //         "msg_id": -1,
-            //         "msg_type": MessageType,
-            //         "msg_body": Message,
-            //         "reply_id": reply_id,
-            //         "msg_time": moment(date).format("YYYY-MM-DD HH:mm:ss"),
-            //         "sender": window.username
-            //     };
-            // }
-            // else {
-            //     data = {
-            //         "function": "send_message",
-            //         "msg_type": MessageType,
-            //         "msg_body": Message
-            //     };
-            //     newMessage = {
-            //         "msg_id": -1,
-            //         "msg_type": MessageType,
-            //         "msg_body": Message,
-            //         "msg_time": moment(date).format("YYYY-MM-DD HH:mm:ss"),
-            //         "sender": window.username
-            //     };
-            // }
-            data = {
+            let data = {
                 "function": "send_message",
                 "msg_type": MessageType,
                 "msg_body": Message,
                 "reply_id": reply_id,
             };
-            newMessage = {
+            let date = new Date();
+            let newMessage = {
                 "msg_id": -1,
                 "msg_type": MessageType,
                 "msg_body": Message,
@@ -768,6 +740,7 @@ const Screen = () => {
                 "msg_time": moment(date).format("YYYY-MM-DD HH:mm:ss"),
                 "sender": window.username
             };
+
             console.log(data);
             window.ws.send(JSON.stringify(data));
 
@@ -873,6 +846,18 @@ const Screen = () => {
         setNewRoomMemberList(temp);
     };
 
+    const onForwardChange = (checkedValues: CheckboxValueType[]) => {
+        let temp: number[] = [];
+        checkedValues.forEach((arr) => {
+            temp.push(typeof arr === "number" ? arr : 0);
+        });
+        setForwardList(temp);
+    };
+
+    const onForwardRoomChanged = (value: number) => {
+        window.forwardRoomId = value;
+    };
+
     const leaveChatGroup = () => {
         let data = {
             function: "leave_group",
@@ -931,13 +916,14 @@ const Screen = () => {
 
     // 合并转发
     const forward = () => {
-        //单条直接重新发
-        /*{
-            "function": "send_message"
-            "msg_type": "combine"
-            "combine_list": id列表
-            "transroom_list": id列表
-        } */
+        const data = {
+            function: "combine",
+            combine_list: forwardList,
+            transroom_id: window.forwardRoomId
+        };
+        window.ws.send(JSON.stringify(data));
+        setForwardModal(false);
+        window.forwardRoomId = 0;
     };
 
     const str2addr = (text : string) => {
@@ -1791,6 +1777,23 @@ const Screen = () => {
                         )}
                     />
                 </div>
+            </Modal>
+
+            <Modal title={"转发"} open={forwardModal} onOk={forward} onCancel={() => setForwardModal(false)}>
+                <Checkbox.Group
+                    style={{display: "grid", height: "60vh", overflow: "scroll" }}
+                    onChange={ onForwardChange }
+                    options={ messageList.map((arr) => ({
+                        label: arr.sender + ":  " + arr.msg_body,
+                        value: arr.msg_id,
+                    }))}
+                />
+                <Select showSearch placeholder={"转发到"} options={
+                    roomList.map(arr => ({
+                        label: arr.roomname,
+                        value: arr.roomid,
+                    }))
+                } onChange={onForwardRoomChanged}/>
             </Modal>
 
             <Modal title={ "创建群聊" } open={ createGroupModal } onOk={ newGroup } onCancel={() => setCreateGroupModal(false)}>

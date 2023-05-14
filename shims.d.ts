@@ -30,5 +30,6 @@ declare global {
         currentRoomName: string
         messageList: messageListData[]
         roomList: roomListData[]
+        forwardRoomId: number
     }
 }
