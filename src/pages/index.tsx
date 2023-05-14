@@ -369,6 +369,7 @@ const Screen = () => {
                 },
             )
                 .then((res) => {
+                    WSConnect();
                     message.success(STRINGS.LOGIN_SUCCESS, 1);
                     window.username = res.username;
                     setUsername(res.username);
@@ -376,7 +377,6 @@ const Screen = () => {
                     getAccount(account => "");
                     getPassword(password => "");
                     setCurrentPage(CONS.MAIN);
-                    WSConnect();
                 })
                 .catch((err) => {
                     message.error(err.message, 1);
@@ -393,13 +393,14 @@ const Screen = () => {
                 },
             )
                 .then((res) => {
+                    WSConnect();
                     message.success(STRINGS.LOGIN_SUCCESS, 1);
+                    window.username = res.username;
+                    setUsername(res.username);
                     setToken(res.token);
                     getAccount(account => "");
                     getPassword(password => "");
-                    window.username = res.username;
                     setCurrentPage(CONS.MAIN);
-                    WSConnect();
                 })
                 .catch((err) => {
                     message.error(err.message, 1);
@@ -946,7 +947,7 @@ const Screen = () => {
             return "群主";
         }
         else {
-            return roomInfo.manager_list.indexOf(mem) === -1 ? "" : "管理员";
+            return roomInfo.manager_list.indexOf(mem) === -1 ? "成员" : "管理员";
         }
     }
 
@@ -960,11 +961,17 @@ const Screen = () => {
                     renderItem={(item) => (
                         <List.Item>
                             <Popover placement={"rightBottom"} content={"这里是点击成员后的弹出卡片，应当显示publicInfo"} trigger={"click"}>
-                                <Card bordered={false} actions={[<UserAddOutlined key={"add_friend"} onClick={() => {
-                                    window.otherUsername = item;
-                                    console.log("roominfo", roomInfo);
-                                    addFriend();
-                                }}/>]}>
+                                <Card
+                                    style={{ width: 200, marginTop: 8 }}
+                                    bordered={false} 
+                                    actions={[
+                                        <UserAddOutlined key={"add_friend"} onClick={() => {
+                                            window.otherUsername = item;
+                                            console.log("roominfo", roomInfo);
+                                            addFriend();
+                                        }}/>
+                                    ]}
+                                >
                                     <Meta
                                         avatar = {<Avatar src="https://xsgames.co/randomusers/avatar.php?g=pixel" />}
                                         title = { item }
@@ -1723,7 +1730,7 @@ const Screen = () => {
                 ) : null}
             </div>
 
-            <Modal title={"群公告"} open={ boardModal } onCancel={() => setBoardModal(false)} onOk={() => {sendMessage(board, "notice"); }} okButtonProps={{disabled: identity(username) == ""}}>
+            <Modal title={"群公告"} open={ boardModal } onCancel={() => setBoardModal(false)} onOk={() => {sendMessage(board, "notice"); }} okButtonProps={{disabled: identity(username) == "成员"}}>
                 <div style={{overflow: "scroll"}}>
                     <List
                         dataSource = {messageList.filter((message) => (message.msg_type === "notice"))}
@@ -1739,7 +1746,7 @@ const Screen = () => {
                     />
                 </div>
                 <>
-                    {identity(username) != "" ? (
+                    {identity(username) != "成员" ? (
                         <TextArea showCount={true} rows={4} value={board}/>
                     ) : <Result status={"warning"} title={"只有群管理与群主可编辑群公告"}/>}
                 </>
