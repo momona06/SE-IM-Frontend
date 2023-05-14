@@ -889,10 +889,6 @@ const Screen = () => {
         window.ws.send(JSON.stringify(data));
     };
 
-    const reply = (id: number) => {
-        sendMessage("", "reply", 1);
-    };
-
     const translateconfig = {
         headers:{
             "Access-Control-Allow-Origin": "*"
@@ -1220,40 +1216,45 @@ const Screen = () => {
                                                         renderItem={(item) => (
                                                             <List.Item key={ item.msg_id }>
                                                                 { item.msg_body != "该消息已被撤回" ? (
-                                                                    <Popover trigger={"contextMenu"} placement={"top"} content={
-                                                                        <Space direction={"horizontal"} size={"small"}>
-                                                                            <Button type={"text"} onClick={() => forward()}> 转发 </Button>
-                                                                            <Button type={"text"} onClick={() => reply(item.msg_id)}> 回复 </Button>
-                                                                            <Button type={"text"} onClick={() => translate(item.msg_body)}> 翻译 </Button>
+                                                                    <>
+                                                                        <Popover trigger={"contextMenu"} placement={"top"} content={
+                                                                            <Space direction={"horizontal"} size={"small"}>
+                                                                                <Button type={"text"} onClick={() => forward()}> 转发 </Button>
+                                                                                <Button type={"text"} onClick={() => {setReplying(true); setReplyMessageID(item.msg_id); setReplyMessageBody(item.msg_body);}}> 回复 </Button>
+                                                                                <Button type={"text"} onClick={() => translate(item.msg_body)}> 翻译 </Button>
+                                                                                { item.sender === window.username ? (
+                                                                                    <Button type={"text"} onClick={() => recall(item.msg_id)}> 撤回 </Button>
+                                                                                ) : null }
+                                                                            </Space>
+                                                                        }>
                                                                             { item.sender === window.username ? (
-                                                                                <Button type={"text"} onClick={() => recall(item.msg_id)}> 撤回 </Button>
-                                                                            ) : null }
-                                                                        </Space>
-                                                                    }>
-                                                                        { item.sender === window.username ? (
-                                                                            <div style={{ display: "flex", flexDirection: "row-reverse", justifyContent: "flex-start", marginLeft: "auto"}}>
-                                                                                <div style={{display: "flex", flexDirection: "column"}}>
-                                                                                    <List.Item.Meta avatar={<Avatar src={"https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxgeticon?seq=239472774&username=@c8ef32eea4f34c3becfba86e70bd5320e33c7eba9d35d382ed6185b9c3efbfe0&skey=@crypt_6df0f029_14c4f0a85beaf972ec58feb5ca7dc0e0"}/>}/>
-                                                                                    <h6>{item.sender}</h6>
+                                                                                <div style={{ display: "flex", flexDirection: "row-reverse", justifyContent: "flex-start", marginLeft: "auto"}}>
+                                                                                    <div style={{display: "flex", flexDirection: "column"}}>
+                                                                                        <List.Item.Meta avatar={<Avatar src={"https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxgeticon?seq=239472774&username=@c8ef32eea4f34c3becfba86e70bd5320e33c7eba9d35d382ed6185b9c3efbfe0&skey=@crypt_6df0f029_14c4f0a85beaf972ec58feb5ca7dc0e0"}/>}/>
+                                                                                        <h6>{item.sender}</h6>
+                                                                                    </div>
+                                                                                    <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#66B7FF"}}>
+                                                                                        { str2addr(item.msg_body) }
+                                                                                        <span> { item.msg_time } </span>
+                                                                                    </div>
                                                                                 </div>
-                                                                                <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#66B7FF"}}>
-                                                                                    { str2addr(item.msg_body) }
-                                                                                    <span> { item.msg_time } </span>
+                                                                            ) : (
+                                                                                <div style={{ display: "flex", flexDirection: "row"}}>
+                                                                                    <div style={{display: "flex", flexDirection: "column"}}>
+                                                                                        <List.Item.Meta avatar={<Avatar src={"https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxgeticon?seq=239472774&username=@c8ef32eea4f34c3becfba86e70bd5320e33c7eba9d35d382ed6185b9c3efbfe0&skey=@crypt_6df0f029_14c4f0a85beaf972ec58feb5ca7dc0e0"}/>}/>
+                                                                                        <h6>{item.sender}</h6>
+                                                                                    </div>
+                                                                                    <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF"}}>
+                                                                                        { str2addr(item.msg_body) }
+                                                                                        <span>{ item.msg_time }</span>
+                                                                                    </div>
                                                                                 </div>
-                                                                            </div>
-                                                                        ) : (
-                                                                            <div style={{ display: "flex", flexDirection: "row"}}>
-                                                                                <div style={{display: "flex", flexDirection: "column"}}>
-                                                                                    <List.Item.Meta avatar={<Avatar src={"https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxgeticon?seq=239472774&username=@c8ef32eea4f34c3becfba86e70bd5320e33c7eba9d35d382ed6185b9c3efbfe0&skey=@crypt_6df0f029_14c4f0a85beaf972ec58feb5ca7dc0e0"}/>}/>
-                                                                                    <h6>{item.sender}</h6>
-                                                                                </div>
-                                                                                <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF"}}>
-                                                                                    { str2addr(item.msg_body) }
-                                                                                    <span>{ item.msg_time }</span>
-                                                                                </div>
-                                                                            </div>
-                                                                        )}
-                                                                    </Popover>
+                                                                            )}
+                                                                        </Popover>
+                                                                        { item.msg_type === "reply" ? (
+                                                                            item.reply_id
+                                                                        ) : null}
+                                                                    </>
                                                                 ) : (
                                                                     <>
                                                                         { item.sender === window.username ? (
@@ -1303,8 +1304,10 @@ const Screen = () => {
                                                         </Space>
                                                     </div>
                                                     <Form form={form} layout={"horizontal"}>
+                                                        {replying ? (
+                                                            <p> {replyMessageBody} </p>
+                                                        ) : null}
                                                         <Form.Item name={"box"}>
-                                                            <Tag icon={<MessageOutlined/>} color="succuss">回复：</Tag>
                                                             <Mentions
                                                                 rows={4}
                                                                 onChange={onMsgChange}
@@ -1322,7 +1325,8 @@ const Screen = () => {
                                                         <Button
                                                             type="primary"
                                                             onClick={() => {
-                                                                sendMessage(messageBody, "text");
+                                                                replying ? sendMessage(messageBody, "reply", replyMessageID) : sendMessage(messageBody, "text");
+                                                                setReplying(false);
                                                             }}>
                                                             发送
                                                         </Button>
