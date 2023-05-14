@@ -987,7 +987,7 @@ const Screen = () => {
                 />
                 <Divider type={"horizontal"}/>
                 { roomInfo.is_private ? null : (
-                    <Card title={ `群聊名称 ${window.currentRoomName}` }>
+                    <Card title={ `群聊名称      ${window.currentRoomName}` }>
                         <Space direction={"vertical"}>
                             <Button type={"text"} onClick={() => {setBoardModal(true); }}>
                                 群公告
@@ -1737,26 +1737,32 @@ const Screen = () => {
             </div>
 
             <Modal title={"群公告"} open={ boardModal } onCancel={() => setBoardModal(false)} onOk={() => {sendMessage(messageBody, "notice"); console.log("messagelist:",messageList);}} okButtonProps={{disabled: identity(username) == "成员"}}>
-                <div style={{height: "60vh", overflow: "scroll"}}>
+                <div style={{height: "50vh", overflow: "scroll"}}>
                     <List
-                        grid={{gutter: 16, column: 1}}
+                        itemLayout={"vertical"}
                         dataSource = {messageList.filter((message) => (message.msg_type === "notice"))}
                         split = {false}
+                        footer={
+                            <>
+                                {identity(username) != "成员" ? (
+                                    <TextArea showCount={true} rows={4} onChange={onBoardChange}/>
+                                ) : <Result status={"warning"} title={"只有群管理与群主可编辑群公告"}/>}
+                            </>
+                        }
                         renderItem = {(item) => (
                             <Space direction={"vertical"}>
                                 <List.Item>
-                                    <Card title={item.sender} content={item.msg_body} size={"default"}/>
-                                    {item.msg_time}
+                                    <List.Item.Meta
+                                        avatar = {<Avatar src={"https://xsgames.co/randomusers/avatar.php?g=pixel"} />}
+                                        title = {item.sender}
+                                        description={item.msg_time}
+                                    />
+                                    {item.msg_body}
                                 </List.Item>
                             </Space>
                         )}
                     />
                 </div>
-                <>
-                    {identity(username) != "成员" ? (
-                        <TextArea showCount={true} rows={4} onChange={onBoardChange}/>
-                    ) : <Result status={"warning"} title={"只有群管理与群主可编辑群公告"}/>}
-                </>
             </Modal>
 
             <Modal title={ "创建群聊" } open={ createGroupModal } onOk={ newGroup } onCancel={() => setCreateGroupModal(false)}>
