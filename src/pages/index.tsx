@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import * as STRINGS from "../constants/string";
 import { request } from "../utils/network";
-import {message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar, Popover, Card, Divider, Row, Col, Upload, Switch, Mentions, Form, Modal, Checkbox, TreeSelect, UploadFile, Result} from "antd";
+import {message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar, Popover, Card, Divider, Row, Col, Upload, Switch, Mentions, Form, Modal, Checkbox, Tag, UploadFile, Result} from "antd";
 import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined, ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined, CommentOutlined, EllipsisOutlined, SmileOutlined, UploadOutlined, LoadingOutlined, PlusOutlined } from "@ant-design/icons";
 import type { UploadProps } from "antd";
 import * as CONS from "../constants/constants";
@@ -41,6 +41,7 @@ interface messageListData {
     msg_id: number;
     msg_type: string;
     msg_body: string;
+    reply_id?: number;
     msg_time: string;
     sender: string;
 }
@@ -57,7 +58,6 @@ export const isEmail = (val : string) => {
     return /^[A-Za-z0-9\u4e00-\u9fa5]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/i.test(val);
 };
 
-const { SHOW_PARENT } = TreeSelect;
 const { Meta } = Card;
 const { TextArea } = Input;
 
@@ -128,7 +128,6 @@ const Screen = () => {
     const [applyList, setApplyList] = useState<receiveData[]>([]);
     const [applyRefreshing, setApplyRefreshing] = useState<boolean>(false);
 
-    const [currentRoomName, setCurrentRoomName] = useState<string>("");
     const [friendListRefreshing, setFriendListRefreshing] = useState<boolean>(true);
     const [friendList, setFriendList] = useState<friendListData[]>([]);
 
@@ -720,29 +719,47 @@ const Screen = () => {
         window.ws.send(JSON.stringify(data));
     };
 
-    const sendMessage = (Message: string, MessageType: string) => {
+    const sendMessage = (Message: string, MessageType: string, reply_id?: number) => {
         if (Message != ""){
-            let data = {
-                "function": "send_message",
-                "msg_type": MessageType,
-                "msg_body": Message
-            };
+            let data = {}, newMessage = {};
+            let date = new Date();
+            if (MessageType === "reply"){
+                data = {
+                    "function": "send_message",
+                    "msg_type": MessageType,
+                    "msg_body": Message,
+                    "reply_id": reply_id
+                };
+                newMessage = {
+                    "msg_id": -1,
+                    "msg_type": MessageType,
+                    "msg_body": Message,
+                    "reply_id": reply_id,
+                    "msg_time": moment(date).format("YYYY-MM-DD HH:mm:ss"),
+                    "sender": window.username
+                };
+            }
+            else {
+                data = {
+                    "function": "send_message",
+                    "msg_type": MessageType,
+                    "msg_body": Message
+                };
+                newMessage = {
+                    "msg_id": -1,
+                    "msg_type": MessageType,
+                    "msg_body": Message,
+                    "msg_time": moment(date).format("YYYY-MM-DD HH:mm:ss"),
+                    "sender": window.username
+                };
+            }
             console.log(data);
             window.ws.send(JSON.stringify(data));
 
-            let date = new Date();
-            let newMessage = {
-                // 在收到ACK前暂置为-1， 判断对方是否收到可用-1判断
-                "msg_id": -1,
-                "msg_type": MessageType,
-                "msg_body": Message,
-                "msg_time": moment(date).format("YYYY-MM-DD HH:mm:ss"),
-                "sender": window.username
-            };
-            setMessageList(messageList => messageList.concat(newMessage));
+            setMessageList(messageList => messageList.concat(newMessage as messageListData));
             for (let room of roomList){
                 if (room.roomid === window.currentRoomID){
-                    room.message_list.push(newMessage);
+                    room.message_list.push(newMessage as messageListData);
                 }
             }
         }
@@ -850,7 +867,6 @@ const Screen = () => {
         console.log("leave", data);
         window.currentRoomID = 0;
         window.currentRoomName = "";
-        setCurrentRoomName("");
         setCreateGroupModal(false);
     };
 
@@ -862,7 +878,6 @@ const Screen = () => {
         window.ws.send(JSON.stringify(data));
         window.currentRoomID = 0;
         window.currentRoomName = "";
-        setCurrentRoomName("");
         setCreateGroupModal(false);
     };
 
@@ -875,10 +890,7 @@ const Screen = () => {
     };
 
     const reply = (id: number) => {
-        const data = {
-            "function": "something",
-            //按照发信息，
-        };
+        sendMessage("", "reply", 1);
     };
 
     const translateconfig = {
@@ -1292,6 +1304,7 @@ const Screen = () => {
                                                     </div>
                                                     <Form form={form} layout={"horizontal"}>
                                                         <Form.Item name={"box"}>
+                                                            <Tag icon={<MessageOutlined/>} color="succuss">回复：</Tag>
                                                             <Mentions
                                                                 rows={4}
                                                                 onChange={onMsgChange}
@@ -1310,7 +1323,6 @@ const Screen = () => {
                                                             type="primary"
                                                             onClick={() => {
                                                                 sendMessage(messageBody, "text");
-                                                                console.log("messagelist", messageList);
                                                             }}>
                                                             发送
                                                         </Button>
