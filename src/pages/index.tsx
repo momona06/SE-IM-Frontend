@@ -987,7 +987,7 @@ const Screen = () => {
                 />
                 <Divider type={"horizontal"}/>
                 { roomInfo.is_private ? null : (
-                    <Card title={ `群聊名称 ${currentRoomName}` }>
+                    <Card title={ `群聊名称 ${window.currentRoomName}` }>
                         <Space direction={"vertical"}>
                             <Button type={"text"} onClick={() => setBoardModal(true)}>
                                 群公告
@@ -1308,7 +1308,7 @@ const Screen = () => {
                                                             type="primary"
                                                             onClick={() => {
                                                                 sendMessage(messageBody, "text");
-                                                                setMessageBody("");
+                                                                console.log("messagelist", messageList);
                                                             }}>
                                                             发送
                                                         </Button>
@@ -1734,7 +1734,7 @@ const Screen = () => {
                 ) : null}
             </div>
 
-            <Modal title={"群公告"} open={ boardModal } onCancel={() => setBoardModal(false)} onOk={() => {sendMessage(messageBody, "notice"); }} okButtonProps={{disabled: identity(username) == "成员"}}>
+            <Modal title={"群公告"} open={ boardModal } onCancel={() => setBoardModal(false)} onOk={() => {sendMessage(messageBody, "notice"); console.log("messagelist:",messageList);}} okButtonProps={{disabled: identity(username) == "成员"}}>
                 <div style={{overflow: "scroll"}}>
                     <List
                         dataSource = {messageList.filter((message) => (message.msg_type === "notice"))}
