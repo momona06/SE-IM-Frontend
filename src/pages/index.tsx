@@ -1,32 +1,7 @@
 import React, { useEffect, useState } from "react";
 import * as STRINGS from "../constants/string";
 import { request } from "../utils/network";
-import {
-    message,
-    Input,
-    Button,
-    Space,
-    Layout,
-    List,
-    Menu,
-    Spin,
-    Badge,
-    Avatar,
-    Popover,
-    Card,
-    Divider,
-    Row,
-    Col,
-    Upload,
-    Switch,
-    Mentions,
-    Form,
-    Modal,
-    Checkbox,
-    TreeSelect,
-    UploadFile,
-    Result
-} from "antd";
+import {message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar, Popover, Card, Divider, Row, Col, Upload, Switch, Mentions, Form, Modal, Checkbox, TreeSelect, UploadFile, Result} from "antd";
 import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined, ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined, CommentOutlined, EllipsisOutlined, SmileOutlined, UploadOutlined, LoadingOutlined, PlusOutlined } from "@ant-design/icons";
 import type { UploadProps } from "antd";
 import * as CONS from "../constants/constants";
