@@ -261,6 +261,7 @@ const Screen = () => {
                     msg_id: data.msg_id,
                     msg_type: data.msg_type,
                     msg_body: data.msg_body,
+                    reply_id: data.reply_id,
                     msg_time: data.msg_time,
                     sender: data.sender
                 };
@@ -723,36 +724,50 @@ const Screen = () => {
         if (Message != ""){
             let data = {}, newMessage = {};
             let date = new Date();
-            if (MessageType === "reply"){
-                data = {
-                    "function": "send_message",
-                    "msg_type": MessageType,
-                    "msg_body": Message,
-                    "reply_id": reply_id
-                };
-                newMessage = {
-                    "msg_id": -1,
-                    "msg_type": MessageType,
-                    "msg_body": Message,
-                    "reply_id": reply_id,
-                    "msg_time": moment(date).format("YYYY-MM-DD HH:mm:ss"),
-                    "sender": window.username
-                };
-            }
-            else {
-                data = {
-                    "function": "send_message",
-                    "msg_type": MessageType,
-                    "msg_body": Message
-                };
-                newMessage = {
-                    "msg_id": -1,
-                    "msg_type": MessageType,
-                    "msg_body": Message,
-                    "msg_time": moment(date).format("YYYY-MM-DD HH:mm:ss"),
-                    "sender": window.username
-                };
-            }
+            // if (MessageType === "reply"){
+            //     data = {
+            //         "function": "send_message",
+            //         "msg_type": MessageType,
+            //         "msg_body": Message,
+            //         "reply_id": reply_id
+            //     };
+            //     newMessage = {
+            //         "msg_id": -1,
+            //         "msg_type": MessageType,
+            //         "msg_body": Message,
+            //         "reply_id": reply_id,
+            //         "msg_time": moment(date).format("YYYY-MM-DD HH:mm:ss"),
+            //         "sender": window.username
+            //     };
+            // }
+            // else {
+            //     data = {
+            //         "function": "send_message",
+            //         "msg_type": MessageType,
+            //         "msg_body": Message
+            //     };
+            //     newMessage = {
+            //         "msg_id": -1,
+            //         "msg_type": MessageType,
+            //         "msg_body": Message,
+            //         "msg_time": moment(date).format("YYYY-MM-DD HH:mm:ss"),
+            //         "sender": window.username
+            //     };
+            // }
+            data = {
+                "function": "send_message",
+                "msg_type": MessageType,
+                "msg_body": Message,
+                "reply_id": reply_id,
+            };
+            newMessage = {
+                "msg_id": -1,
+                "msg_type": MessageType,
+                "msg_body": Message,
+                "reply_id": reply_id,
+                "msg_time": moment(date).format("YYYY-MM-DD HH:mm:ss"),
+                "sender": window.username
+            };
             console.log(data);
             window.ws.send(JSON.stringify(data));
 
