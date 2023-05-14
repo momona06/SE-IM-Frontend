@@ -989,7 +989,7 @@ const Screen = () => {
                 { roomInfo.is_private ? null : (
                     <Card title={ `群聊名称 ${window.currentRoomName}` }>
                         <Space direction={"vertical"}>
-                            <Button type={"text"} onClick={() => setBoardModal(true)}>
+                            <Button type={"text"} onClick={() => {setBoardModal(true); }}>
                                 群公告
                             </Button>
                             <Button type={"text"} danger={true} onClick={leaveChatGroup}>
@@ -1146,10 +1146,11 @@ const Screen = () => {
                                                     <Button icon={<PlusOutlined />} type={"default"} onClick={() => setCreateGroupModal(true) }/>
                                                 </Space>
                                             </div>
+                                            <Divider type={"horizontal"}/>
                                             {roomListRefreshing ? (
                                                 <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />}/>
                                             ) : (
-                                                <div style={{overflow: "scroll"}}>
+                                                <div style={{overflow: "scroll", height: "80vh"}}>
                                                     {roomList.length === 0 ? (
                                                         <p>暂无会话</p>
                                                     ) : (
@@ -1199,7 +1200,8 @@ const Screen = () => {
                                                         </Popover>
                                                     </Space>
                                                 </div>
-                                                <div style={{padding: "24px", position: "relative", height: "70vh", left: 0, right: 0, overflow: "scroll"}}>
+                                                <Divider type={"horizontal"}/>
+                                                <div style={{padding: "24px", position: "relative", height: "60vh", overflow: "scroll"}}>
                                                     <List
                                                         dataSource={ messageList.filter((msg) => msg.msg_type != "notice") }
                                                         split={ false }
@@ -1735,14 +1737,15 @@ const Screen = () => {
             </div>
 
             <Modal title={"群公告"} open={ boardModal } onCancel={() => setBoardModal(false)} onOk={() => {sendMessage(messageBody, "notice"); console.log("messagelist:",messageList);}} okButtonProps={{disabled: identity(username) == "成员"}}>
-                <div style={{overflow: "scroll"}}>
+                <div style={{height: "60vh", overflow: "scroll"}}>
                     <List
+                        grid={{gutter: 16, column: 1}}
                         dataSource = {messageList.filter((message) => (message.msg_type === "notice"))}
                         split = {false}
                         renderItem = {(item) => (
                             <Space direction={"vertical"}>
                                 <List.Item>
-                                    <Card title={item.sender} content={item.msg_body}/>
+                                    <Card title={item.sender} content={item.msg_body} size={"default"}/>
                                     {item.msg_time}
                                 </List.Item>
                             </Space>
