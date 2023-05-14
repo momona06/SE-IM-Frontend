@@ -962,6 +962,7 @@ const Screen = () => {
                             <Popover placement={"rightBottom"} content={"这里是点击成员后的弹出卡片，应当显示publicInfo"} trigger={"click"}>
                                 <Card bordered={false} actions={[<UserAddOutlined key={"add_friend"} onClick={() => {
                                     window.otherUsername = item;
+                                    console.log("roominfo", roomInfo);
                                     addFriend();
                                 }}/>]}>
                                     <Meta
@@ -1783,7 +1784,6 @@ const Screen = () => {
                         <input id="text" name="username" type="text" value={"111111"} style={{display: "none"}}/>
                         <button type="submit"> 确认上传 </button>
                     </form>
-
                 </div>
                 {/* <Upload fileList={fileList} beforeUpload={(f, fList) => false} onChange={(info) => {
                     setFileList(() => info.fileList.length ? [info.fileList[info.fileList.length - 1]] : []);
