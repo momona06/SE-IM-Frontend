@@ -727,19 +727,19 @@ const Screen = () => {
                 "msg_type": MessageType,
                 "msg_body": Message
             };
+            console.log(data);
             window.ws.send(JSON.stringify(data));
 
             let date = new Date();
             let newMessage = {
                 // 在收到ACK前暂置为-1， 判断对方是否收到可用-1判断
                 "msg_id": -1,
-                "msg_type": "text",
+                "msg_type": MessageType,
                 "msg_body": Message,
                 "msg_time": moment(date).format("YYYY-MM-DD HH:mm:ss"),
                 "sender": window.username
             };
             setMessageList(messageList => messageList.concat(newMessage));
-            console.log("msg:", messageList);
             for (let room of roomList){
                 if (room.roomid === window.currentRoomID){
                     room.message_list.push(newMessage);
@@ -747,7 +747,7 @@ const Screen = () => {
             }
         }
         else {
-            message.error("消息不能为空", 1);
+            message.error("输入不能为空", 1);
         }
     };
 
