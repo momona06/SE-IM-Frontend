@@ -337,9 +337,6 @@ const Screen = () => {
             else if (data.function === "withdraw_overtime") {
                 message.error("消息超时", 1);
             }
-            else if (data.function === ""){
-
-            }
             else {
                 return;
             }
@@ -766,6 +763,7 @@ const Screen = () => {
         room.message_list.forEach(msg => {
             msg.read_list[position] = true;
         });
+        console.log(data);
         window.ws.send(JSON.stringify(data));
     };
 
@@ -957,7 +955,6 @@ const Screen = () => {
             "function": "fetch_message",
             "msg_id": msg_id
         };
-        console.log(data);
         window.ws.send(JSON.stringify(data));
     };
 
@@ -1278,6 +1275,7 @@ const Screen = () => {
                                                                                     setMessageList(item.message_list);
                                                                                     fetchRoomInfo(item.roomid);
                                                                                     getAllCombine(item.message_list);
+                                                                                    Read(item, roomInfo.mem_list);
                                                                                 }}>
                                                                                 <Space>
                                                                                     <Badge count={114514}>
