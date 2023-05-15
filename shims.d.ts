@@ -4,8 +4,11 @@ interface messageListData {
     msg_id: number;
     msg_type: string;
     msg_body: string;
+    reply_id?: number;
+    combine_list?: number[];
     msg_time: string;
     sender: string;
+    read_list: number[];
 }
 
 interface roomListData {

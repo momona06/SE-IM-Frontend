@@ -11,6 +11,8 @@ import {MentionsOptionProps} from "antd/es/mentions";
 import {CheckboxValueType} from "antd/es/checkbox/Group";
 import axios from "axios";
 import $ from "jquery";
+import {Simulate} from "react-dom/test-utils";
+import click = Simulate.click;
 
 interface friendListData {
     groupname: string;
@@ -42,8 +44,10 @@ interface messageListData {
     msg_type: string;
     msg_body: string;
     reply_id?: number;
+    combine_list?: number[];
     msg_time: string;
     sender: string;
+    read_list: number[];
 }
 
 interface roomInfoData {
@@ -166,6 +170,7 @@ const Screen = () => {
     // 消息转发
     const [forwardModal, setForwardModal] = useState<boolean>(false);
     const [forwardList, setForwardList] = useState<number[]>([]);
+    const [combineList, setCombineList] = useState<messageListData[]>([]);
 
     const [fileList, setFileList] = useState<UploadFile[]>([]);
     const [avatarModal, setAvatarModal] = useState<boolean>(false);
@@ -198,8 +203,12 @@ const Screen = () => {
         window.roomList = roomList;
     }, [roomList]);
 
+    useEffect(() => {
+        setRoomList(roomList => ((roomList.filter((val => val.is_top)).concat(roomList.filter(val => !val.is_top)))));
+    }, [roomTop]);
+
     const WSConnect = () => {
-        let DEBUG = false;
+        let DEBUG = true;
         window.ws = new WebSocket(DEBUG ? "ws://localhost:8000/wsconnect" : "wss://se-im-backend-overflowlab.app.secoder.net/wsconnect");
         window.ws.onopen = function () {
             setMenuItem(CONS.CHATFRAME);
@@ -250,13 +259,25 @@ const Screen = () => {
                 };
                 setRoomInfo(info);
             }
+            else if (data.function === "fetchmessage"){
+                let info = {
+                    msg_id: data.msg_id,
+                    msg_type: data.msg_type,
+                    msg_body: data.msg_body,
+                    msg_time: data.msg_time,
+                    sender: data.sender,
+                    combine_list: data.combine_list,
+                    read_list: data.read_list
+                };
+                setCombineList(combineList => combineList.concat(info));
+            }
             else if (data.function === "Ack2"){
                 // 将消息id置为已发送
                 let last = window.messageList.at(-1);
                 if (last){
                     last.msg_id = data.msg_id;
                     let temp = [last];
-                    setMessageList(messageList => window.messageList.slice(0, window.messageList.length - 1).concat(temp));
+                    setMessageList(window.messageList.slice(0, window.messageList.length - 1).concat(temp));
                 }
             }
             else if (data.function === "Msg"){
@@ -265,8 +286,10 @@ const Screen = () => {
                     msg_type: data.msg_type,
                     msg_body: data.msg_body,
                     reply_id: data.reply_id,
+                    combine_list: data.combine_list,
                     msg_time: data.msg_time,
-                    sender: data.sender
+                    sender: data.sender,
+                    read_list: data.read_list
                 };
                 for (let room of roomList){
                     if (room.roomid === data.room_id){
@@ -278,6 +301,9 @@ const Screen = () => {
                         setMessageList(messageList => messageList.concat(newMessage));
                     }
                 }
+                if (data.msg_type === "combine"){
+                    getAllCombine(messageList);
+                }
                 let ACK = {
                     "function": "acknowledge_message",
                     "is_back": false,
@@ -287,7 +313,7 @@ const Screen = () => {
                 window.ws.send(JSON.stringify(ACK));
             }
             else if (data.function === "apply_friend") {
-                if (data.message === "Has Been Sent"){
+                if (data.message === "List Has Been Sent"){
                     message.warning("申请已发送", 1);
                 }
                 if (data.message === "Is Already a Friend"){
@@ -310,7 +336,7 @@ const Screen = () => {
                     }
                 }
             }
-            else if (data.function === "withdraw_overtime"){
+            else if (data.function === "withdraw_overtime") {
                 message.error("消息超时", 1);
             }
             else {
@@ -729,7 +755,7 @@ const Screen = () => {
                 "function": "send_message",
                 "msg_type": MessageType,
                 "msg_body": Message,
-                "reply_id": reply_id,
+                "reply_id": reply_id
             };
             let date = new Date();
             let newMessage = {
@@ -738,7 +764,7 @@ const Screen = () => {
                 "msg_body": Message,
                 "reply_id": reply_id,
                 "msg_time": moment(date).format("YYYY-MM-DD HH:mm:ss"),
-                "sender": window.username
+                "sender": window.username,
             };
 
             console.log(data);
@@ -765,12 +791,16 @@ const Screen = () => {
     };
 
     const setTop = (set: boolean) => {
-        console.log("将置顶状态设置为" + set);
         const data = {
             "function": "revise_is_top",
             "chatroom_id": window.currentRoomID,
             "is_top": set,
         };
+        roomList.forEach(arr => {
+            if (arr.roomid === window.currentRoomID){
+                arr.is_top = set;
+            }
+        });
         setRoomTop(set);
         window.ws.send(JSON.stringify(data));
     };
@@ -852,10 +882,62 @@ const Screen = () => {
             temp.push(typeof arr === "number" ? arr : 0);
         });
         setForwardList(temp);
+        console.log("ids:", temp);
     };
 
     const onForwardRoomChanged = (value: number) => {
+        console.log("room", value);
         window.forwardRoomId = value;
+    };
+
+    // 合并转发
+    const forward = () => {
+        const data = {
+            function: "send_message",
+            msg_type: "combine",
+            msg_body: "",
+            combine_list: forwardList,
+            transroom_id: window.forwardRoomId
+        };
+        console.log(data);
+        window.ws.send(JSON.stringify(data));
+
+        let date = new Date();
+        let newMessage = {
+            "msg_id": -1,
+            "msg_type": "combine",
+            "msg_body": "",
+            "msg_time": moment(date).format("YYYY-MM-DD HH:mm:ss"),
+            "sender": window.username,
+            "combine_list": forwardList
+        };
+
+        for (let room of roomList){
+            if (room.roomid === window.forwardRoomId){
+                room.message_list.push(newMessage as messageListData);
+            }
+        }
+        setForwardModal(false);
+        window.forwardRoomId = 0;
+    };
+
+    const getAllCombine = (List: messageListData[]) => {
+        let combineMessages = List.filter(arr => arr.msg_type === "combine");
+        combineMessages.forEach((arr) => {
+            arr.combine_list?.forEach(id => {
+                fetchMessage(id);
+            });
+        });
+    };
+
+    // 获取单个消息
+    const fetchMessage = (msg_id: number) => {
+        let data = {
+            "function": "fetch_message",
+            "msg_id": msg_id
+        };
+        console.log(data);
+        window.ws.send(JSON.stringify(data));
     };
 
     const leaveChatGroup = () => {
@@ -895,7 +977,7 @@ const Screen = () => {
         }
     };
 
-    const translate = (message: string) =>{
+    const translate = (message: string) => {
         // e.preventDefault();
         axios.post(`/translate/${"translate?&doctype=json&type=AUTO&i="+message}`,{}, translateconfig)
             .then((res) => {
@@ -912,18 +994,6 @@ const Screen = () => {
         // .then((res) => res.json())
         // .then((data) => setTranslateResult(data.translateResult[0][0].tgt));
         // setTranslateModal(true);
-    };
-
-    // 合并转发
-    const forward = () => {
-        const data = {
-            function: "combine",
-            combine_list: forwardList,
-            transroom_id: window.forwardRoomId
-        };
-        window.ws.send(JSON.stringify(data));
-        setForwardModal(false);
-        window.forwardRoomId = 0;
     };
 
     const str2addr = (text : string) => {
@@ -975,7 +1045,7 @@ const Screen = () => {
                             <Popover placement={"rightBottom"} content={"这里是点击成员后的弹出卡片，应当显示publicInfo"} trigger={"click"}>
                                 <Card
                                     style={{ width: 200, marginTop: 8 }}
-                                    bordered={false} 
+                                    bordered={false}
                                     actions={[
                                         <UserAddOutlined key={"add_friend"} onClick={() => {
                                             window.otherUsername = item;
@@ -1014,11 +1084,11 @@ const Screen = () => {
                 )}
                 <Space direction={"horizontal"}>
                     <p>免打扰</p>
-                    <Switch defaultChecked={!roomNotice} onChange={setRoomNotice}/>
+                    <Switch checked={!roomNotice} onChange={setNotice}/>
                 </Space>
                 <Space direction={"horizontal"}>
                     <p>置顶</p>
-                    <Switch defaultChecked={roomTop} onChange={setRoomTop}/>
+                    <Switch checked={roomTop} onChange={setTop}/>
                 </Space>
             </Space>
         </div>
@@ -1044,7 +1114,8 @@ const Screen = () => {
                             paddingTop: "40px", paddingBottom: "30px", border: "1px solid transparent", borderRadius: "20px",
                             alignItems: "center", backgroundColor: "rgba(255,255,255,0.7)"
                         }}>
-                            <Input size="large"
+                            <Input 
+                                size="large"
                                 type="text"
                                 placeholder="请填写用户名"
                                 prefix={<UserOutlined />}
@@ -1090,7 +1161,8 @@ const Screen = () => {
                             用户注册
                         </h1>
                         <div style={{ display: "flex", flexDirection: "column", paddingLeft: "150px", paddingRight: "150px", paddingTop: "40px", paddingBottom: "30px", border: "1px solid transparent", borderRadius: "20px", alignItems: "center", backgroundColor: "rgba(255,255,255,0.7)"}}>
-                            <Input size={"large"}
+                            <Input 
+                                size={"large"}
                                 type="text"
                                 placeholder="请填写用户名"
                                 prefix={<UserOutlined />}
@@ -1099,7 +1171,8 @@ const Screen = () => {
                                 onChange={(e) => setUsername(e.target.value)}
                             />
                             <br />
-                            <Input.Password size="large"
+                            <Input.Password 
+                                size="large"
                                 type="text"
                                 maxLength={50}
                                 placeholder="请填写密码"
@@ -1108,7 +1181,8 @@ const Screen = () => {
                                 onChange={(e) => getPassword(e.target.value)}
                             />
                             <br />
-                            <Input.Password size="large"
+                            <Input.Password 
+                                size="large"
                                 maxLength={50}
                                 type="text"
                                 placeholder="请确认密码"
@@ -1117,14 +1191,16 @@ const Screen = () => {
                                 onChange={(e) => getVerification(e.target.value)}
                             />
                             <br />
-                            <Button type={"primary"} shape={"round"} icon={<UserAddOutlined />} size={"large"}
+                            <Button 
+                                type={"primary"} shape={"round"} icon={<UserAddOutlined />} size={"large"}
                                 onClick={()=>{verifyPassword(); }}>
-                                    注册账户
+                                注册账户
                             </Button>
                             <br />
-                            <Button type={"link"} icon={<ArrowLeftOutlined/>} size={"large"}
+                            <Button 
+                                type={"link"} icon={<ArrowLeftOutlined/>} size={"large"}
                                 onClick={() => {setCurrentPage(CONS.LOGIN); getPassword(password => "");}}>
-                                    返回登录
+                                返回登录
                             </Button>
                         </div>
                     </div>
@@ -1177,9 +1253,10 @@ const Screen = () => {
                                                                                     window.currentRoomID = item.roomid;
                                                                                     window.currentRoomName = item.roomname;
                                                                                     setRoomNotice(item.is_notice);
-                                                                                    setRoomTop(item.is_top);// setRoomPrivate(item.is_private);
+                                                                                    setRoomTop(item.is_top);
                                                                                     setMessageList(messageList => item.message_list);
                                                                                     fetchRoomInfo(item.roomid);
+                                                                                    getAllCombine(item.message_list);
                                                                                 }}>
                                                                                 <Space>
                                                                                     <Badge count={114514}>
@@ -1235,7 +1312,20 @@ const Screen = () => {
                                                                                         <h6>{item.sender}</h6>
                                                                                     </div>
                                                                                     <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#66B7FF"}}>
-                                                                                        { str2addr(item.msg_body) }
+                                                                                        { item.msg_type != "combine" ?  str2addr(item.msg_body) : (
+                                                                                            <Card title={"聊天记录"}>
+                                                                                                <List dataSource={combineList}
+                                                                                                    renderItem={(combine) => (
+                                                                                                        <List.Item key={combine.msg_id}>
+                                                                                                            {combine.sender + " " + combine.msg_body + " " + combine.msg_time}
+                                                                                                        </List.Item>
+                                                                                                    )}
+                                                                                                />
+                                                                                            </Card>
+                                                                                        )}
+                                                                                        <Popover trigger={"click"} content={item.read_list}>
+                                                                                            {item.read_list}
+                                                                                        </Popover>
                                                                                         <span> { item.msg_time } </span>
                                                                                     </div>
                                                                                 </div>
