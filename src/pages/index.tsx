@@ -201,12 +201,18 @@ const Screen = () => {
         window.roomList = roomList;
     }, [roomList]);
 
+    // 本地修改roomTop后改变会话列表顺序
     useEffect(() => {
         setRoomList(roomList => ((roomList.filter((val => val.is_top)).concat(roomList.filter(val => !val.is_top)))));
     }, [roomTop]);
 
+    // 当fetchRoomInfo回传成功后，执行read
+    useEffect(() => {
+        Read(roomInfo.mem_list);
+    }, [roomInfo]);
+
     const WSConnect = () => {
-        let DEBUG = true;
+        let DEBUG = false;
         window.ws = new WebSocket(DEBUG ? "ws://localhost:8000/wsconnect" : "wss://se-im-backend-overflowlab.app.secoder.net/wsconnect");
         window.ws.onopen = function () {
             setMenuItem(CONS.CHATFRAME);
@@ -747,24 +753,29 @@ const Screen = () => {
         window.ws.send(JSON.stringify(data));
     };
 
-    const Read = (room: roomListData, memList:string[]) => {
+    const Read = (memList:string[]) => {
         let position = memList.indexOf(window.username);
         let readMessageList: number[] = [];
-        room.message_list.filter((msg) => !msg.read_list[position]).forEach(arr => {
+        // 筛选所有未读信息
+        messageList.filter((msg) => !msg.read_list[position]).forEach(arr => {
+            console.log(arr);
             readMessageList.push(arr.msg_id);
         });
         const data = {
             "function": "read_message",
             "read_message_list": readMessageList,
             "read_user": window.username,
-            "chatroom_id": room.roomid
+            "chatroom_id": window.currentRoomID
         };
+        console.log("before:",messageList);
         // 在所有消息中将本人置为已读
-        room.message_list.forEach(msg => {
+        messageList.forEach(msg => {
             msg.read_list[position] = true;
         });
-        console.log(data);
-        window.ws.send(JSON.stringify(data));
+        console.log("after:",messageList);
+        if (typeof window.ws !== "undefined"){
+            window.ws.send(JSON.stringify(data));
+        }
     };
 
     const sendMessage = (Message: string, MessageType: string, reply_id?: number) => {
@@ -1067,7 +1078,6 @@ const Screen = () => {
                                     actions={[
                                         <UserAddOutlined key={"add_friend"} onClick={() => {
                                             window.otherUsername = item;
-                                            console.log("roominfo", roomInfo);
                                             addFriend();
                                         }}/>
                                     ]}
@@ -1132,7 +1142,7 @@ const Screen = () => {
                             paddingTop: "40px", paddingBottom: "30px", border: "1px solid transparent", borderRadius: "20px",
                             alignItems: "center", backgroundColor: "rgba(255,255,255,0.7)"
                         }}>
-                            <Input 
+                            <Input
                                 size="large"
                                 type="text"
                                 placeholder="请填写用户名"
@@ -1142,7 +1152,8 @@ const Screen = () => {
                                 onChange={(e) => getAccount(e.target.value)}
                             />
                             <br/>
-                            <Input.Password size="large"
+                            <Input.Password 
+                                size="large"
                                 type="text"
                                 maxLength={50}
                                 placeholder="请填写密码"
@@ -1159,7 +1170,8 @@ const Screen = () => {
                                         onClick={login}>
                                         登录
                                     </Button>
-                                    <Button type={"default"} size={"large"} shape={"round"} icon={<ArrowRightOutlined />}
+                                    <Button
+                                        type={"default"} size={"large"} shape={"round"} icon={<ArrowRightOutlined />}
                                         onClick={() => setCurrentPage(CONS.REGISTER)}>
                                         注册新账户
                                     </Button>
@@ -1179,7 +1191,7 @@ const Screen = () => {
                             用户注册
                         </h1>
                         <div style={{ display: "flex", flexDirection: "column", paddingLeft: "150px", paddingRight: "150px", paddingTop: "40px", paddingBottom: "30px", border: "1px solid transparent", borderRadius: "20px", alignItems: "center", backgroundColor: "rgba(255,255,255,0.7)"}}>
-                            <Input 
+                            <Input
                                 size={"large"}
                                 type="text"
                                 placeholder="请填写用户名"
@@ -1189,7 +1201,7 @@ const Screen = () => {
                                 onChange={(e) => setUsername(e.target.value)}
                             />
                             <br />
-                            <Input.Password 
+                            <Input.Password
                                 size="large"
                                 type="text"
                                 maxLength={50}
@@ -1199,7 +1211,7 @@ const Screen = () => {
                                 onChange={(e) => getPassword(e.target.value)}
                             />
                             <br />
-                            <Input.Password 
+                            <Input.Password
                                 size="large"
                                 maxLength={50}
                                 type="text"
@@ -1209,13 +1221,13 @@ const Screen = () => {
                                 onChange={(e) => getVerification(e.target.value)}
                             />
                             <br />
-                            <Button 
+                            <Button
                                 type={"primary"} shape={"round"} icon={<UserAddOutlined />} size={"large"}
                                 onClick={()=>{verifyPassword(); }}>
                                 注册账户
                             </Button>
                             <br />
-                            <Button 
+                            <Button
                                 type={"link"} icon={<ArrowLeftOutlined/>} size={"large"}
                                 onClick={() => {setCurrentPage(CONS.LOGIN); getPassword(password => "");}}>
                                 返回登录
@@ -1267,15 +1279,14 @@ const Screen = () => {
                                                                                 block
                                                                                 type={"text"}
                                                                                 onClick={()=>{
+                                                                                    fetchRoomInfo(item.roomid);
                                                                                     addRoom(item.roomid, item.roomname);
                                                                                     window.currentRoomID = item.roomid;
                                                                                     window.currentRoomName = item.roomname;
                                                                                     setRoomNotice(item.is_notice);
                                                                                     setRoomTop(item.is_top);
                                                                                     setMessageList(item.message_list);
-                                                                                    fetchRoomInfo(item.roomid);
                                                                                     getAllCombine(item.message_list);
-                                                                                    Read(item, roomInfo.mem_list);
                                                                                 }}>
                                                                                 <Space>
                                                                                     <Badge count={114514}>
@@ -1333,7 +1344,7 @@ const Screen = () => {
                                                                                     <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#66B7FF"}}>
                                                                                         <Popover trigger={"click"}>
                                                                                             <Button type={"text"} onClick={() => console.log("readList:", item.read_list)}>
-                                                                                                { item.read_list }
+                                                                                                点击查看readList
                                                                                             </Button>
                                                                                         </Popover>
                                                                                         { item.msg_type != "combine" ?  str2addr(item.msg_body) : (
@@ -1683,7 +1694,8 @@ const Screen = () => {
                                                     )}
                                                     {box === 1 ? (
                                                         <div style={{ margin: "5px", display: "flex", flexDirection: "column", alignItems: "center"}}>
-                                                            <Input size={"large"} maxLength={50}
+                                                            <Input
+                                                                size={"large"} maxLength={50}
                                                                 prefix={<UserOutlined/>}
                                                                 type="text"
                                                                 placeholder="请填写小组名"
@@ -1723,15 +1735,18 @@ const Screen = () => {
                                             <h3>用户名：{ window.username }</h3>
                                             <div style={{width: "400px", height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
                                                 <Space size={50}>
-                                                    <Button size={"large"} type={"primary"}
+                                                    <Button
+                                                        size={"large"} type={"primary"}
                                                         onClick={() => ((changeUserInfo === CONS.REVISE_USERNAME) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.REVISE_USERNAME))}>
                                                         修改用户名
                                                     </Button>
-                                                    <Button size={"large"} type={"primary"}
+                                                    <Button
+                                                        size={"large"} type={"primary"}
                                                         onClick={() => ((changeUserInfo === CONS.REVISE_PASSWORD) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.REVISE_PASSWORD))}>
                                                         修改密码
                                                     </Button>
-                                                    <Button size={"large"} type={"primary"}
+                                                    <Button
+                                                        size={"large"} type={"primary"}
                                                         onClick={() => ((changeUserInfo === CONS.REVISE_EMAIL) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.REVISE_EMAIL))}>
                                                         修改邮箱
                                                     </Button>
@@ -1744,7 +1759,8 @@ const Screen = () => {
                                                             </input>
                                                         </form>
                                                     </div> */}
-                                                    <Button size={"large"} type={"primary"}
+                                                    <Button
+                                                        size={"large"} type={"primary"}
                                                         onClick={() => setAvatarModal(true)}>
                                                         上传头像
                                                     </Button>
@@ -1753,7 +1769,8 @@ const Screen = () => {
 
                                             {changeUserInfo === CONS.REVISE_USERNAME ? (
                                                 <div style={{margin: "5px", display: "flex", flexDirection: "column", alignItems: "center"}}>
-                                                    <Input size={"large"} maxLength={50}
+                                                    <Input
+                                                        size={"large"} maxLength={50}
                                                         prefix={<UserOutlined/>}
                                                         type="text"
                                                         placeholder="请填写新用户名"
@@ -1805,7 +1822,8 @@ const Screen = () => {
                                                         onChange={(e) => getVerification(e.target.value)}
                                                     />
                                                     <br/>
-                                                    <Button size={"large"} type={"dashed"}
+                                                    <Button
+                                                        size={"large"} type={"dashed"}
                                                         onClick={verifyPassword}>
                                                         确认修改密码
                                                     </Button>
@@ -1844,7 +1862,8 @@ const Screen = () => {
 
                                             {changeUserInfo === CONS.WRITE_OFF ? (
                                                 <div style={{margin: "5px", display: "flex", flexDirection: "column", alignItems: "center"}}>
-                                                    <Input.Password size={"large"} maxLength={50}
+                                                    <Input.Password
+                                                        size={"large"} maxLength={50}
                                                         type="text"
                                                         placeholder="请填写密码"
                                                         prefix={<LockOutlined/>}
@@ -1861,7 +1880,8 @@ const Screen = () => {
                                                     <Button size={"large"} shape={"round"} type={"primary"} onClick={()=>logout()}>
                                                         登出
                                                     </Button>
-                                                    <Button size={"large"} shape={"round"} type={"primary"} danger={true}
+                                                    <Button
+                                                        size={"large"} shape={"round"} type={"primary"} danger={true}
                                                         onClick={() => ((changeUserInfo === CONS.WRITE_OFF) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.WRITE_OFF))}>
                                                         注销账户
                                                     </Button>
