@@ -47,7 +47,7 @@ interface messageListData {
     combine_list?: number[];
     msg_time: string;
     sender: string;
-    read_list: number[];
+    read_list: boolean[];
 }
 
 interface roomInfoData {
@@ -749,6 +749,19 @@ const Screen = () => {
         window.ws.send(JSON.stringify(data));
     };
 
+    const Read = (room: roomListData, memList:string[]) => {
+        let position = memList.indexOf(window.username);
+        let readMessageList: number[] = [];
+        room.message_list.filter((msg) => !msg.read_list[position]).forEach(arr => {
+            readMessageList.push(arr.msg_id);
+        });
+        const data = {
+            "chatroom_id": room.roomid,
+            "read_messaeg_list": readMessageList
+        };
+        window.ws.send(JSON.stringify(data));
+    };
+
     const sendMessage = (Message: string, MessageType: string, reply_id?: number) => {
         if (Message != ""){
             let data = {
@@ -765,15 +778,16 @@ const Screen = () => {
                 "reply_id": reply_id,
                 "msg_time": moment(date).format("YYYY-MM-DD HH:mm:ss"),
                 "sender": window.username,
+                "read_list": []
             };
 
             console.log(data);
             window.ws.send(JSON.stringify(data));
 
-            setMessageList(messageList => messageList.concat(newMessage as messageListData));
+            setMessageList(messageList => messageList.concat(newMessage));
             for (let room of roomList){
                 if (room.roomid === window.currentRoomID){
-                    room.message_list.push(newMessage as messageListData);
+                    room.message_list.push(newMessage);
                 }
             }
         }

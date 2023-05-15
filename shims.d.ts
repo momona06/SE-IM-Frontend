@@ -8,7 +8,7 @@ interface messageListData {
     combine_list?: number[];
     msg_time: string;
     sender: string;
-    read_list: number[];
+    read_list: boolean[];
 }
 
 interface roomListData {
