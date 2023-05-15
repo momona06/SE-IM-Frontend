@@ -754,7 +754,7 @@ const Screen = () => {
             readMessageList.push(arr.msg_id);
         });
         const data = {
-            "type": "read_diffuse",
+            "function": "read_message",
             "read_message_list": readMessageList,
             "read_user": window.username,
             "chatroom_id": room.roomid
