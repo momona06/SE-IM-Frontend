@@ -11,8 +11,6 @@ import {MentionsOptionProps} from "antd/es/mentions";
 import {CheckboxValueType} from "antd/es/checkbox/Group";
 import axios from "axios";
 import $ from "jquery";
-import {Simulate} from "react-dom/test-utils";
-import click = Simulate.click;
 
 interface friendListData {
     groupname: string;
@@ -338,6 +336,9 @@ const Screen = () => {
             }
             else if (data.function === "withdraw_overtime") {
                 message.error("消息超时", 1);
+            }
+            else if (data.function === ""){
+
             }
             else {
                 return;
@@ -756,9 +757,15 @@ const Screen = () => {
             readMessageList.push(arr.msg_id);
         });
         const data = {
-            "chatroom_id": room.roomid,
-            "read_messaeg_list": readMessageList
+            "type": "read_diffuse",
+            "read_message_list": readMessageList,
+            "read_user": window.username,
+            "chatroom_id": room.roomid
         };
+        // 在所有消息中将本人置为已读
+        room.message_list.forEach(msg => {
+            msg.read_list[position] = true;
+        });
         window.ws.send(JSON.stringify(data));
     };
 
@@ -1268,7 +1275,7 @@ const Screen = () => {
                                                                                     window.currentRoomName = item.roomname;
                                                                                     setRoomNotice(item.is_notice);
                                                                                     setRoomTop(item.is_top);
-                                                                                    setMessageList(messageList => item.message_list);
+                                                                                    setMessageList(item.message_list);
                                                                                     fetchRoomInfo(item.roomid);
                                                                                     getAllCombine(item.message_list);
                                                                                 }}>
@@ -1326,9 +1333,15 @@ const Screen = () => {
                                                                                         <h6>{item.sender}</h6>
                                                                                     </div>
                                                                                     <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#66B7FF"}}>
+                                                                                        <Popover trigger={"click"}>
+                                                                                            <Button type={"text"} onClick={() => console.log("readList:", item.read_list)}>
+                                                                                                { item.read_list }
+                                                                                            </Button>
+                                                                                        </Popover>
                                                                                         { item.msg_type != "combine" ?  str2addr(item.msg_body) : (
                                                                                             <Card title={"聊天记录"}>
-                                                                                                <List dataSource={combineList}
+                                                                                                <List
+                                                                                                    dataSource={combineList}
                                                                                                     renderItem={(combine) => (
                                                                                                         <List.Item key={combine.msg_id}>
                                                                                                             {combine.sender + " " + combine.msg_body + " " + combine.msg_time}
@@ -1337,9 +1350,6 @@ const Screen = () => {
                                                                                                 />
                                                                                             </Card>
                                                                                         )}
-                                                                                        <Popover trigger={"click"} content={item.read_list}>
-                                                                                            {item.read_list}
-                                                                                        </Popover>
                                                                                         <span> { item.msg_time } </span>
                                                                                     </div>
                                                                                 </div>
@@ -1350,7 +1360,18 @@ const Screen = () => {
                                                                                         <h6>{item.sender}</h6>
                                                                                     </div>
                                                                                     <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF"}}>
-                                                                                        { str2addr(item.msg_body) }
+                                                                                        { item.msg_type != "combine" ?  str2addr(item.msg_body) : (
+                                                                                            <Card title={"聊天记录"}>
+                                                                                                <List
+                                                                                                    dataSource={combineList}
+                                                                                                    renderItem={(combine) => (
+                                                                                                        <List.Item key={combine.msg_id}>
+                                                                                                            {combine.sender + " " + combine.msg_body + " " + combine.msg_time}
+                                                                                                        </List.Item>
+                                                                                                    )}
+                                                                                                />
+                                                                                            </Card>
+                                                                                        )}
                                                                                         <span>{ item.msg_time }</span>
                                                                                     </div>
                                                                                 </div>
