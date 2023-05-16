@@ -167,18 +167,25 @@ const Screen = () => {
     const [fileList, setFileList] = useState<UploadFile[]>([]);
     const [avatarModal, setAvatarModal] = useState<boolean>(false);
 
+    // 切换页面时 获取roomlist friendlist
     useEffect(() => {
-        if(currentPage === CONS.MAIN)
-        {
+        if(currentPage === CONS.MAIN) {
             if(menuItem === CONS.CHATFRAME) {
                 fetchRoomList();
                 fetchFriendList();
                 window.currentRoomID = 0;
+                window.currentRoomName = "";
+            }
+            else {
+                window.currentRoomID = 0;
+                window.currentRoomName = "";
             }
         }
     }, [currentPage, menuItem]);
+
     const [form] = Form.useForm();
 
+    // 更新全部好友
     useEffect(() => {
         let temp:string[] = [];
         friendList.forEach((arr) => {
@@ -187,11 +194,13 @@ const Screen = () => {
         setAllFriendList(temp);
     }, [friendList]);
 
+    // 当本地message更新
     useEffect(() => {
         window.messageList = messageList;
         console.log("msg changed", messageList);
-        if (window.memList){
-            Read(window.memList);
+        let last = messageList.at(-1);
+        if (last && last.sender != window.username){
+            Read();
         }
     }, [messageList]);
 
@@ -207,7 +216,7 @@ const Screen = () => {
     // 当fetchRoomInfo回传成功后 本地消息列表更新时，执行read / 更新memList
     useEffect(() => {
         window.memList = roomInfo.mem_list;
-        Read(roomInfo.mem_list);
+        Read();
     }, [roomInfo]);
 
     const WSConnect = () => {
@@ -263,6 +272,7 @@ const Screen = () => {
                 };
                 setRoomInfo(info);
             }
+            // 获取combine消息的内容
             else if (data.function === "fetchmessage"){
                 let info = {
                     msg_id: data.msg_id,
@@ -293,13 +303,9 @@ const Screen = () => {
                     combine_list: data.combine_list,
                     msg_time: data.msg_time,
                     sender: data.sender,
-                    read_list: data.read_list
+                    read_list: data.read_list // 自己为true
                 };
-                for (let room of roomList){
-                    if (room.roomid === data.room_id){
-                        room.message_list.push(newMessage);
-                    }
-                }
+                // 更新本地
                 if (data.room_id === window.currentRoomID){
                     // A无需将new msg加入messageList
                     if (data.sender != window.username) {
@@ -309,9 +315,16 @@ const Screen = () => {
                     else {
                         // 需更新 read list
                         let temp = [newMessage];
-                        setMessageList(window.messageList.slice(0, window.messageList.length - 1).concat(temp));
+                        setMessageList(messageList.slice(0, messageList.length - 1).concat(temp));
                     }
                 }
+                // 更新 roomlist
+                for (let room of roomList){
+                    if (room.roomid === data.room_id){
+                        room.message_list.push(newMessage);
+                    }
+                }
+
                 if (data.msg_type === "combine"){
                     getAllCombine(messageList);
                 }
@@ -323,21 +336,23 @@ const Screen = () => {
                 };
                 window.ws.send(JSON.stringify(ACK));
             }
-            // 对方已读消息
+            // 其他人已读消息
             else if (data.function === "read_message"){
                 if (data.read_user != window.username){
                     let readUser: string = data.read_user;
+                    // 已读消息id
                     let msgList: number[] = data.read_message_list;
                     if (msgList.length != 0){
-                        let position = window.memList.indexOf(readUser);
-
-                        // 遍历roomlist 修改roomlist中meg
+                        // 遍历roomlist 修改roomlist中msg
                         window.roomList.forEach(room => {
                             if (room.roomid === data.chatroom_id){
-                                room.message_list.filter(msg => (msgList.indexOf(msg.msg_id) !== -1)).forEach((arr) => {
-                                    arr.read_list[position] = true;
+                                room.message_list.filter(
+                                    msg => (msgList.indexOf(msg.msg_id) !== -1)).forEach((arr) => {
+                                    arr.read_list[room.index] = true;
                                 });
-                                setMessageList(room.message_list);
+                                if (data.chatroom_id === window.currentRoomID){
+                                    setMessageList(room.message_list);
+                                }
                             }
                         });
                     }
@@ -782,10 +797,15 @@ const Screen = () => {
         window.ws.send(JSON.stringify(data));
     };
 
-    const Read = (memList:string[]) => {
-        let position = memList.indexOf(window.username);
+    const Read = () => {
+        let position: number = -1;
+        roomList.forEach(room => {
+            if (room.roomid === window.currentRoomID){
+                position = room.index;
+            }
+        });
         if (position != -1){
-            console.log("read", position);
+            console.log("position", position);
             let readMessageList: number[] = [];
             // 筛选所有未读信息
             messageList.filter((msg) => (!msg.read_list[position] && msg.msg_id != -1)).forEach(arr => {
@@ -797,16 +817,28 @@ const Screen = () => {
                 "read_user": window.username,
                 "chatroom_id": window.currentRoomID
             };
-            // 在所有消息中将本人置为已读
-            messageList.forEach(msg => {
+            console.log(data);
+            window.ws.send(JSON.stringify(data));
+
+            // 本地消息状态全部置为已读
+            let temp = window.messageList;
+            temp.forEach(msg => {
                 msg.read_list[position] = true;
             });
-            if (typeof window.ws !== "undefined"){
-                window.ws.send(JSON.stringify(data));
+            setMessageList(temp);
+
+            // roomList 消息置为已读
+            for (let room of roomList){
+                if (room.roomid === window.currentRoomID){
+                    for (let msg of room.message_list){
+                        msg.read_list[position] = true;
+                    }
+                }
             }
         }
     };
 
+    // 会话列表中的未读消息数
     const getUnread = (room: roomListData) => {
         let num = 0;
         room.message_list.forEach(msg => {
@@ -837,7 +869,10 @@ const Screen = () => {
             };
             window.ws.send(JSON.stringify(data));
             console.log("send", newMessage);
+
+            // 更新本地messageList
             setMessageList(messageList => messageList.concat(newMessage));
+            // 更新roomList 消息
             for (let room of roomList){
                 if (room.roomid === window.currentRoomID){
                     room.message_list.push(newMessage);
@@ -863,6 +898,7 @@ const Screen = () => {
             "chatroom_id": window.currentRoomID,
             "is_top": set,
         };
+        // 依次更新 roomlist roomtop
         roomList.forEach(arr => {
             if (arr.roomid === window.currentRoomID){
                 arr.is_top = set;
@@ -878,6 +914,7 @@ const Screen = () => {
             "chatroom_id": window.currentRoomID,
             "is_notice": set,
         };
+        // 依次更新 roomlist roomnotice
         roomList.forEach(arr => {
             if (arr.roomid === window.currentRoomID){
                 arr.is_notice = set;
@@ -916,8 +953,8 @@ const Screen = () => {
         console.log("选中:", options);
     };
 
-    // @过滤自己
-    function selfFilter(element: string, index: number, array: string[]) {
+    // @ 过滤自己
+    function selfFilter(element: string) {
         if (element != window.username){
             return element;
         }

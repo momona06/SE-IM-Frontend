@@ -18,6 +18,7 @@ interface roomListData {
     is_top: boolean;
     is_private: boolean;
     message_list: messageListData[];
+    index: number;
 }
 
 declare global {
