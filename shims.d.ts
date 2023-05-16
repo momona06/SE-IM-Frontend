@@ -34,5 +34,6 @@ declare global {
         messageList: messageListData[]
         roomList: roomListData[]
         forwardRoomId: number
+        memList: string[]
     }
 }

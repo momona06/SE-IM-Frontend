@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import * as STRINGS from "../constants/string";
 import { request } from "../utils/network";
-import {message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar, Popover, Card, Divider, Row, Col, Upload, Switch, Mentions, Form, Modal, Checkbox, Select, UploadFile, Result} from "antd";
+import {isRead, forwardCard, str2addr, messageListData } from "../components/chat";
+import {message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar, Popover, Card, Divider, Row, Col, Upload, Switch, Mentions, Form, Modal, Checkbox, Select, UploadFile, Result,} from "antd";
 import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined, ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined, CommentOutlined, EllipsisOutlined, SmileOutlined, UploadOutlined, LoadingOutlined, PlusOutlined } from "@ant-design/icons";
 import type { UploadProps } from "antd";
 import * as CONS from "../constants/constants";
@@ -34,18 +35,7 @@ interface roomListData {
     is_top: boolean;
     is_private: boolean;
     message_list: messageListData[];
-}
-
-// 本地存储消息列表
-interface messageListData {
-    msg_id: number;
-    msg_type: string;
-    msg_body: string;
-    reply_id?: number;
-    combine_list?: number[];
-    msg_time: string;
-    sender: string;
-    read_list: boolean[];
+    index: number;
 }
 
 interface roomInfoData {
@@ -195,6 +185,10 @@ const Screen = () => {
 
     useEffect(() => {
         window.messageList = messageList;
+        console.log("msg changed", messageList);
+        if (window.memList){
+            Read(window.memList);
+        }
     }, [messageList]);
 
     useEffect(() => {
@@ -206,13 +200,14 @@ const Screen = () => {
         setRoomList(roomList => ((roomList.filter((val => val.is_top)).concat(roomList.filter(val => !val.is_top)))));
     }, [roomTop]);
 
-    // 当fetchRoomInfo回传成功后，执行read
+    // 当fetchRoomInfo回传成功后 本地消息列表更新时，执行read / 更新memList
     useEffect(() => {
+        window.memList = roomInfo.mem_list;
         Read(roomInfo.mem_list);
     }, [roomInfo]);
 
     const WSConnect = () => {
-        let DEBUG = false;
+        let DEBUG = true;
         window.ws = new WebSocket(DEBUG ? "ws://localhost:8000/wsconnect" : "wss://se-im-backend-overflowlab.app.secoder.net/wsconnect");
         window.ws.onopen = function () {
             setMenuItem(CONS.CHATFRAME);
@@ -259,7 +254,8 @@ const Screen = () => {
                     manager_list: data.manager_list,
                     master: data.master,
                     mem_count: data.mem_count,
-                    is_private: data.is_private
+                    is_private: data.is_private,
+                    index: data.index
                 };
                 setRoomInfo(info);
             }
@@ -301,8 +297,15 @@ const Screen = () => {
                     }
                 }
                 if (data.room_id === window.currentRoomID){
+                    // A无需将new msg加入messageList
                     if (data.sender != window.username) {
+                        console.log("msg", newMessage);
                         setMessageList(messageList => messageList.concat(newMessage));
+                    }
+                    else {
+                        // 需更新 read list
+                        let temp = [newMessage];
+                        setMessageList(window.messageList.slice(0, window.messageList.length - 1).concat(temp));
                     }
                 }
                 if (data.msg_type === "combine"){
@@ -315,6 +318,26 @@ const Screen = () => {
                     "count": 1
                 };
                 window.ws.send(JSON.stringify(ACK));
+            }
+            // 对方已读消息
+            else if (data.function === "read_message"){
+                if (data.read_user != window.username){
+                    let readUser: string = data.read_user;
+                    let msgList: number[] = data.read_message_list;
+                    if (msgList.length != 0){
+                        let position = window.memList.indexOf(readUser);
+
+                        // 遍历roomlist 修改roomlist中meg
+                        window.roomList.forEach(room => {
+                            if (room.roomid === data.chatroom_id){
+                                room.message_list.filter(msg => (msgList.indexOf(msg.msg_id) !== -1)).forEach((arr) => {
+                                    arr.read_list[position] = true;
+                                });
+                                setMessageList(room.message_list);
+                            }
+                        });
+                    }
+                }
             }
             else if (data.function === "apply_friend") {
                 if (data.message === "List Has Been Sent"){
@@ -334,6 +357,7 @@ const Screen = () => {
                             }
                         }
                         if (room.roomid === window.currentRoomID) {
+                            console.log("withdraw",room.message_list);
                             setMessageList(room.message_list);
                         }
                         break;
@@ -624,7 +648,8 @@ const Screen = () => {
         window.ws.send(JSON.stringify(data));
     };
 
-    const addFriend = () => {
+    const addFriend = (otherUsername: string) => {
+        window.otherUsername = otherUsername;
         const data = {
             "function": "apply",
             "from": window.username,
@@ -755,27 +780,37 @@ const Screen = () => {
 
     const Read = (memList:string[]) => {
         let position = memList.indexOf(window.username);
-        let readMessageList: number[] = [];
-        // 筛选所有未读信息
-        messageList.filter((msg) => !msg.read_list[position]).forEach(arr => {
-            console.log(arr);
-            readMessageList.push(arr.msg_id);
-        });
-        const data = {
-            "function": "read_message",
-            "read_message_list": readMessageList,
-            "read_user": window.username,
-            "chatroom_id": window.currentRoomID
-        };
-        console.log("before:",messageList);
-        // 在所有消息中将本人置为已读
-        messageList.forEach(msg => {
-            msg.read_list[position] = true;
-        });
-        console.log("after:",messageList);
-        if (typeof window.ws !== "undefined"){
-            window.ws.send(JSON.stringify(data));
+        if (position != -1){
+            console.log("read", position);
+            let readMessageList: number[] = [];
+            // 筛选所有未读信息
+            messageList.filter((msg) => (!msg.read_list[position] && msg.msg_id != -1)).forEach(arr => {
+                readMessageList.push(arr.msg_id);
+            });
+            const data = {
+                "function": "read_message",
+                "read_message_list": readMessageList,
+                "read_user": window.username,
+                "chatroom_id": window.currentRoomID
+            };
+            // 在所有消息中将本人置为已读
+            messageList.forEach(msg => {
+                msg.read_list[position] = true;
+            });
+            if (typeof window.ws !== "undefined"){
+                window.ws.send(JSON.stringify(data));
+            }
         }
+    };
+
+    const getUnread = (room: roomListData) => {
+        let num = 0;
+        room.message_list.forEach(msg => {
+            if (!msg.read_list[room.index]){
+                num += 1;
+            }
+        });
+        return num;
     };
 
     const sendMessage = (Message: string, MessageType: string, reply_id?: number) => {
@@ -796,10 +831,8 @@ const Screen = () => {
                 "sender": window.username,
                 "read_list": []
             };
-
-            console.log(data);
             window.ws.send(JSON.stringify(data));
-
+            console.log("send", newMessage);
             setMessageList(messageList => messageList.concat(newMessage));
             for (let room of roomList){
                 if (room.roomid === window.currentRoomID){
@@ -951,6 +984,7 @@ const Screen = () => {
         window.forwardRoomId = 0;
     };
 
+    // 获取被转发的消息
     const getAllCombine = (List: messageListData[]) => {
         let combineMessages = List.filter(arr => arr.msg_type === "combine");
         combineMessages.forEach((arr) => {
@@ -1025,26 +1059,6 @@ const Screen = () => {
         // setTranslateModal(true);
     };
 
-    const str2addr = (text : string) => {
-        const urlRegex = /(https?:\/\/[^\s]+)/g; // 匹配 URL 的正则表达式
-        const parts = text.split(urlRegex); // 使用正则表达式拆分字符串
-        return (
-            <div>
-                {parts.map((part, i) => {
-                    if (part.match(urlRegex)) {
-                        return (
-                            <a href= "_blank" rel="noopener noreferrer" key={i}>
-                                {part}
-                            </a>
-                        );
-                    } else {
-                        return <span key={ i }>{part}</span>;
-                    }
-                })}
-            </div>
-        );
-    };
-
     const logReturn = () => {
         $("#loader").load(function() {
             let text = $("#loader").contents().find("body").text();
@@ -1053,6 +1067,7 @@ const Screen = () => {
         });
     };
 
+    // 判断成员身份
     function identity(mem: string) {
         if (mem === roomInfo.master){
             return "群主";
@@ -1067,36 +1082,38 @@ const Screen = () => {
         <div style={{padding: "12px"}}>
             <Space direction={"vertical"}>
                 <List
-                    grid={{gutter: 16, column: 4}}
-                    dataSource={ roomInfo.mem_list }
+                    grid={{gutter: 16, column: 4, xs: 1, sm: 2, md: 4, lg: 4, xl: 6, xxl: 3,}}
+                    dataSource={roomInfo.mem_list}
                     renderItem={(item) => (
                         <List.Item>
                             <Popover placement={"rightBottom"} content={"这里是点击成员后的弹出卡片，应当显示publicInfo"} trigger={"click"}>
                                 <Card
-                                    style={{ width: 200, marginTop: 8 }}
+                                    style={{width: 200, marginTop: 8}}
                                     bordered={false}
-                                    actions={[
+                                    actions={item !== window.username ? [
                                         <UserAddOutlined key={"add_friend"} onClick={() => {
-                                            window.otherUsername = item;
-                                            addFriend();
+                                            addFriend(item);
                                         }}/>
-                                    ]}
-                                >
+                                    ] : []}>
                                     <Meta
-                                        avatar = {<Avatar src="https://xsgames.co/randomusers/avatar.php?g=pixel" />}
-                                        title = { item }
-                                        description = {identity(item)}
+                                        avatar={<Avatar src="https://xsgames.co/randomusers/avatar.php?g=pixel"/>}
+                                        title={item}
+                                        description={!roomInfo.is_private ? identity(item) : null}
                                     />
                                 </Card>
                             </Popover>
                         </List.Item>
                     )}
                 />
+                <Button type={"default"} icon={<PlusOutlined />} size={"large"}/>
+
                 <Divider type={"horizontal"}/>
-                { roomInfo.is_private ? null : (
-                    <Card title={ `群聊名称      ${window.currentRoomName}` }>
+                {roomInfo.is_private ? null : (
+                    <Card title={`群聊名称      ${window.currentRoomName}`}>
                         <Space direction={"vertical"}>
-                            <Button type={"text"} onClick={() => {setBoardModal(true); }}>
+                            <Button type={"text"} onClick={() => {
+                                setBoardModal(true);
+                            }}>
                                 群公告
                             </Button>
                             <Button type={"text"} danger={true} onClick={leaveChatGroup}>
@@ -1152,7 +1169,7 @@ const Screen = () => {
                                 onChange={(e) => getAccount(e.target.value)}
                             />
                             <br/>
-                            <Input.Password 
+                            <Input.Password
                                 size="large"
                                 type="text"
                                 maxLength={50}
@@ -1166,7 +1183,8 @@ const Screen = () => {
                                 width: "400px", height: "50px", margin: "5px", display: "flex", flexDirection: "row"
                             }}>
                                 <Space size={150}>
-                                    <Button type={"primary"} size={"large"} shape={"round"} icon={<LoginOutlined />}
+                                    <Button
+                                        type={"primary"} size={"large"} shape={"round"} icon={<LoginOutlined />}
                                         onClick={login}>
                                         登录
                                     </Button>
@@ -1289,7 +1307,7 @@ const Screen = () => {
                                                                                     getAllCombine(item.message_list);
                                                                                 }}>
                                                                                 <Space>
-                                                                                    <Badge count={114514}>
+                                                                                    <Badge count={getUnread(item)}>
                                                                                         {/* TODO: 添加会话的图标 */}
                                                                                         <Avatar icon={ <CommentOutlined/> }/>
                                                                                     </Badge>
@@ -1338,57 +1356,30 @@ const Screen = () => {
                                                                             { item.sender === window.username ? (
                                                                                 <div style={{ display: "flex", flexDirection: "row-reverse", justifyContent: "flex-start", marginLeft: "auto"}}>
                                                                                     <div style={{display: "flex", flexDirection: "column"}}>
-                                                                                        <List.Item.Meta avatar={<Avatar src={"https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxgeticon?seq=239472774&username=@c8ef32eea4f34c3becfba86e70bd5320e33c7eba9d35d382ed6185b9c3efbfe0&skey=@crypt_6df0f029_14c4f0a85beaf972ec58feb5ca7dc0e0"}/>}/>
+                                                                                        <List.Item.Meta avatar/>
                                                                                         <h6>{item.sender}</h6>
                                                                                     </div>
                                                                                     <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#66B7FF"}}>
-                                                                                        <Popover trigger={"click"}>
-                                                                                            <Button type={"text"} onClick={() => console.log("readList:", item.read_list)}>
-                                                                                                点击查看readList
-                                                                                            </Button>
-                                                                                        </Popover>
-                                                                                        { item.msg_type != "combine" ?  str2addr(item.msg_body) : (
-                                                                                            <Card title={"聊天记录"}>
-                                                                                                <List
-                                                                                                    dataSource={combineList}
-                                                                                                    renderItem={(combine) => (
-                                                                                                        <List.Item key={combine.msg_id}>
-                                                                                                            {combine.sender + " " + combine.msg_body + " " + combine.msg_time}
-                                                                                                        </List.Item>
-                                                                                                    )}
-                                                                                                />
-                                                                                            </Card>
-                                                                                        )}
+                                                                                        { isRead(item.read_list, roomInfo.mem_list, roomInfo.is_private, window.username) }
+                                                                                        { item.msg_type != "combine" ?  str2addr(item.msg_body) : (forwardCard(combineList))}
                                                                                         <span> { item.msg_time } </span>
                                                                                     </div>
                                                                                 </div>
                                                                             ) : (
                                                                                 <div style={{ display: "flex", flexDirection: "row"}}>
                                                                                     <div style={{display: "flex", flexDirection: "column"}}>
-                                                                                        <List.Item.Meta avatar={<Avatar src={"https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxgeticon?seq=239472774&username=@c8ef32eea4f34c3becfba86e70bd5320e33c7eba9d35d382ed6185b9c3efbfe0&skey=@crypt_6df0f029_14c4f0a85beaf972ec58feb5ca7dc0e0"}/>}/>
+                                                                                        <List.Item.Meta avatar/>
                                                                                         <h6>{item.sender}</h6>
                                                                                     </div>
                                                                                     <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF"}}>
-                                                                                        { item.msg_type != "combine" ?  str2addr(item.msg_body) : (
-                                                                                            <Card title={"聊天记录"}>
-                                                                                                <List
-                                                                                                    dataSource={combineList}
-                                                                                                    renderItem={(combine) => (
-                                                                                                        <List.Item key={combine.msg_id}>
-                                                                                                            {combine.sender + " " + combine.msg_body + " " + combine.msg_time}
-                                                                                                        </List.Item>
-                                                                                                    )}
-                                                                                                />
-                                                                                            </Card>
-                                                                                        )}
-                                                                                        <span>{ item.msg_time }</span>
+                                                                                        { isRead(item.read_list, roomInfo.mem_list, roomInfo.is_private, window.username) }
+                                                                                        { item.msg_type != "combine" ?  str2addr(item.msg_body) : (forwardCard(combineList))}
+                                                                                        <span> { item.msg_time } </span>
                                                                                     </div>
                                                                                 </div>
                                                                             )}
                                                                         </Popover>
-                                                                        { item.msg_type === "reply" ? (
-                                                                            item.reply_id
-                                                                        ) : null}
+                                                                        { item.msg_type === "reply" ? (item.reply_id) : null}
                                                                     </>
                                                                 ) : (
                                                                     <>
@@ -1399,7 +1390,7 @@ const Screen = () => {
                                                                                     <h6>{item.sender}</h6>
                                                                                 </div>
                                                                                 <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#66B7FF"}}>
-                                                                                    { str2addr(item.msg_body) }
+                                                                                    <p>{ "该消息已被撤回" }</p>
                                                                                     <span> { item.msg_time } </span>
                                                                                 </div>
                                                                             </div>
@@ -1410,7 +1401,7 @@ const Screen = () => {
                                                                                     <h6>{item.sender}</h6>
                                                                                 </div>
                                                                                 <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF"}}>
-                                                                                    <p>{ item.msg_body }</p>
+                                                                                    <p>{ "该消息已被撤回" }</p>
                                                                                     <span>{ item.msg_time }</span>
                                                                                 </div>
                                                                             </div>
@@ -1674,20 +1665,18 @@ const Screen = () => {
                                                         <div style={{ width: "400px", height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
                                                             <Button
                                                                 type="primary"
-                                                                onClick={() => ((box === 1) ? setBox(0) : setBox(1))}
-                                                            >
+                                                                onClick={() => ((box === 1) ? setBox(0) : setBox(1))}>
                                                                 添加至小组
                                                             </Button>
                                                             <Button
                                                                 type="primary"
-                                                                onClick={() => (deleteFriend())}
-                                                            >
+                                                                onClick={() => (deleteFriend())}>
                                                                 删除好友
                                                             </Button>
                                                         </div>
                                                     ) : (
                                                         <div style={{ width: "200px", height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
-                                                            <Button type="primary" onClick={() => {addFriend();}}>
+                                                            <Button type="primary" onClick={() => addFriend(window.otherUsername)}>
                                                                 添加好友
                                                             </Button>
                                                         </div>
@@ -1895,6 +1884,7 @@ const Screen = () => {
                     </div>
                 ) : null}
             </div>
+
 
             <Modal title={"群公告"} open={ boardModal } onCancel={() => setBoardModal(false)} onOk={() => {sendMessage(messageBody, "notice"); console.log("messagelist:",messageList);}} okButtonProps={{disabled: identity(username) == "成员"}}>
                 <div style={{height: "50vh", overflow: "scroll"}}>
