@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from "react";
 import * as STRINGS from "../constants/string";
+import * as CONS from "../constants/constants";
 import { request } from "../utils/network";
 import {isRead, forwardCard, str2addr, messageListData } from "../components/chat";
-import {message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar, Popover, Card, Divider, Row, Col, Upload, Switch, Mentions, Form, Modal, Checkbox, Select, UploadFile, Result,} from "antd";
-import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined, ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined, CommentOutlined, EllipsisOutlined, SmileOutlined, UploadOutlined, LoadingOutlined, PlusOutlined } from "@ant-design/icons";
+import {message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar, Popover, Card, Divider, Row, Col,
+    Upload, Switch, Mentions, Form, Modal, Checkbox, Select, UploadFile, Result,} from "antd";
+import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined,
+    ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined,
+    CommentOutlined, EllipsisOutlined, SmileOutlined, UploadOutlined, LoadingOutlined, PlusOutlined,
+    UserSwitchOutlined, IdcardOutlined, UserDeleteOutlined } from "@ant-design/icons";
 import type { UploadProps } from "antd";
-import * as CONS from "../constants/constants";
 import moment from "moment";
 import emojiList from "../components/emojiList";
 import {MentionsOptionProps} from "antd/es/mentions";
@@ -869,12 +873,16 @@ const Screen = () => {
     };
 
     const setNotice = (set: boolean) => {
-        console.log("将免打扰设置为" + set);
         const data = {
             "function": "revise_is_notice",
             "chatroom_id": window.currentRoomID,
             "is_notice": set,
         };
+        roomList.forEach(arr => {
+            if (arr.roomid === window.currentRoomID){
+                arr.is_notice = set;
+            }
+        });
         setRoomNotice(set);
         window.ws.send(JSON.stringify(data));
     };
@@ -1013,6 +1021,7 @@ const Screen = () => {
         window.currentRoomID = 0;
         window.currentRoomName = "";
         setCreateGroupModal(false);
+        fetchRoomList();
     };
 
     const deleteChatGroup = () => {
@@ -1034,7 +1043,7 @@ const Screen = () => {
         window.ws.send(JSON.stringify(data));
     };
 
-    const translateconfig = {
+    const translateConfig = {
         headers:{
             "Access-Control-Allow-Origin": "*"
         }
@@ -1042,7 +1051,7 @@ const Screen = () => {
 
     const translate = (message: string) => {
         // e.preventDefault();
-        axios.post(`/translate/${"translate?&doctype=json&type=AUTO&i="+message}`,{}, translateconfig)
+        axios.post(`/translate/${"translate?&doctype=json&type=AUTO&i="+message}`,{}, translateConfig)
             .then((res) => {
                 console.log(res);
                 setTranslateResult(res.data.translateResult[0][0].tgt);
@@ -1070,12 +1079,55 @@ const Screen = () => {
     // 判断成员身份
     function identity(mem: string) {
         if (mem === roomInfo.master){
-            return "群主";
+            return CONS.MASTER;
         }
         else {
-            return roomInfo.manager_list.indexOf(mem) === -1 ? "成员" : "管理员";
+            return roomInfo.manager_list.indexOf(mem) === -1 ? CONS.MEMBER : CONS.MANAGER;
         }
     }
+
+    const setManager = (username: string) => {
+        if (identity(username) === CONS.MEMBER){
+            let data = {
+                "function": "appoint_manager",
+                "chatroom_id": window.currentRoomID,
+                "manager_name": username
+            };
+            window.ws.send(JSON.stringify(data));
+            roomInfo.manager_list.push(username);
+        }
+        if (identity(username) === CONS.MANAGER){
+            let data = {
+                "function": "remove_manager",
+                "chatroom_id": window.currentRoomID,
+                "manager_name": username
+            };
+            window.ws.send(JSON.stringify(data));
+            let pos = roomInfo.manager_list.indexOf(username);
+            roomInfo.manager_list.splice(pos, 1);
+        }
+    };
+
+    const setMaster = (username: string) => {
+        let data = {
+            "function": "transfer_master",
+            "chatroom_id": window.currentRoomID,
+            "new_master_name": username
+        };
+        window.ws.send(JSON.stringify(data));
+        roomInfo.master = username;
+    };
+
+    const removeMem = (username: string) => {
+        let data = {
+            "function": "remove_group_member",
+            "chatroom_id": window.currentRoomID,
+            "member_name": username
+        };
+        window.ws.send(JSON.stringify(data));
+        let pos = roomInfo.mem_list.indexOf(username);
+        roomInfo.mem_list.splice(pos, 1);
+    };
 
     //会话具体信息
     const roomInfoPage = (
@@ -1090,11 +1142,28 @@ const Screen = () => {
                                 <Card
                                     style={{width: 200, marginTop: 8}}
                                     bordered={false}
-                                    actions={item !== window.username ? [
-                                        <UserAddOutlined key={"add_friend"} onClick={() => {
-                                            addFriend(item);
-                                        }}/>
-                                    ] : []}>
+                                    actions={[
+                                        (item !== window.username ?
+                                            <UserAddOutlined key={"add_friend"} onClick={() => {
+                                                addFriend(item);
+                                            }}/> : null
+                                        ),
+                                        (identity(window.username) === CONS.MASTER ?
+                                            <UserSwitchOutlined key={"setManager"} onClick={() => {
+                                                setManager(item);
+                                            }}/> : null
+                                        ),
+                                        (identity(window.username) === CONS.MASTER ?
+                                            <IdcardOutlined key={"setMaster"} onClick={() => {
+                                                setMaster(item);
+                                            }}/> : null
+                                        ),
+                                        (identity(window.username) > identity(item) ?
+                                            <UserDeleteOutlined key={"kick"} onClick={() => {
+                                                removeMem(item);
+                                            }}/> : null
+                                        )
+                                    ]}>
                                     <Meta
                                         avatar={<Avatar src="https://xsgames.co/randomusers/avatar.php?g=pixel"/>}
                                         title={item}
@@ -1119,7 +1188,7 @@ const Screen = () => {
                             <Button type={"text"} danger={true} onClick={leaveChatGroup}>
                                 退出群聊
                             </Button>
-                            {identity(window.username) === "群主" ? (
+                            {identity(window.username) === CONS.MASTER ? (
                                 <Button type={"text"} danger={true} onClick={deleteChatGroup}>
                                     解散群聊
                                 </Button>
@@ -1307,7 +1376,7 @@ const Screen = () => {
                                                                                     getAllCombine(item.message_list);
                                                                                 }}>
                                                                                 <Space>
-                                                                                    <Badge count={getUnread(item)}>
+                                                                                    <Badge count={item.is_notice ? getUnread(item) : 0}>
                                                                                         {/* TODO: 添加会话的图标 */}
                                                                                         <Avatar icon={ <CommentOutlined/> }/>
                                                                                     </Badge>
@@ -1886,14 +1955,14 @@ const Screen = () => {
             </div>
 
 
-            <Modal title={"群公告"} open={ boardModal } onCancel={() => setBoardModal(false)} onOk={() => {sendMessage(messageBody, "notice"); console.log("messagelist:",messageList);}} okButtonProps={{disabled: identity(username) == "成员"}}>
+            <Modal title={"群公告"} open={ boardModal } onCancel={() => setBoardModal(false)} onOk={() => {sendMessage(messageBody, "notice"); console.log("messagelist:",messageList);}} okButtonProps={{disabled: identity(username) == CONS.MANAGER}}>
                 <div style={{height: "50vh", overflow: "scroll"}}>
                     <List
                         itemLayout={"vertical"}
                         dataSource = {messageList.filter((message) => (message.msg_type === "notice"))}
                         footer={
                             <>
-                                {identity(username) != "成员" ? (
+                                {identity(username) != CONS.MEMBER ? (
                                     <TextArea showCount={true} rows={4} onChange={onBoardChange}/>
                                 ) : <Result status={"warning"} title={"只有群管理与群主可编辑群公告"}/>}
                             </>

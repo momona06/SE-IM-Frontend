@@ -21,3 +21,8 @@ export const NEWFRIEND = 0;
 export const PUBLICINFO = 1;
 export const SEARCH = 3;
 export const EMPTY = -1;
+
+// 身份
+export const MASTER = 3;
+export const MANAGER = 2;
+export const MEMBER = 1;
