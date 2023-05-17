@@ -292,7 +292,7 @@ const Screen = () => {
                     combine_list: data.combine_list,
                     read_list: data.read_list,
                     avatar: data.avatar,
-                    delete_list: data.delete_list
+                    is_delete: data.is_delete
                 };
                 setCombineList(combineList => combineList.concat(info));
             }
@@ -316,7 +316,7 @@ const Screen = () => {
                     sender: data.sender,
                     read_list: data.read_list, // 自己为true
                     avatar: data.avatar,
-                    delete_list: data.delete_list
+                    is_delete: data.is_delete
                 };
                 // 更新本地
                 if (data.room_id === window.currentRoomID){
@@ -882,7 +882,7 @@ const Screen = () => {
                 "sender": window.username,
                 "avatar": window.userAvatar,
                 "read_list": [],
-                "delete_list": [],
+                "is_delete": false,
             };
             window.ws.send(JSON.stringify(data));
             console.log("send", newMessage);
@@ -919,7 +919,7 @@ const Screen = () => {
                 "sender": window.username,
                 "avatar": window.userAvatar,
                 "read_list": [],
-                "delete_list": [],
+                "is_delete": false,
             };
             setMessageList(messageList => messageList.concat(newMessage));
             console.log(messageList);
@@ -1531,7 +1531,7 @@ const Screen = () => {
                                                 <Divider type={"horizontal"}/>
                                                 <div style={{padding: "24px", position: "relative", height: "60vh", overflow: "scroll"}}>
                                                     <List
-                                                        dataSource={ messageList.filter((msg) => (msg.msg_type != "notice" && msg.delete_list[window.memList.lastIndexOf(window.username)] === false)) }
+                                                        dataSource={ messageList.filter((msg) => (msg.msg_type != "notice" && msg.is_delete === false)) }
                                                         split={ false }
                                                         renderItem={(item) => (
                                                             <List.Item key={ item.msg_id }>
