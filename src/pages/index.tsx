@@ -1133,7 +1133,7 @@ const Screen = () => {
             window.ws.send(JSON.stringify(data));
             roomInfo.manager_list.push(username);
         }
-        if (identity(username) === CONS.MANAGER){
+        else if (identity(username) === CONS.MANAGER){
             let data = {
                 "function": "remove_manager",
                 "chatroom_id": window.currentRoomID,
@@ -1181,24 +1181,32 @@ const Screen = () => {
                                     bordered={false}
                                     actions={[
                                         (item !== window.username ?
-                                            <UserAddOutlined key={"add_friend"} onClick={() => {
-                                                addFriend(item);
-                                            }}/> : null
+                                            <Popover trigger={"hover"} content={"添加好友"}>
+                                                <UserAddOutlined key={"add_friend"} onClick={() => {
+                                                    addFriend(item);
+                                                }}/>
+                                            </Popover> : null
+                                        ),
+                                        (identity(window.username) === CONS.MASTER && item !== window.username ?
+                                            <Popover trigger={"hover"} content={identity(item) === CONS.MEMBER ? "任命管理员" : "解除管理"}>
+                                                <UserSwitchOutlined key={"setManager"} onClick={() => {
+                                                    setManager(item);
+                                                }}/>
+                                            </Popover> : null
                                         ),
                                         (identity(window.username) === CONS.MASTER ?
-                                            <UserSwitchOutlined key={"setManager"} onClick={() => {
-                                                setManager(item);
-                                            }}/> : null
-                                        ),
-                                        (identity(window.username) === CONS.MASTER ?
-                                            <IdcardOutlined key={"setMaster"} onClick={() => {
-                                                setMaster(item);
-                                            }}/> : null
+                                            <Popover trigger={"hover"} content={"转让群主"}>
+                                                <IdcardOutlined key={"setMaster"} onClick={() => {
+                                                    setMaster(item);
+                                                }}/>
+                                            </Popover> : null
                                         ),
                                         (identity(window.username) > identity(item) ?
-                                            <UserDeleteOutlined key={"kick"} onClick={() => {
-                                                removeMem(item);
-                                            }}/> : null
+                                            <Popover trigger={"hover"} content={"踢出成员"}>
+                                                <UserDeleteOutlined key={"kick"} onClick={() => {
+                                                    removeMem(item);
+                                                }}/>
+                                            </Popover>: null
                                         )
                                     ]}>
                                     <Meta
