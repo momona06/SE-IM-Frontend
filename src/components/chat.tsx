@@ -10,6 +10,7 @@ interface messageListData {
     msg_time: string;
     sender: string;
     read_list: boolean[];
+    avatar: string;
 }
 
 // 地址字符串特殊显示

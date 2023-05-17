@@ -9,6 +9,7 @@ interface messageListData {
     msg_time: string;
     sender: string;
     read_list: boolean[];
+    avatar: string;
 }
 
 interface roomListData {

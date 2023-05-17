@@ -3,20 +3,23 @@ import * as STRINGS from "../constants/string";
 import * as CONS from "../constants/constants";
 import { request } from "../utils/network";
 import {isRead, forwardCard, str2addr, messageListData } from "../components/chat";
-import {message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar, Popover, Card, Divider, Row, Col,
-    Upload, Switch, Mentions, Form, Modal, Checkbox, Select, UploadFile, Result, Image} from "antd";
+import {
+    message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar, Popover, Card, Divider, Row, Col,
+    Upload, Switch, Mentions, Form, Modal, Checkbox, Select, UploadFile, Result, Image, TreeSelect
+} from "antd";
 import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined,
     ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined,
     CommentOutlined, EllipsisOutlined, SmileOutlined, UploadOutlined, LoadingOutlined, PlusOutlined,
     UserSwitchOutlined, IdcardOutlined, UserDeleteOutlined } from "@ant-design/icons";
 import type { UploadProps } from "antd";
 import moment from "moment";
-import TextArea from "antd/lib/input/TextArea";
 import { Player, ControlBar, ReplayControl, ForwardControl, CurrentTimeDisplay, TimeDivider, PlaybackRateMenuButton, VolumeMenuButton } from "video-react";
 import emojiList from "../components/emojiList";
 import axios, { AxiosError, AxiosResponse } from "axios";
 import $ from "jquery";
 import "video-react/dist/video-react.css";
+import {CheckboxValueType} from "antd/es/checkbox/Group";
+import {MentionsOptionProps} from "antd/es/mentions";
 
 interface friendListData {
     groupname: string;
@@ -41,16 +44,6 @@ interface roomListData {
     is_private: boolean;
     message_list: messageListData[];
     index: number;
-}
-
-// 本地存储消息列表
-interface messageListData {
-    msg_id: number;
-    msg_type: string;
-    msg_body: string;
-    msg_time: string;
-    sender: string;
-    avatar: string;
 }
 
 interface roomInfoData {
@@ -132,7 +125,7 @@ const Screen = () => {
     const [messageList, setMessageList] = useState<messageListData[]>([]);
     const [messageBody, setMessageBody] = useState<string>("");
 
-    const [roomInfo, setRoomInfo] = useState<roomInfoData>({mem_list: [], master: "", manager_list: [], mem_count: 0});
+    const [roomInfo, setRoomInfo] = useState<roomInfoData>({is_private: false, mem_list: [], master: "", manager_list: [], mem_count: 0});
     const [roomTop, setRoomTop] = useState<boolean>(false);
     const [roomNotice, setRoomNotice] = useState<boolean>(true);
     const [boardModal, setBoardModal] = useState<boolean>(false);
@@ -289,7 +282,8 @@ const Screen = () => {
                     msg_time: data.msg_time,
                     sender: data.sender,
                     combine_list: data.combine_list,
-                    read_list: data.read_list
+                    read_list: data.read_list,
+                    avatar: data.avatar
                 };
                 setCombineList(combineList => combineList.concat(info));
             }
@@ -913,6 +907,7 @@ const Screen = () => {
                 "msg_time": moment(date).format("YYYY-MM-DD HH:mm:ss"),
                 "sender": window.username,
                 "avatar": window.userAvatar,
+                "read_list": []
             };
             setMessageList(messageList => messageList.concat(newMessage));
             console.log(messageList);
@@ -1133,7 +1128,7 @@ const Screen = () => {
     };
 
     const translate = (message: string) =>{
-        axios.post(`/translate/${"translate?&doctype=json&type=AUTO&i="+message}`,{}, translateconfig)
+        axios.post(`/translate/${"translate?&doctype=json&type=AUTO&i="+message}`,{}, translateConfig)
             .then((res) => {
                 console.log(res);
                 setTranslateResult(res.data.translateResult[0][0].tgt);
