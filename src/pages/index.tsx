@@ -303,6 +303,8 @@ const Screen = () => {
                     last.msg_id = data.msg_id;
                     let temp = [last];
                     setMessageList(window.messageList.slice(0, window.messageList.length - 1).concat(temp));
+                    console.log("ack2");
+                    console.log(messageList);
                 }
             }
             else if (data.function === "Msg"){
@@ -324,11 +326,14 @@ const Screen = () => {
                     if (data.sender != window.username) {
                         console.log("msg", newMessage);
                         setMessageList(messageList => messageList.concat(newMessage));
+                        console.log(messageList);
                     }
                     else {
                         // 需更新 read list
                         let temp = [newMessage];
                         setMessageList(messageList.slice(0, messageList.length - 1).concat(temp));
+                        console.log("msg");
+                        console.log(messageList);
                     }
                 }
                 // 更新 roomlist
@@ -365,6 +370,8 @@ const Screen = () => {
                                 });
                                 if (data.chatroom_id === window.currentRoomID){
                                     setMessageList(room.message_list);
+                                    console.log("read");
+                                    console.log(messageList);
                                 }
                             }
                         });
@@ -841,6 +848,8 @@ const Screen = () => {
                 msg.read_list[position] = true;
             });
             setMessageList(temp);
+            console.log("readsend");
+            console.log(messageList);
 
             // roomList 消息置为已读
             for (let room of roomList){
@@ -889,6 +898,8 @@ const Screen = () => {
 
             // 更新本地messageList
             setMessageList(messageList => messageList.concat(newMessage));
+            console.log("send");
+            console.log(messageList);
             // 更新roomList 消息
             for (let room of roomList){
                 if (room.roomid === window.currentRoomID){
@@ -1231,6 +1242,8 @@ const Screen = () => {
         };
         window.ws.send(JSON.stringify(data));
         setMessageList((messageList) => messageList.filter((val) => val.msg_id != msg_id));
+        console.log("delete");
+        console.log(messageList);
         filter();
     };
 
