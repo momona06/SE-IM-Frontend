@@ -52,10 +52,15 @@ const forwardCard = (combineList: messageListData[]) => {
 const isRead = (readList: boolean[], memberList: string[], isPrivate: boolean, username: string) => {
     let pos = memberList.indexOf(username);
     if (isPrivate){
-        let res = readList[1 % pos];
+        let res = readList[pos === 0 ? 1 : 0];
         if (res){
             return (
                 <Tag color={"cyan"}>已读</Tag>
+            );
+        }
+        else {
+            return (
+                <Tag color={"cyan"}>未读</Tag>
             );
         }
     }
