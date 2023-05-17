@@ -1531,7 +1531,7 @@ const Screen = () => {
                                                 <Divider type={"horizontal"}/>
                                                 <div style={{padding: "24px", position: "relative", height: "60vh", overflow: "scroll"}}>
                                                     <List
-                                                        dataSource={ messageList.filter((msg) => (msg.msg_type != "notice" && msg.delete_list[roomInfo.mem_list.lastIndexOf(window.username)] === false)) }
+                                                        dataSource={ messageList.filter((msg) => (msg.msg_type != "notice" && msg.delete_list[window.memList.lastIndexOf(window.username)] === false)) }
                                                         split={ false }
                                                         renderItem={(item) => (
                                                             <List.Item key={ item.msg_id }>
