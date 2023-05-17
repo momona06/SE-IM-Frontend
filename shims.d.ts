@@ -1,26 +1,4 @@
-export {};
-
-interface messageListData {
-    msg_id: number;
-    msg_type: string;
-    msg_body: string;
-    reply_id?: number;
-    combine_list?: number[];
-    msg_time: string;
-    sender: string;
-    read_list: boolean[];
-    avatar: string;
-}
-
-interface roomListData {
-    roomname: string;
-    roomid: number;
-    is_notice: boolean;
-    is_top: boolean;
-    is_private: boolean;
-    message_list: messageListData[];
-    index: number;
-}
+import {roomListData, messageListData} from "./src/components/chat";
 
 declare global {
     interface Window {

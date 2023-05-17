@@ -13,6 +13,50 @@ interface messageListData {
     avatar: string;
 }
 
+interface friendListData {
+    groupname: string;
+    username: string[];
+}
+
+interface userData {
+    username: string;
+}
+
+interface receiveData {
+    username: string;
+    is_confirmed: boolean;
+    make_sure: boolean;
+}
+
+interface roomListData {
+    roomname: string;
+    roomid: number;
+    is_notice: boolean;
+    is_top: boolean;
+    is_private: boolean;
+    message_list: messageListData[];
+    index: number;
+}
+
+export interface inviteListData {
+    roomname: string;
+    roomid: number;
+    is_private: boolean;
+    message_list: messageListData[];
+
+    is_notice?: boolean;
+    is_top?: boolean;
+    index?: number;
+}
+
+interface roomInfoData {
+    mem_list: string[];
+    manager_list: string[];
+    master: string;
+    mem_count: number;
+    is_private: boolean;
+}
+
 // 地址字符串特殊显示
 const str2addr = (text : string) => {
     const urlRegex = /(https?:\/\/[^\s]+)/g; // 匹配 URL 的正则表达式
@@ -85,4 +129,4 @@ const isRead = (readList: boolean[], memberList: string[], isPrivate: boolean, u
 };
 
 export {isRead, forwardCard, str2addr};
-export type { messageListData };
+export type { friendListData, messageListData, roomListData, roomInfoData, userData, receiveData };

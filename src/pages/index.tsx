@@ -2,57 +2,37 @@ import React, {useEffect, useRef, useState } from "react";
 import * as STRINGS from "../constants/string";
 import * as CONS from "../constants/constants";
 import { request } from "../utils/network";
-import {isRead, forwardCard, str2addr, messageListData } from "../components/chat";
+import {
+    isRead, forwardCard, str2addr, messageListData, roomListData,
+    receiveData, friendListData, roomInfoData, userData, inviteListData
+} from "../components/chat";
+
 import {
     message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar, Popover, Card, Divider, Row, Col,
-    Upload, Switch, Mentions, Form, Modal, Checkbox, Select, UploadFile, Result, Image, TreeSelect
+    Upload, Switch, Mentions, Form, Modal, Checkbox, Select, Result, Image, TreeSelect, Radio, RadioChangeEvent, Drawer
 } from "antd";
-import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined,
+
+import {
+    ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined,
     ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined,
     CommentOutlined, EllipsisOutlined, SmileOutlined, UploadOutlined, LoadingOutlined, PlusOutlined,
-    UserSwitchOutlined, IdcardOutlined, UserDeleteOutlined } from "@ant-design/icons";
+    UserSwitchOutlined, IdcardOutlined, UserDeleteOutlined
+} from "@ant-design/icons";
+
 import type { UploadProps } from "antd";
 import moment from "moment";
-import { Player, ControlBar, ReplayControl, ForwardControl, CurrentTimeDisplay, TimeDivider, PlaybackRateMenuButton, VolumeMenuButton } from "video-react";
+
+import {
+    Player, ControlBar, ReplayControl, ForwardControl, CurrentTimeDisplay,
+    TimeDivider, PlaybackRateMenuButton, VolumeMenuButton
+} from "video-react";
+
 import emojiList from "../components/emojiList";
 import axios, { AxiosError, AxiosResponse } from "axios";
 import $ from "jquery";
 import "video-react/dist/video-react.css";
 import {CheckboxValueType} from "antd/es/checkbox/Group";
 import {MentionsOptionProps} from "antd/es/mentions";
-
-interface friendListData {
-    groupname: string;
-    username: string[];
-}
-
-interface userData {
-    username: string;
-}
-
-interface receiveData {
-    username: string;
-    is_confirmed: boolean;
-    make_sure: boolean;
-}
-
-interface roomListData {
-    roomname: string;
-    roomid: number;
-    is_notice: boolean;
-    is_top: boolean;
-    is_private: boolean;
-    message_list: messageListData[];
-    index: number;
-}
-
-interface roomInfoData {
-    mem_list: string[];
-    manager_list: string[];
-    master: string;
-    mem_count: number;
-    is_private: boolean;
-}
 
 const { SHOW_PARENT } = TreeSelect;
 
@@ -136,10 +116,6 @@ const Screen = () => {
     const [friendGroup, setFriendGroup] = useState<string>("");
     const [box, setBox] = useState<number>(0);
 
-    const [newGroupModal, setNewGroupModal] = useState<boolean>(false);
-    const [newGroupName, setNewGroupName] = useState<string>("");
-    const [newGroupMemberList, setNewGroupMemberList] = useState<string[]>([]);
-
     // 创建群聊
     const [createGroupModal, setCreateGroupModal] = useState<boolean>(false);
     const [chatGroupName, setChatGroupName] = useState<string>("");
@@ -162,11 +138,23 @@ const Screen = () => {
     const [videoModal, setVideoModal] = useState<boolean>(false);
     const [fileModal, setFileModal] = useState<boolean>(false);
 
-
     const avatarF = useRef<HTMLFormElement>(null);
     const imageF = useRef<HTMLFormElement>(null);
     const videoF = useRef<HTMLFormElement>(null);
     const fileF = useRef<HTMLFormElement>(null);
+
+    const [inviteModal, setInviteModal] = useState<boolean>(false);
+    const [inviteUser, setInviteUser] = useState<string>("");
+
+    const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
+    const showDrawer = () => {
+        setDrawerOpen(true);
+    };
+    const onDrawerClose = () => {
+        setDrawerOpen(false);
+    };
+
+    const [form] = Form.useForm();
 
     // 切换页面时 获取roomlist friendlist
     useEffect(() => {
@@ -183,8 +171,6 @@ const Screen = () => {
             }
         }
     }, [currentPage, menuItem]);
-
-    const [form] = Form.useForm();
 
     // 更新全部好友
     useEffect(() => {
@@ -314,11 +300,6 @@ const Screen = () => {
                     if (data.sender != window.username) {
                         console.log("msg", newMessage);
                         setMessageList(messageList => messageList.concat(newMessage));
-                    }
-                    else {
-                        // 需更新 read list
-                        let temp = [newMessage];
-                        setMessageList(messageList.slice(0, messageList.length - 1).concat(temp));
                     }
                 }
                 // 更新 roomlist
@@ -792,6 +773,7 @@ const Screen = () => {
         window.ws.send(JSON.stringify(data));
     };
 
+
     // 加入分组
     const addRoom = (ID: number, Name: string) => {
         let data = {
@@ -878,12 +860,6 @@ const Screen = () => {
 
             // 更新本地messageList
             setMessageList(messageList => messageList.concat(newMessage));
-            // 更新roomList 消息
-            for (let room of roomList){
-                if (room.roomid === window.currentRoomID){
-                    room.message_list.push(newMessage);
-                }
-            }
         }
         else {
             message.error("输入不能为空", 1);
@@ -979,6 +955,7 @@ const Screen = () => {
         setMessageBody(value);
     };
 
+    // 公告
     const onBoardChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setMessageBody(e.target.value);
     };
@@ -1024,12 +1001,15 @@ const Screen = () => {
             temp.push(typeof arr === "number" ? arr : 0);
         });
         setForwardList(temp);
-        console.log("ids:", temp);
     };
 
-    const onForwardRoomChanged = (value: number) => {
-        console.log("room", value);
+    const onForwardModalChanged = (value: number) => {
         window.forwardRoomId = value;
+    };
+
+    // 修改多选框值
+    const onInviteChange = ({ target: { value } }: RadioChangeEvent) => {
+        setInviteUser(value);
     };
 
     // 合并转发
@@ -1201,53 +1181,53 @@ const Screen = () => {
                     dataSource={roomInfo.mem_list}
                     renderItem={(item) => (
                         <List.Item>
-                            <Popover placement={"rightBottom"} content={"这里是点击成员后的弹出卡片，应当显示publicInfo"} trigger={"click"}>
-                                <Card
-                                    style={{width: 200, marginTop: 8}}
-                                    bordered={false}
-                                    actions={[
-                                        (item !== window.username ?
-                                            <Popover trigger={"hover"} content={"添加好友"}>
-                                                <UserAddOutlined key={"add_friend"} onClick={() => {
-                                                    addFriend(item);
-                                                }}/>
-                                            </Popover> : null
-                                        ),
-                                        (identity(window.username) === CONS.MASTER && item !== window.username ?
-                                            <Popover trigger={"hover"} content={identity(item) === CONS.MEMBER ? "任命管理员" : "解除管理"}>
-                                                <UserSwitchOutlined key={"setManager"} onClick={() => {
-                                                    setManager(item);
-                                                }}/>
-                                            </Popover> : null
-                                        ),
-                                        (identity(window.username) === CONS.MASTER ?
-                                            <Popover trigger={"hover"} content={"转让群主"}>
-                                                <IdcardOutlined key={"setMaster"} onClick={() => {
-                                                    setMaster(item);
-                                                }}/>
-                                            </Popover> : null
-                                        ),
-                                        (identity(window.username) > identity(item) ?
-                                            <Popover trigger={"hover"} content={"踢出成员"}>
-                                                <UserDeleteOutlined key={"kick"} onClick={() => {
-                                                    removeMem(item);
-                                                }}/>
-                                            </Popover>: null
-                                        )
-                                    ]}>
-                                    <Meta
-                                        avatar={<Avatar src="https://xsgames.co/randomusers/avatar.php?g=pixel"/>}
-                                        title={item}
-                                        description={!roomInfo.is_private ? identity(item) : null}
-                                    />
-                                </Card>
-                            </Popover>
+                            <Card
+                                style={{width: 200, marginTop: 8}}
+                                bordered={false}
+                                actions={[
+                                    (item !== window.username ?
+                                        <Popover trigger={"hover"} content={"添加好友"}>
+                                            <UserAddOutlined key={"add_friend"} onClick={() => {
+                                                addFriend(item);
+                                            }}/>
+                                        </Popover> : null
+                                    ),
+                                    (identity(window.username) === CONS.MASTER && item !== window.username ?
+                                        <Popover trigger={"hover"} content={identity(item) === CONS.MEMBER ? "任命管理员" : "解除管理"}>
+                                            <UserSwitchOutlined key={"setManager"} onClick={() => {
+                                                setManager(item);
+                                            }}/>
+                                        </Popover> : null
+                                    ),
+                                    (identity(window.username) === CONS.MASTER && item != window.username ?
+                                        <Popover trigger={"hover"} content={"转让群主"}>
+                                            <IdcardOutlined key={"setMaster"} onClick={() => {
+                                                setMaster(item);
+                                            }}/>
+                                        </Popover> : null
+                                    ),
+                                    (identity(window.username) > identity(item) ?
+                                        <Popover trigger={"hover"} content={"踢出成员"}>
+                                            <UserDeleteOutlined key={"kick"} onClick={() => {
+                                                removeMem(item);
+                                            }}/>
+                                        </Popover>: null
+                                    )
+                                ]}>
+                                <Meta
+                                    avatar={<Avatar src="https://xsgames.co/randomusers/avatar.php?g=pixel"/>}
+                                    title={item}
+                                    description={!roomInfo.is_private ? identity(item) : null}
+                                />
+                            </Card>
                         </List.Item>
                     )}
                 />
-                <Button type={"default"} icon={<PlusOutlined />} size={"large"}/>
+                {/* 拉人进群 */}
+                <Button type={"default"} icon={<PlusOutlined />} size={"large"} onClick={() => setInviteModal(true)}/>
 
                 <Divider type={"horizontal"}/>
+
                 {roomInfo.is_private ? null : (
                     <Card title={`群聊名称      ${window.currentRoomName}`}>
                         <Space direction={"vertical"}>
@@ -1256,6 +1236,11 @@ const Screen = () => {
                             }}>
                                 群公告
                             </Button>
+                            {
+                                identity(window.username) >= CONS.MANAGER ? (
+                                    <Button type={"text"} onClick={() => setDrawerOpen(true)}>查看申请列表</Button>
+                                ) : null
+                            }
                             <Button type={"text"} danger={true} onClick={leaveChatGroup}>
                                 退出群聊
                             </Button>
@@ -1267,6 +1252,7 @@ const Screen = () => {
                         </Space>
                     </Card>
                 )}
+
                 <Space direction={"horizontal"}>
                     <p>免打扰</p>
                     <Switch checked={!roomNotice} onChange={setNotice}/>
@@ -2058,7 +2044,6 @@ const Screen = () => {
                 ) : null}
             </div>
 
-
             <Modal title={"群公告"} open={ boardModal } onCancel={() => setBoardModal(false)} onOk={() => {sendMessage(messageBody, "notice"); console.log("messagelist:",messageList);}} okButtonProps={{disabled: identity(username) == CONS.MANAGER}}>
                 <div style={{height: "50vh", overflow: "scroll"}}>
                     <List
@@ -2099,7 +2084,7 @@ const Screen = () => {
                         label: arr.roomname,
                         value: arr.roomid,
                     }))
-                } onChange={onForwardRoomChanged}/>
+                } onChange={onForwardModalChanged}/>
             </Modal>
 
             <Modal title={ "创建群聊" } open={ createGroupModal } onOk={ newGroup } onCancel={() => setCreateGroupModal(false)}>
@@ -2149,6 +2134,7 @@ const Screen = () => {
                     </form>
                 </div>
             </Modal>
+
             <Modal title="上传图片" open={imageModal} onOk={() => setImageModal(false)} onCancel={() => setImageModal(false)}>
                 <div>
                     <iframe id="loaderi" name="loaderi" onChange={() => logReturn()} style={{display: "none"}}></iframe>
@@ -2175,6 +2161,7 @@ const Screen = () => {
                     </form>
                 </div>
             </Modal>
+
             <Modal title="上传视频" open={videoModal} onOk={() => setVideoModal(false)} onCancel={() => setVideoModal(false)}>
                 <div>
                     <iframe id="loaderv" name="loaderv" onChange={() => logReturn()} style={{display: "none"}}></iframe>
@@ -2201,19 +2188,20 @@ const Screen = () => {
                     </form>
                 </div>
             </Modal>
+
             <Modal title="上传文件" open={fileModal} onOk={() => setFileModal(false)} onCancel={() => setFileModal(false)}>
                 <div>
                     <iframe id="loaderf" name="loaderf" onChange={() => logReturn()} style={{display: "none"}}></iframe>
                     <form id="fileform" ref={fileF} action="/api/user/uploadfile" method="post" encType="multipart/form-data" target="loaderf" onSubmit={() => {
-                        if(fileF.current) {
-                            var fromdata = new FormData(fileF.current);
-                            console.log(fromdata.get("file"));
-                            axios.post("/api/user/uploadfile", fromdata , avatarconfig)
+                        if (fileF.current) {
+                            let fromData = new FormData(fileF.current);
+                            console.log(fromData.get("file"));
+                            axios.post("/api/user/uploadfile", fromData , avatarconfig)
                                 .then((res) => {
                                     console.log(res.data.file_url);
                                     sendFile("file", res.data.file_url);
                                 })
-                                .catch((err) => {
+                                .catch(err => {
                                     console.log(err);
                                 });
                         }
@@ -2227,6 +2215,38 @@ const Screen = () => {
                     </form>
                 </div>
             </Modal>
+
+            {/* 添加入群 */}
+            <Modal title={"选择联系人"} open={inviteModal} onOk={() => {sendMessage(inviteUser, "invite"); setInviteModal(false);}} onCancel={() => setInviteModal(false)}>
+                <Radio.Group
+                    style={{display: "grid", height: "60vh", overflow: "scroll" }}
+                    onChange={ onInviteChange }
+                    options={ allFriendList.map((friend) => ({
+                        value: friend,
+                        label: friend
+                    }))}
+                />
+            </Modal>
+
+            <Drawer
+                title="入群申请"
+                placement="right"
+                closable={false}
+                onClose={onDrawerClose}
+                open={drawerOpen}
+                getContainer={false}
+            >
+                <List
+                    dataSource={["申请1", "申请2"]}
+                    renderItem={item => (
+                        <Space direction={"horizontal"}>
+                            <div>{item}</div>
+                            <Button>同意</Button>
+                            <Button>拒绝</Button>
+                        </Space>
+                    )}
+                />
+            </Drawer>
         </div>
     );
 };
