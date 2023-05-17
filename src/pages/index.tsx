@@ -331,7 +331,7 @@ const Screen = () => {
                     else {
                         // 需更新 read list
                         let temp = [newMessage];
-                        setMessageList(messageList.slice(0, messageList.length - 1).concat(temp));
+                        setMessageList((messageList) => messageList.slice(0, messageList.length - 1).concat(temp));
                         console.log("msg");
                         console.log(messageList);
                     }
@@ -1566,7 +1566,7 @@ const Screen = () => {
                                                                             { item.sender === window.username ? (
                                                                                 <div style={{ display: "flex", flexDirection: "row-reverse", justifyContent: "flex-start", marginLeft: "auto"}}>
                                                                                     <div style={{display: "flex", flexDirection: "column"}}>
-                                                                                        <List.Item.Meta avatar/>
+                                                                                        <List.Item.Meta avatar={<Avatar  src={("/api"+item.avatar)}/>}/>
                                                                                         <h6>{item.sender}</h6>
                                                                                     </div>
                                                                                     <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#66B7FF"}}>
@@ -1609,7 +1609,7 @@ const Screen = () => {
                                                                             ) : (
                                                                                 <div style={{ display: "flex", flexDirection: "row"}}>
                                                                                     <div style={{display: "flex", flexDirection: "column"}}>
-                                                                                        <List.Item.Meta avatar/>
+                                                                                        <List.Item.Meta avatar={<Avatar  src={("/api"+item.avatar)}/>}/>
                                                                                         <h6>{item.sender}</h6>
                                                                                     </div>
                                                                                     <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF"}}>
@@ -1658,7 +1658,7 @@ const Screen = () => {
                                                                         { item.sender === window.username ? (
                                                                             <div style={{ display: "flex", flexDirection: "row-reverse", justifyContent: "flex-start", marginLeft: "auto"}}>
                                                                                 <div style={{display: "flex", flexDirection: "column"}}>
-                                                                                    <List.Item.Meta avatar={<Avatar src={"https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxgeticon?seq=239472774&username=@c8ef32eea4f34c3becfba86e70bd5320e33c7eba9d35d382ed6185b9c3efbfe0&skey=@crypt_6df0f029_14c4f0a85beaf972ec58feb5ca7dc0e0"}/>}/>
+                                                                                    <List.Item.Meta avatar={<Avatar  src={("/api"+item.avatar)}/>}/>
                                                                                     <h6>{item.sender}</h6>
                                                                                 </div>
                                                                                 <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#66B7FF"}}>
@@ -2359,8 +2359,8 @@ const Screen = () => {
                     ) : null}
                     {filterType === CONS.FILTER_BY_TIME ? (
                         <div style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
-                            <DatePicker onChange={(date, datestring) => {setStartTime(() => datestring)}} format={"YYYY-MM-DD"}/>
-                            <DatePicker onChange={(date, datestring) => {setEndTime(() => datestring)}} format={"YYYY-MM-DD"}/>
+                            <DatePicker onChange={(date, datestring) => {setStartTime(() => datestring);}} format={"YYYY-MM-DD"}/>
+                            <DatePicker onChange={(date, datestring) => {setEndTime(() => datestring);}} format={"YYYY-MM-DD"}/>
                             
                             <Button type="primary" onClick={() => filter()}>
                                 搜索记录
@@ -2378,7 +2378,7 @@ const Screen = () => {
                                                 key={item}
                                                 size={"small"}
                                                 type="default"
-                                                onClick={() => {setSearchMember(item)}}>
+                                                onClick={() => {setSearchMember(item);}}>
                                                 {item}
                                             </Button>
                                         ]}
@@ -2402,7 +2402,7 @@ const Screen = () => {
                                                 key={item}
                                                 size={"small"}
                                                 type="default"
-                                                onClick={() => {setSearchType(item)}}>
+                                                onClick={() => {setSearchType(item);}}>
                                                 {item}
                                             </Button>
                                         ]}
