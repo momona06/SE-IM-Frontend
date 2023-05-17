@@ -1231,6 +1231,7 @@ const Screen = () => {
         };
         window.ws.send(JSON.stringify(data));
         setMessageList((messageList) => messageList.filter((val) => val.msg_id != msg_id));
+        filter();
     };
 
     //会话具体信息
@@ -1558,7 +1559,7 @@ const Screen = () => {
                                                                                     <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#66B7FF"}}>
                                                                                         { isRead(item.read_list, roomInfo.mem_list, roomInfo.is_private, window.username) }
                                                                                         {item.msg_type === "text" ? (
-                                                                                            <p>{item.msg_body}</p>
+                                                                                            str2addr(item.msg_body)
                                                                                         ): null}
                                                                                         {item.msg_type === "image" ? (
                                                                                             <Image width={"30vh"} src={("/api"+item.msg_body)}/>
@@ -1588,7 +1589,7 @@ const Screen = () => {
                                                                                                 </Button>
                                                                                             </div>
                                                                                         ): null}
-                                                                                        { item.msg_type != "combine" ?  str2addr(item.msg_body) : (forwardCard(combineList))}
+                                                                                        { item.msg_type === "combine" ? (forwardCard(combineList)) : null}
                                                                                         <span> { item.msg_time } </span>
                                                                                     </div>
                                                                                 </div>
@@ -1601,7 +1602,7 @@ const Screen = () => {
                                                                                     <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF"}}>
                                                                                         { isRead(item.read_list, roomInfo.mem_list, roomInfo.is_private, window.username) }
                                                                                         {item.msg_type === "text" ? (
-                                                                                            <p>{item.msg_body}</p>
+                                                                                            str2addr(item.msg_body)
                                                                                         ): null}
                                                                                         {item.msg_type === "image" ? (
                                                                                             <Image width={"30vh"} src={("/api"+item.msg_body)}/>
@@ -1631,7 +1632,7 @@ const Screen = () => {
                                                                                                 </Button>
                                                                                             </div>
                                                                                         ): null}
-                                                                                        { item.msg_type != "combine" ?  str2addr(item.msg_body) : (forwardCard(combineList))}
+                                                                                        { item.msg_type === "combine" ? (forwardCard(combineList)) : null}
                                                                                         <span> { item.msg_time } </span>
                                                                                     </div>
                                                                                 </div>
