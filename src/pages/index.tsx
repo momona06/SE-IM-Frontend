@@ -1,9 +1,8 @@
 import React, {useEffect, useRef, useState } from "react";
 import * as STRINGS from "../constants/string";
 import { request } from "../utils/network";
-import { message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar, Popover, Card, Divider, Row, Col, Upload, Modal, TreeSelect, UploadFile, Image} from "antd";
-import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined, ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined, CommentOutlined, EllipsisOutlined, SmileOutlined, UploadOutlined } from "@ant-design/icons";
-import type { UploadProps } from "antd";
+import { message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar, Popover, Card, Divider, Row, Col, Modal, TreeSelect, Image} from "antd";
+import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined, ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined, CommentOutlined, EllipsisOutlined, SmileOutlined } from "@ant-design/icons";
 import * as CONS from "../constants/constants";
 import moment from "moment";
 import TextArea from "antd/lib/input/TextArea";
@@ -12,12 +11,6 @@ import emojiList from "../components/emojiList";
 import axios, { AxiosError, AxiosResponse } from "axios";
 import $ from "jquery";
 import "video-react/dist/video-react.css";
-
-// Object.defineProperty(HTMLFormElement.prototype, "formdata", {
-//     get() {
-//         return new FormData(this);
-//     }
-// });
 
 interface friendListData {
     groupname: string;
@@ -67,37 +60,6 @@ export const isEmail = (val : string) => {
     return /^[A-Za-z0-9\u4e00-\u9fa5]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/i.test(val);
 };
 
-// const props: UploadProps = {
-//     name: "avatar",
-//     action: "https://se-im-backend-overflowlab.app.secoder.net/upload",
-//     data: {"username": window.username},
-//     onChange(info) {
-//         if(info.file.status !== "uploading") {
-//             console.log(info.file, info.fileList);
-//         }
-//         if(info.file.status === "done") {
-//             message.success(`${info.file.name} file uploaded successfully`);
-//         } else if (info.file.status === "error") {
-//             message.error(`${info.file.name} file upload failed.`);
-//         }
-//     },
-// };
-
-// const avatarprops: UploadProps = {
-//     name: "avatar",
-//     action: "https://se-im-backend-overflowlab.app.secoder.net/upload",
-//     data: {"username": window.username},
-//     onChange(info) {
-//         if(info.file.status !== "uploading") {
-//             console.log(info.file, info.fileList);
-//         }
-//         if(info.file.status === "done") {
-//             message.success(`${info.file.name} file uploaded successfully`);
-//         } else if (info.file.status === "error") {
-//             message.error(`${info.file.name} file upload failed.`);
-//         }
-//     },
-// }
 
 //登录界面
 const Screen = () => {
@@ -168,9 +130,6 @@ const Screen = () => {
     const [videoModal, setVideoModal] = useState<boolean>(false);
     const [fileModal, setFileModal] = useState<boolean>(false);
 
-    const [videoPlayerModal, setVideoPlayerModal] = useState<boolean>(false);
-    const [videoUrl, setVideoUrl] = useState<string>("");
-    let vurl: string = "";
 
     const avatarF = useRef<HTMLFormElement>(null);
     const imageF = useRef<HTMLFormElement>(null);
@@ -188,15 +147,6 @@ const Screen = () => {
             }
         }
     }, [currentPage, menuItem]);
-
-    // useEffect(() => {
-    //     setVideoPlayerModal(true);
-    // }, [videoUrl]);
-
-    const nullify = (url: string) => {
-        url = "";
-        return "";
-    }
 
     const WSConnect = () => {
         let DEBUG = false;
@@ -860,7 +810,6 @@ const Screen = () => {
     };
 
     const translate = (message: string) =>{
-        // e.preventDefault();
         axios.post(`/translate/${"translate?&doctype=json&type=AUTO&i="+message}`,{}, translateconfig)
             .then((res) => {
                 console.log(res);
@@ -870,12 +819,6 @@ const Screen = () => {
             .catch((err) => {
                 console.log(err);
             });
-        // fetch(`https://fanyi.youdao.com/translate?&doctype=json&type=AUTO&i=${message}`, {
-        //     method: "POST"
-        // })
-        // .then((res) => res.json())
-        // .then((data) => setTranslateResult(data.translateResult[0][0].tgt));
-        // setTranslateModal(true);
     };
 
     const forward = () => {
@@ -1154,10 +1097,8 @@ const Screen = () => {
                                                                                     ): null}
                                                                                     {item.msg_type === "video" ? (
                                                                                         <div style={{width: "50vh"}}>
-                                                                                            <h1> 视频消息 </h1>
-                                                                                            <Player width={"50vh"} >
-                                                                                                <source src={("/api"+item.msg_body)} width={"200px"}/>
-
+                                                                                            <Player fluid={false}>
+                                                                                                <source src={("/api"+item.msg_body)}/>
                                                                                                 <ControlBar>
                                                                                                     <ReplayControl seconds={10} order={1.1} />
                                                                                                     <ForwardControl seconds={30} order={1.2} />
@@ -1197,10 +1138,8 @@ const Screen = () => {
                                                                                     ): null}
                                                                                     {item.msg_type === "video" ? (
                                                                                         <div style={{width: "50vh"}}>
-                                                                                            <h1> 视频消息 </h1>
-                                                                                            <Player width={"50vh"} fliud={false}>
-                                                                                                <source src={("/api"+item.msg_body)} width={"200px"}/>
-
+                                                                                            <Player fliud={false}>
+                                                                                                <source src={("/api"+item.msg_body)}/>
                                                                                                 <ControlBar>
                                                                                                     <ReplayControl seconds={10} order={1.1} />
                                                                                                     <ForwardControl seconds={30} order={1.2} />
@@ -1546,15 +1485,6 @@ const Screen = () => {
                                                         onClick={() => ((changeUserInfo === CONS.REVISE_EMAIL) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.REVISE_EMAIL))}>
                                                         修改邮箱
                                                     </Button>
-                                                    {/* <div>
-                                                        <form action="/api/upload" method="post" encType="multipart/form-data">
-                                                            <input id="image-uploadify" name="pic" type="file" accept="image/*">
-                                                                <button type="submit">
-                                                                    选择文件
-                                                                </button>
-                                                            </input>
-                                                        </form>
-                                                    </div> */}
                                                     <Button size={"large"} type={"primary"}
                                                         onClick={() => setAvatarModal(true)}>
                                                         上传头像
@@ -1809,22 +1739,6 @@ const Screen = () => {
                             确认上传
                         </button>
                     </form>
-                </div>
-            </Modal>
-            <Modal title="播放器" open={videoPlayerModal} onOk={() => setVideoPlayerModal(false)} onCancel={() => setVideoPlayerModal(false)} width="1300px">
-                <div style={{width: "1250px"}}>
-                    <Player width={"1200px"}>
-                        <source src={vurl} />
-
-                        <ControlBar>
-                            <ReplayControl seconds={10} order={1.1} />
-                            <ForwardControl seconds={30} order={1.2} />
-                            <CurrentTimeDisplay order={4.1} />
-                            <TimeDivider order={4.2} />
-                            <PlaybackRateMenuButton rates={[5, 2, 1, 0.5, 0.1]} order={7.1} />
-                            <VolumeMenuButton disabled />
-                        </ControlBar>
-                        </Player>
                 </div>
             </Modal>
         </div>
