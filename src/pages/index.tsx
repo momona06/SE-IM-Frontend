@@ -1,21 +1,22 @@
-import React, { useEffect, useState } from "react";
+import React, {useEffect, useRef, useState } from "react";
 import * as STRINGS from "../constants/string";
 import * as CONS from "../constants/constants";
 import { request } from "../utils/network";
 import {isRead, forwardCard, str2addr, messageListData } from "../components/chat";
 import {message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar, Popover, Card, Divider, Row, Col,
-    Upload, Switch, Mentions, Form, Modal, Checkbox, Select, UploadFile, Result,} from "antd";
+    Upload, Switch, Mentions, Form, Modal, Checkbox, Select, UploadFile, Result, Image} from "antd";
 import { ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined,
     ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined,
     CommentOutlined, EllipsisOutlined, SmileOutlined, UploadOutlined, LoadingOutlined, PlusOutlined,
     UserSwitchOutlined, IdcardOutlined, UserDeleteOutlined } from "@ant-design/icons";
 import type { UploadProps } from "antd";
 import moment from "moment";
+import TextArea from "antd/lib/input/TextArea";
+import { Player, ControlBar, ReplayControl, ForwardControl, CurrentTimeDisplay, TimeDivider, PlaybackRateMenuButton, VolumeMenuButton } from "video-react";
 import emojiList from "../components/emojiList";
-import {MentionsOptionProps} from "antd/es/mentions";
-import {CheckboxValueType} from "antd/es/checkbox/Group";
-import axios from "axios";
+import axios, { AxiosError, AxiosResponse } from "axios";
 import $ from "jquery";
+import "video-react/dist/video-react.css";
 
 interface friendListData {
     groupname: string;
@@ -42,6 +43,16 @@ interface roomListData {
     index: number;
 }
 
+// 本地存储消息列表
+interface messageListData {
+    msg_id: number;
+    msg_type: string;
+    msg_body: string;
+    msg_time: string;
+    sender: string;
+    avatar: string;
+}
+
 interface roomInfoData {
     mem_list: string[];
     manager_list: string[];
@@ -50,9 +61,12 @@ interface roomInfoData {
     is_private: boolean;
 }
 
+const { SHOW_PARENT } = TreeSelect;
+
 export const isEmail = (val : string) => {
     return /^[A-Za-z0-9\u4e00-\u9fa5]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/i.test(val);
 };
+
 
 const { Meta } = Card;
 const { TextArea } = Input;
@@ -74,22 +88,6 @@ const props: UploadProps = {
         }
     },
 };
-
-// const props: UploadProps = {
-//     name: "avatar",
-//     action: "https://se-im-backend-overflowlab.app.secoder.net/upload",
-//     data: {"username": window.username},
-//     onChange(info) {
-//         if(info.file.status !== "uploading") {
-//             console.log(info.file, info.fileList);
-//         }
-//         if(info.file.status === "done") {
-//             message.success(`${info.file.name} file uploaded successfully`);
-//         } else if (info.file.status === "error") {
-//             message.error(`${info.file.name} file upload failed.`);
-//         }
-//     },
-// };
 
 //登录界面
 const Screen = () => {
@@ -134,13 +132,7 @@ const Screen = () => {
     const [messageList, setMessageList] = useState<messageListData[]>([]);
     const [messageBody, setMessageBody] = useState<string>("");
 
-    // 回复消息
-    const [replyMessageID, setReplyMessageID] = useState<number>(-1);
-    const [replyMessageBody, setReplyMessageBody] = useState<string>("");
-    const [replying, setReplying] = useState<boolean>(false);
-
-    // 会话信息
-    const [roomInfo, setRoomInfo] = useState<roomInfoData>({mem_list: [], master: "", manager_list: [], mem_count: 0, is_private: true});
+    const [roomInfo, setRoomInfo] = useState<roomInfoData>({mem_list: [], master: "", manager_list: [], mem_count: 0});
     const [roomTop, setRoomTop] = useState<boolean>(false);
     const [roomNotice, setRoomNotice] = useState<boolean>(true);
     const [boardModal, setBoardModal] = useState<boolean>(false);
@@ -151,11 +143,19 @@ const Screen = () => {
     const [friendGroup, setFriendGroup] = useState<string>("");
     const [box, setBox] = useState<number>(0);
 
+    const [newGroupModal, setNewGroupModal] = useState<boolean>(false);
+    const [newGroupName, setNewGroupName] = useState<string>("");
+    const [newGroupMemberList, setNewGroupMemberList] = useState<string[]>([]);
+
     // 创建群聊
     const [createGroupModal, setCreateGroupModal] = useState<boolean>(false);
     const [chatGroupName, setChatGroupName] = useState<string>("");
+    
+    // 回复消息
+    const [replyMessageID, setReplyMessageID] = useState<number>(-1);
+    const [replyMessageBody, setReplyMessageBody] = useState<string>("");
+    const [replying, setReplying] = useState<boolean>(false);
 
-    // 翻译模块
     const [translateModal, setTranslateModal] = useState<boolean>(false);
     const [translateResult, setTranslateResult] = useState<string>("");
 
@@ -163,9 +163,17 @@ const Screen = () => {
     const [forwardModal, setForwardModal] = useState<boolean>(false);
     const [forwardList, setForwardList] = useState<number[]>([]);
     const [combineList, setCombineList] = useState<messageListData[]>([]);
-
-    const [fileList, setFileList] = useState<UploadFile[]>([]);
+    
     const [avatarModal, setAvatarModal] = useState<boolean>(false);
+    const [imageModal, setImageModal] = useState<boolean>(false);
+    const [videoModal, setVideoModal] = useState<boolean>(false);
+    const [fileModal, setFileModal] = useState<boolean>(false);
+
+
+    const avatarF = useRef<HTMLFormElement>(null);
+    const imageF = useRef<HTMLFormElement>(null);
+    const videoF = useRef<HTMLFormElement>(null);
+    const fileF = useRef<HTMLFormElement>(null);
 
     // 切换页面时 获取roomlist friendlist
     useEffect(() => {
@@ -240,7 +248,6 @@ const Screen = () => {
         window.ws.onmessage = async function (event) {
             const data = JSON.parse(event.data);
             console.log(JSON.stringify(data));
-
             if (data.function === "heartbeatconfirm") {
                 WSHeartBeat();
             }
@@ -259,6 +266,7 @@ const Screen = () => {
             else if (data.function === "fetchroom") {
                 setRoomList(((data.roomlist.filter((val: any) => val.is_top)).concat(data.roomlist.filter((val: any) => !val.is_top)).map((val: any) => ({...val}))));
                 setRoomListRefreshing(false);
+                console.log(roomList);
             }
             // 会话具体信息， 包括成员列表，管理员等
             else if (data.function === "fetchroominfo"){
@@ -303,7 +311,8 @@ const Screen = () => {
                     combine_list: data.combine_list,
                     msg_time: data.msg_time,
                     sender: data.sender,
-                    read_list: data.read_list // 自己为true
+                    read_list: data.read_list, // 自己为true
+                    avatar: data.avatar
                 };
                 // 更新本地
                 if (data.room_id === window.currentRoomID){
@@ -447,6 +456,7 @@ const Screen = () => {
                     WSConnect();
                     message.success(STRINGS.LOGIN_SUCCESS, 1);
                     window.username = res.username;
+                    window.userAvatar = res.avatar;
                     setUsername(res.username);
                     setToken(res.token);
                     getAccount(account => "");
@@ -471,6 +481,7 @@ const Screen = () => {
                     WSConnect();
                     message.success(STRINGS.LOGIN_SUCCESS, 1);
                     window.username = res.username;
+                    window.userAvatar = res.avatar;
                     setUsername(res.username);
                     setToken(res.token);
                     getAccount(account => "");
@@ -865,6 +876,7 @@ const Screen = () => {
                 "reply_id": reply_id,
                 "msg_time": moment(date).format("YYYY-MM-DD HH:mm:ss"),
                 "sender": window.username,
+                "avatar": window.userAvatar,
                 "read_list": []
             };
             window.ws.send(JSON.stringify(data));
@@ -883,6 +895,32 @@ const Screen = () => {
             message.error("输入不能为空", 1);
         }
     };
+    const sendFile = (type: string, url: string) => {
+        if (url != ""){
+            const data = {
+                "function": "send_message",
+                "msg_type": type,
+                "msg_body": url
+            };
+            window.ws.send(JSON.stringify(data));
+
+            const date = new Date();
+            const newMessage = {
+                // 在收到ACK前暂置为-1， 判断对方是否收到可用-1判断
+                "msg_id": -1,
+                "msg_type": type,
+                "msg_body": url,
+                "msg_time": moment(date).format("YYYY-MM-DD HH:mm:ss"),
+                "sender": window.username,
+                "avatar": window.userAvatar,
+            };
+            setMessageList(messageList => messageList.concat(newMessage));
+            console.log(messageList);
+        }
+        else {
+            message.error("发送错误", 1);
+        }
+    };
 
     const fetchRoomInfo = (ID: number) => {
         let data = {
@@ -893,6 +931,7 @@ const Screen = () => {
     };
 
     const setTop = (set: boolean) => {
+        console.log("将置顶状态设置为" + set);
         const data = {
             "function": "revise_is_top",
             "chatroom_id": window.currentRoomID,
@@ -1085,10 +1124,16 @@ const Screen = () => {
             "Access-Control-Allow-Origin": "*"
         }
     };
+    
 
-    const translate = (message: string) => {
-        // e.preventDefault();
-        axios.post(`/translate/${"translate?&doctype=json&type=AUTO&i="+message}`,{}, translateConfig)
+    const avatarconfig = {
+        headers:{
+            "Content-Type": "multipart/form-data"
+        }
+    };
+
+    const translate = (message: string) =>{
+        axios.post(`/translate/${"translate?&doctype=json&type=AUTO&i="+message}`,{}, translateconfig)
             .then((res) => {
                 console.log(res);
                 setTranslateResult(res.data.translateResult[0][0].tgt);
@@ -1097,20 +1142,6 @@ const Screen = () => {
             .catch((err) => {
                 console.log(err);
             });
-        // fetch(`https://fanyi.youdao.com/translate?&doctype=json&type=AUTO&i=${message}`, {
-        //     method: "POST"
-        // })
-        // .then((res) => res.json())
-        // .then((data) => setTranslateResult(data.translateResult[0][0].tgt));
-        // setTranslateModal(true);
-    };
-
-    const logReturn = () => {
-        $("#loader").load(function() {
-            let text = $("#loader").contents().find("body").text();
-            let j = $.JSON.parse(text);
-            console.log(j);
-        });
     };
 
     // 判断成员身份
@@ -1252,6 +1283,14 @@ const Screen = () => {
             </Space>
         </div>
     );
+
+    const logReturn = () => {
+        $("#loader").load(function() {
+            var text = $("#loader").contents().find("body").text();
+            var j = $.JSON.parse(text);
+            console.log(j);
+        });
+    };
 
     return (
         <div style={{
@@ -1475,6 +1514,37 @@ const Screen = () => {
                                                                                     </div>
                                                                                     <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#66B7FF"}}>
                                                                                         { isRead(item.read_list, roomInfo.mem_list, roomInfo.is_private, window.username) }
+                                                                                        {item.msg_type === "text" ? (
+                                                                                            <p>{item.msg_body}</p>
+                                                                                        ): null}
+                                                                                        {item.msg_type === "image" ? (
+                                                                                            <Image width={"30vh"} src={("/api"+item.msg_body)}/>
+                                                                                        ): null}
+                                                                                        {item.msg_type === "video" ? (
+                                                                                            <div style={{width: "50vh"}}>
+                                                                                                <Player fluid={false}>
+                                                                                                    <source src={("/api"+item.msg_body)}/>
+                                                                                                    <ControlBar>
+                                                                                                        <ReplayControl seconds={10} order={1.1} />
+                                                                                                        <ForwardControl seconds={30} order={1.2} />
+                                                                                                        <CurrentTimeDisplay order={4.1} />
+                                                                                                        <TimeDivider order={4.2} />
+                                                                                                        <PlaybackRateMenuButton rates={[5, 2, 1, 0.5, 0.1]} order={7.1} />
+                                                                                                        <VolumeMenuButton disabled />
+                                                                                                    </ControlBar>
+                                                                                                </Player>
+                                                                                            </div>
+                                                                                        ): null}
+                                                                                        {item.msg_type === "file" ? (
+                                                                                            <div>
+                                                                                                <h1> 文件消息 </h1>
+                                                                                                <Button onClick={() => {
+                                                                                                    window.open("/api" + item.msg_body);
+                                                                                                }} type="default">
+                                                                                                    下载
+                                                                                                </Button>
+                                                                                            </div>
+                                                                                        ): null}
                                                                                         { item.msg_type != "combine" ?  str2addr(item.msg_body) : (forwardCard(combineList))}
                                                                                         <span> { item.msg_time } </span>
                                                                                     </div>
@@ -1511,7 +1581,7 @@ const Screen = () => {
                                                                         ) : (
                                                                             <div style={{ display: "flex", flexDirection: "row"}}>
                                                                                 <div style={{display: "flex", flexDirection: "column"}}>
-                                                                                    <List.Item.Meta avatar={<Avatar src={"https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxgeticon?seq=239472774&username=@c8ef32eea4f34c3becfba86e70bd5320e33c7eba9d35d382ed6185b9c3efbfe0&skey=@crypt_6df0f029_14c4f0a85beaf972ec58feb5ca7dc0e0"}/>}/>
+                                                                                    <List.Item.Meta avatar={<Avatar  src={("/api"+item.avatar)}/>}/>
                                                                                     <h6>{item.sender}</h6>
                                                                                 </div>
                                                                                 <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF"}}>
@@ -1570,18 +1640,22 @@ const Screen = () => {
                                                             }}>
                                                             发送
                                                         </Button>
-                                                        <Upload name="avatar" action="https://se-im-backend-test-overflowlab.app.secoder.net/upload" data={{username: window.username}} onChange={(info) => {
-                                                            if(info.file.status !== "uploading") {
-                                                                console.log(info.file, info.fileList);
-                                                            }
-                                                            if(info.file.status === "done") {
-                                                                message.success(`${info.file.name} file uploaded successfully`);
-                                                            } else if (info.file.status === "error") {
-                                                                message.error(`${info.file.name} file upload failed.`);
-                                                            }
-                                                        }}>
-                                                            <Button icon={<UploadOutlined />}>Click to Upload</Button>
-                                                        </Upload>
+                                                        <Button
+                                                            type="primary"
+                                                            onClick={() => setImageModal(true)}>
+                                                            上传图片
+                                                        </Button>
+                                                        <Button
+                                                            type="primary"
+                                                            onClick={() => setVideoModal(true)}>
+                                                            上传视频
+                                                        </Button>
+                                                        <Button
+                                                            type="primary"
+                                                            onClick={() => setFileModal(true)}>
+                                                            上传文件
+                                                        </Button>
+                                                        
                                                     </div>
                                                 </div>
                                             </div>
@@ -1853,17 +1927,7 @@ const Screen = () => {
                                                         onClick={() => ((changeUserInfo === CONS.REVISE_EMAIL) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.REVISE_EMAIL))}>
                                                         修改邮箱
                                                     </Button>
-                                                    {/* <div>
-                                                        <form action="/api/upload" method="post" encType="multipart/form-data">
-                                                            <input id="image-uploadify" name="pic" type="file" accept="image/*">
-                                                                <button type="submit">
-                                                                    选择文件
-                                                                </button>
-                                                            </input>
-                                                        </form>
-                                                    </div> */}
-                                                    <Button
-                                                        size={"large"} type={"primary"}
+                                                    <Button size={"large"} type={"primary"}
                                                         onClick={() => setAvatarModal(true)}>
                                                         上传头像
                                                     </Button>
@@ -2062,34 +2126,111 @@ const Screen = () => {
                 <p>{translateResult}</p>
             </Modal>
 
-            <Modal title="上传" open={avatarModal} onOk={() => setAvatarModal(false)}/*onOk={() => {
-                if(!fileList.length) {
-                    message.warning("请选择上传的文件");
-                }
-                else{
-                    console.log(fileList);
-                    console.log(fileList[0]);
-                    console.log(fileList[0].originFileObj);
-                    axios.post("/api/user/upload", {"username": window.username, "avatar": fileList[0].originFileObj})
-                    .then((res) => message.success("成功"))
-                    .catch((err) => message.warning(err.message));
-                    }
-            }} */ onCancel={() => setAvatarModal(false)}>
+            <Modal title="上传" open={avatarModal} onOk={() => setAvatarModal(false)} onCancel={() => setAvatarModal(false)}>
                 <div>
-                    <iframe id="loader" name="loader" onChange={() => logReturn()}></iframe>
-                    <form action="/api/user/upload" method="post" encType="multipart/form-data" target="loader">
-                        <input id="image-uploadify" name="avatar" type="file" accept="image/*" multiple/>
-                        <input id="text" name="username" type="text" value={"111111"} style={{display: "none"}}/>
-                        <button type="submit"> 确认上传 </button>
+                    <iframe id="loader" name="loader" onChange={() => logReturn()} style={{display: "none"}}></iframe>
+                    <form id="avatarform" ref={avatarF} action="/api/user/upload" method="post" encType="multipart/form-data" target="loader" onSubmit={() => {
+                        if(avatarF.current) {
+                            var fromdata = new FormData(avatarF.current);
+                            console.log(fromdata.get("username"));
+                            console.log(fromdata.get("avatar"));
+                            axios.post("/api/user/upload", fromdata , avatarconfig)
+                                .then((res) => {
+                                    console.log(res.data.avatar);
+                                    window.userAvatar = res.data.avatar;
+                                })
+                                .catch((err) => {
+                                    console.log(err);
+                                });
+                        }
+                        setAvatarModal(false);
+                        return false;
+                    }}>
+                        <input id="image-uploadify" name="avatar" type="file" accept="image/*" multiple={false}/>
+                        <input id="text" name="username" type="text" value={username} style={{display: "none"}} readOnly/>
+                        <button type="submit">
+                            确认上传
+                        </button>
                     </form>
                 </div>
-                {/* <Upload fileList={fileList} beforeUpload={(f, fList) => false} onChange={(info) => {
-                    setFileList(() => info.fileList.length ? [info.fileList[info.fileList.length - 1]] : []);
-                }} >
-                    <Button>
-                        <UploadOutlined /> 选择文件
-                    </Button>
-                </Upload> */}
+            </Modal>
+            <Modal title="上传图片" open={imageModal} onOk={() => setImageModal(false)} onCancel={() => setImageModal(false)}>
+                <div>
+                    <iframe id="loaderi" name="loaderi" onChange={() => logReturn()} style={{display: "none"}}></iframe>
+                    <form id="imageform" ref={imageF} action="/api/user/uploadfile" method="post" encType="multipart/form-data" target="loaderi" onSubmit={() => {
+                        if(imageF.current) {
+                            var fromdata = new FormData(imageF.current);
+                            console.log(fromdata.get("file"));
+                            axios.post("/api/user/uploadfile", fromdata , avatarconfig)
+                                .then((res) => {
+                                    console.log(res.data.file_url);
+                                    sendFile("image", res.data.file_url);
+                                })
+                                .catch((err) => {
+                                    console.log(err);
+                                });
+                        }
+                        setImageModal(false);
+                        return false;
+                    }}>
+                        <input id="image-uploadify" name="file" type="file" accept="image/*" multiple={false}/>
+                        <button type="submit">
+                            确认上传
+                        </button>
+                    </form>
+                </div>
+            </Modal>
+            <Modal title="上传视频" open={videoModal} onOk={() => setVideoModal(false)} onCancel={() => setVideoModal(false)}>
+                <div>
+                    <iframe id="loaderv" name="loaderv" onChange={() => logReturn()} style={{display: "none"}}></iframe>
+                    <form id="videoform" ref={videoF} action="/api/user/uploadfile" method="post" encType="multipart/form-data" target="loaderv" onSubmit={() => {
+                        if(videoF.current) {
+                            var fromdata = new FormData(videoF.current);
+                            console.log(fromdata.get("file"));
+                            axios.post("/api/user/uploadfile", fromdata , avatarconfig)
+                                .then((res) => {
+                                    console.log(res.data.file_url);
+                                    sendFile("video", res.data.file_url);
+                                })
+                                .catch((err) => {
+                                    console.log(err);
+                                });
+                        }
+                        setVideoModal(false);
+                        return false;
+                    }}>
+                        <input id="image-uploadify" name="file" type="file" accept="video/*" multiple={false}/>
+                        <button type="submit">
+                            确认上传
+                        </button>
+                    </form>
+                </div>
+            </Modal>
+            <Modal title="上传文件" open={fileModal} onOk={() => setFileModal(false)} onCancel={() => setFileModal(false)}>
+                <div>
+                    <iframe id="loaderf" name="loaderf" onChange={() => logReturn()} style={{display: "none"}}></iframe>
+                    <form id="fileform" ref={fileF} action="/api/user/uploadfile" method="post" encType="multipart/form-data" target="loaderf" onSubmit={() => {
+                        if(fileF.current) {
+                            var fromdata = new FormData(fileF.current);
+                            console.log(fromdata.get("file"));
+                            axios.post("/api/user/uploadfile", fromdata , avatarconfig)
+                                .then((res) => {
+                                    console.log(res.data.file_url);
+                                    sendFile("file", res.data.file_url);
+                                })
+                                .catch((err) => {
+                                    console.log(err);
+                                });
+                        }
+                        setFileModal(false);
+                        return false;
+                    }}>
+                        <input id="image-uploadify" name="file" type="file" accept=".xlsx,.xls,image/*,.doc,audio/*,.docx,video/*,.ppt,.pptx,.txt,.pdf" multiple={false}/>
+                        <button type="submit">
+                            确认上传
+                        </button>
+                    </form>
+                </div>
             </Modal>
         </div>
     );

@@ -29,6 +29,8 @@ declare global {
         heartBeat: boolean
         loginToken?: number
         username: string
+        userAvatar: string
+        playVideoUrl: string
         otherUsername: string
         currentRoomID: number
         currentRoomName: string
