@@ -1515,7 +1515,7 @@ const Screen = () => {
                                                                                     getAllCombine(item.message_list);
                                                                                 }}>
                                                                                 <Space>
-                                                                                    <Badge count={item.is_notice ? getUnread(item) : 0}>
+                                                                                    <Badge count={item.is_notice ? /*getUnread(item)*/0 : 0}>
                                                                                         {/* TODO: 添加会话的图标 */}
                                                                                         <Avatar icon={ <CommentOutlined/> }/>
                                                                                     </Badge>
@@ -1571,7 +1571,7 @@ const Screen = () => {
                                                                                     </div>
                                                                                     <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#66B7FF"}}>
                                                                                         { isRead(item.read_list, roomInfo.mem_list, roomInfo.is_private, window.username) }
-                                                                                        {item.msg_type === "text" ? (
+                                                                                        {(item.msg_type != "combine" && item.msg_type != "image" && item.msg_type != "video" && item.msg_type != "file") ? (
                                                                                             str2addr(item.msg_body)
                                                                                         ): null}
                                                                                         {item.msg_type === "image" ? (
@@ -1579,8 +1579,8 @@ const Screen = () => {
                                                                                         ): null}
                                                                                         {item.msg_type === "video" ? (
                                                                                             <div style={{width: "50vh"}}>
-                                                                                                <Player fluid={false}>
-                                                                                                    <source src={("/api"+item.msg_body)}/>
+                                                                                                <Player fluid={false} width={"50vh"}>
+                                                                                                    <source src={("/api"+item.msg_body)} width={"200px"}/>
                                                                                                     <ControlBar>
                                                                                                         <ReplayControl seconds={10} order={1.1} />
                                                                                                         <ForwardControl seconds={30} order={1.2} />
@@ -1614,7 +1614,7 @@ const Screen = () => {
                                                                                     </div>
                                                                                     <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF"}}>
                                                                                         { isRead(item.read_list, roomInfo.mem_list, roomInfo.is_private, window.username) }
-                                                                                        {item.msg_type === "text" ? (
+                                                                                        {(item.msg_type != "combine" && item.msg_type != "image" && item.msg_type != "video" && item.msg_type != "file") ? (
                                                                                             str2addr(item.msg_body)
                                                                                         ): null}
                                                                                         {item.msg_type === "image" ? (
@@ -1622,8 +1622,8 @@ const Screen = () => {
                                                                                         ): null}
                                                                                         {item.msg_type === "video" ? (
                                                                                             <div style={{width: "50vh"}}>
-                                                                                                <Player fluid={false}>
-                                                                                                    <source src={("/api"+item.msg_body)}/>
+                                                                                                <Player fluid={false} width={"50vh"}>
+                                                                                                    <source src={("/api"+item.msg_body)} width={"200px"}/>
                                                                                                     <ControlBar>
                                                                                                         <ReplayControl seconds={10} order={1.1} />
                                                                                                         <ForwardControl seconds={30} order={1.2} />
