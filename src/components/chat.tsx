@@ -11,6 +11,7 @@ interface messageListData {
     sender: string;
     read_list: boolean[];
     avatar: string;
+    delete_list: boolean[];
 }
 
 // 地址字符串特殊显示

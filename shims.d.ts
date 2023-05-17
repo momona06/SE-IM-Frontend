@@ -10,6 +10,7 @@ interface messageListData {
     sender: string;
     read_list: boolean[];
     avatar: string;
+    delete_list: boolean[];
 }
 
 interface roomListData {
