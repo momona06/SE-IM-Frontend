@@ -29,7 +29,10 @@ import {
 } from "video-react";
 
 import emojiList from "../components/emojiList";
-import axios from "axios";
+import typeList from "../components/typeList";
+
+import axios, { AxiosError, AxiosResponse } from "axios";
+
 import $ from "jquery";
 import "video-react/dist/video-react.css";
 import {CheckboxValueType} from "antd/es/checkbox/Group";
