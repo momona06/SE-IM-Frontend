@@ -37,6 +37,15 @@ interface roomListData {
     is_private: boolean;
     message_list: messageListData[];
     index: number;
+    is_delete: boolean;
+}
+
+interface roomInfoData {
+    mem_list: string[];
+    manager_list: string[];
+    master: string;
+    mem_count: number;
+    is_private: boolean;
 }
 
 export interface inviteListData {
@@ -48,14 +57,6 @@ export interface inviteListData {
     is_notice?: boolean;
     is_top?: boolean;
     index?: number;
-}
-
-interface roomInfoData {
-    mem_list: string[];
-    manager_list: string[];
-    master: string;
-    mem_count: number;
-    is_private: boolean;
 }
 
 // 地址字符串特殊显示

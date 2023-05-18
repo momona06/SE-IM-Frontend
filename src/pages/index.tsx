@@ -29,18 +29,17 @@ import {
 } from "video-react";
 
 import emojiList from "../components/emojiList";
-import axios, { AxiosError, AxiosResponse } from "axios";
+import axios from "axios";
 import $ from "jquery";
 import "video-react/dist/video-react.css";
 import {CheckboxValueType} from "antd/es/checkbox/Group";
 import {MentionsOptionProps} from "antd/es/mentions";
 
-const { SHOW_PARENT } = TreeSelect;
 
+const { SHOW_PARENT } = TreeSelect;
 export const isEmail = (val : string) => {
     return /^[A-Za-z0-9\u4e00-\u9fa5]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/i.test(val);
 };
-
 
 const { Meta } = Card;
 const { TextArea } = Input;
