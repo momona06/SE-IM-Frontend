@@ -147,6 +147,8 @@ const Screen = () => {
     const [inviteUser, setInviteUser] = useState<string>("");
 
     const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
+    const [roomApplyList, setRoomApplyList] = useState<inviteListData[]>([]);
+
     const showDrawer = () => {
         setDrawerOpen(true);
     };
@@ -369,6 +371,16 @@ const Screen = () => {
             }
             else if (data.function === "withdraw_overtime") {
                 message.error("消息超时", 1);
+            }
+            else if (data.function === "send_message_invite"){
+                let data = {
+                    function: "fetch_invite_list",
+                    username: window.username
+                };
+                window.ws.send(JSON.stringify(data));
+            }
+            else if (data.function === "fetch_invite_list") {
+                setRoomApplyList(data.msg_body.map((val: any) => ({...val})));
             }
             else {
                 return;
@@ -768,11 +780,10 @@ const Screen = () => {
         setRoomListRefreshing(true);
         const data = {
             "function": "fetch_room",
-            "username": window.username,
+            "username": window.username
         };
         window.ws.send(JSON.stringify(data));
     };
-
 
     // 加入分组
     const addRoom = (ID: number, Name: string) => {
