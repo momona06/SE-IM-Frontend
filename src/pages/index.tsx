@@ -1515,7 +1515,7 @@ const Screen = () => {
                                                                                     getAllCombine(item.message_list);
                                                                                 }}>
                                                                                 <Space>
-                                                                                    <Badge count={item.is_notice ? /*getUnread(item)*/0 : 0}>
+                                                                                    <Badge count={ 0}>
                                                                                         {/* TODO: 添加会话的图标 */}
                                                                                         <Avatar icon={ <CommentOutlined/> }/>
                                                                                     </Badge>
@@ -1570,7 +1570,7 @@ const Screen = () => {
                                                                                         <h6>{item.sender}</h6>
                                                                                     </div>
                                                                                     <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#66B7FF"}}>
-                                                                                        { isRead(item.read_list, roomInfo.mem_list, roomInfo.is_private, window.username) }
+                                                                                       
                                                                                         {(item.msg_type != "combine" && item.msg_type != "image" && item.msg_type != "video" && item.msg_type != "file") ? (
                                                                                             str2addr(item.msg_body)
                                                                                         ): null}
@@ -1613,7 +1613,7 @@ const Screen = () => {
                                                                                         <h6>{item.sender}</h6>
                                                                                     </div>
                                                                                     <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF"}}>
-                                                                                        { isRead(item.read_list, roomInfo.mem_list, roomInfo.is_private, window.username) }
+                                                                                       
                                                                                         {(item.msg_type != "combine" && item.msg_type != "image" && item.msg_type != "video" && item.msg_type != "file") ? (
                                                                                             str2addr(item.msg_body)
                                                                                         ): null}
@@ -1651,7 +1651,7 @@ const Screen = () => {
                                                                                 </div>
                                                                             )}
                                                                         </Popover>
-                                                                        { item.msg_type === "reply" ? (item.reply_id) : null}
+                                                                        {/* { item.msg_type === "reply" ? (item.reply_id) : null} */}
                                                                     </>
                                                                 ) : (
                                                                     <>
