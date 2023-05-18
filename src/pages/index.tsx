@@ -1172,6 +1172,16 @@ const Screen = () => {
         roomInfo.mem_list.splice(pos, 1);
     };
 
+    const showReply = (id: number) => {
+        messageList.forEach(msg => {
+            if (msg.msg_id === id){
+                return (
+                    <div>{msg.msg_body}</div>
+                );
+            }
+        });
+    };
+
     //会话具体信息
     const roomInfoPage = (
         <div style={{padding: "12px"}}>
@@ -1544,7 +1554,7 @@ const Screen = () => {
                                                                                 </div>
                                                                             )}
                                                                         </Popover>
-                                                                        { item.msg_type === "reply" ? (item.reply_id) : null}
+                                                                        { item.msg_type === "reply" && typeof item.reply_id === "number" ? (showReply(item.reply_id)) : null}
                                                                     </>
                                                                 ) : (
                                                                     <>
