@@ -2,7 +2,7 @@ import React, {useEffect, useRef, useState } from "react";
 import * as STRINGS from "../constants/string";
 import * as CONS from "../constants/constants";
 import { request } from "../utils/network";
-import {isRead, forwardCard, str2addr, messageListData } from "../components/chat";
+import {isRead, forwardCard, messageListData } from "../components/chat";
 import {
     message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar, Popover, Card, Divider, Row, Col,
     Upload, Switch, Mentions, Form, Modal, Checkbox, Select, UploadFile, Result, Image, TreeSelect, DatePicker
@@ -618,7 +618,7 @@ const Screen = () => {
                 token: token,
             },
         )
-            .then(() => {message.success(STRINGS.PASSWORD_CHANGE_SUCCESS, 1);window.password = password;})
+            .then(() => {message.success(STRINGS.PASSWORD_CHANGE_SUCCESS, 1);window.password = newPassword;})
             .catch((err) => message.error(err.message, 1));
     };
 
@@ -740,6 +740,7 @@ const Screen = () => {
         )
             .then((res) => {
                 setIsFriend(res.is_friend);
+                setMenuItem(CONS.ADDRESSBOOK);
                 setAddressItem(CONS.PUBLICINFO);
             })
             .catch((err) => console.log(err));
@@ -1311,7 +1312,58 @@ const Screen = () => {
         {
             message.error("密码错误", 1);
         }
-    }
+    };
+
+    // 地址字符串特殊显示
+    const str2addr = (text : string, readlist: boolean[]) => {
+        const urlRegex = /(https?:\/\/[^\s]+)/g; // 匹配 URL 的正则表达式
+        const urlRegex2 = /((https?:\/\/)?([a-zA-Z0-9]+\.)+[a-zA-Z0-9]+)/g;
+        const atRegex = /(@[A-Za-z0-9]+)/g;
+        const parts = text.split(urlRegex); // 使用正则表达式拆分字符串
+        console.log(parts);
+        var partss: string[] = [];
+        parts.forEach((part) => {
+            if(typeof part != undefined)
+            {    
+                if(part.match(urlRegex)){
+                    partss = partss.concat([part]);
+                }
+                else
+                {
+                    partss = partss.concat(part.split(atRegex));
+                }
+            }
+        })
+        console.log(partss);
+        return (
+            <div>
+                {partss.map((part, i) => {
+                    if (part.match(urlRegex)) {
+                        return (
+                            <a href= "_blank" rel="noopener noreferrer" key={i}>
+                                {part}
+                            </a>
+                        );
+                    } else if(part.match(atRegex)) {
+                        return (
+                            <Popover trigger={"hover"} content={
+                                <Space direction={"horizontal"} size={"small"}>
+                                    <p>{part.substring(1)+(readlist[roomInfo.mem_list.lastIndexOf(part.substring(1))] ? "已读" : "未读")}</p>
+                                </Space>
+                            }>
+                                <span style={{color: "blue"}} onClick={() => {
+                                    window.otherUsername = part.substring(1);
+                                    checkFriend();
+                                }} key={ i }>{part}</span>
+                            </Popover>
+                        );
+                    } else {
+                        return <span key={ i }>{part}</span>;
+                    }
+                })}
+            </div>
+        );
+    };
 
     //会话具体信息
     const roomInfoPage = (
@@ -1603,7 +1655,9 @@ const Screen = () => {
                                                                                         {/* TODO: 添加会话的图标 */}
                                                                                         <Avatar icon={ <CommentOutlined/> }/>
                                                                                     </Badge>
-                                                                                    { item.roomname }
+                                                                                    <div style={{width: "50px"}}>
+                                                                                        { item.roomname }
+                                                                                    </div>
                                                                                 </Space>
                                                                             </Button>}
                                                                     />
@@ -1659,7 +1713,7 @@ const Screen = () => {
                                                                                     <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#66B7FF"}}>
                                                                                         {isRead(item.read_list, roomInfo.mem_list, roomInfo.is_private, window.username)}
                                                                                         {(item.msg_type != "combine" && item.msg_type != "image" && item.msg_type != "video" && item.msg_type != "file" && item.msg_type != "audio") ? (
-                                                                                            str2addr(item.msg_body)
+                                                                                            str2addr(item.msg_body, item.read_list)
                                                                                         ): null}
                                                                                         {item.msg_type === "image" ? (
                                                                                             <Image width={"30vh"} src={("/api"+item.msg_body)}/>
@@ -1680,7 +1734,7 @@ const Screen = () => {
                                                                                             </div>
                                                                                         ): null}
                                                                                         {(item.msg_type === "audio") ? (
-                                                                                            <div style={{width: "50vh", height: "100px"}}>
+                                                                                            <div style={{width: "50vh", height: "50px"}}>
                                                                                                 <Player fluid={false} width={"50vh"} height={"20px"}>
                                                                                                     <source src={("/api"+item.msg_body)} width={"200px"}/>
                                                                                                     <ControlBar>
@@ -1717,7 +1771,7 @@ const Screen = () => {
                                                                                     <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF"}}>
                                                                                         {isRead(item.read_list, roomInfo.mem_list, roomInfo.is_private, window.username)}
                                                                                         {(item.msg_type != "combine" && item.msg_type != "image" && item.msg_type != "video" && item.msg_type != "file" && item.msg_type != "audio") ? (
-                                                                                            str2addr(item.msg_body)
+                                                                                            str2addr(item.msg_body, item.read_list)
                                                                                         ): null}
                                                                                         {item.msg_type === "image" ? (
                                                                                             <Image width={"30vh"} src={("/api"+item.msg_body)}/>
@@ -1738,7 +1792,7 @@ const Screen = () => {
                                                                                             </div>
                                                                                         ): null}
                                                                                         {(item.msg_type === "audio") ? (
-                                                                                            <div style={{width: "50vh", height: "100px"}}>
+                                                                                            <div style={{width: "50vh", height: "50px"}}>
                                                                                                 <Player fluid={false} width={"50vh"} height={"20px"}>
                                                                                                     <source src={("/api"+item.msg_body)} width={"200px"}/>
                                                                                                     <ControlBar>
@@ -2060,7 +2114,7 @@ const Screen = () => {
                                                 }}>
                                                     <h1>{ window.otherUsername }</h1>
                                                     {isFriend ? (
-                                                        <div style={{ width: "400px", height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
+                                                        <div style={{height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
                                                             <Button
                                                                 type="primary"
                                                                 onClick={() => ((box === 1) ? setBox(0) : setBox(1))}>
@@ -2073,7 +2127,7 @@ const Screen = () => {
                                                             </Button>
                                                         </div>
                                                     ) : (
-                                                        <div style={{ width: "200px", height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
+                                                        <div style={{height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
                                                             <Button type="primary" onClick={() => addFriend(window.otherUsername)}>
                                                                 添加好友
                                                             </Button>
@@ -2102,7 +2156,7 @@ const Screen = () => {
 
                                 {menuItem === CONS.SETTINGS ? (
                                     <div style={{
-                                        display: "flex", flexDirection: "column", justifyContent: "center ", alignItems: "center", position: "absolute", margin: "auto"
+                                        display: "flex", flexDirection: "column", justifyContent: "center ", alignItems: "center", position: "absolute", marginLeft: "30vh", top: 0, bottom: 0, margin: "auto"
                                     }}>
                                         <h1>
                                             用户管理
@@ -2110,8 +2164,8 @@ const Screen = () => {
                                         <div style={{
                                             display: "flex",
                                             flexDirection: "column",
-                                            paddingLeft: "150px",
-                                            paddingRight: "150px",
+                                            paddingLeft: "50px",
+                                            paddingRight: "50px",
                                             paddingTop: "5px",
                                             paddingBottom: "25px",
                                             border: "1px solid transparent",
@@ -2120,7 +2174,7 @@ const Screen = () => {
                                             backgroundColor: "rgba(255,255,255,0.7)"
                                         }}>
                                             <h3>用户名：{ window.username }</h3>
-                                            <div style={{width: "400px", height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
+                                            <div style={{height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
                                                 <Space size={50}>
                                                     <Button
                                                         size={"large"} type={"primary"}
@@ -2252,7 +2306,7 @@ const Screen = () => {
                                                     </Button>
                                                 </div>
                                             ) : null}
-                                            <div style={{width: "400px", height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
+                                            <div style={{height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
                                                 <Space size={150}>
                                                     <Button size={"large"} shape={"round"} type={"primary"} onClick={()=>logout()}>
                                                         登出
