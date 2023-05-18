@@ -2242,7 +2242,7 @@ const Screen = () => {
                     </form>
                 </div>
             </Modal>
-            <Modal title="上传图片" open={imageModal} onOk={() => setImageModal(false)} onCancel={() => setImageModal(false)}>
+            <Modal title="上传图片" open={ imageModal } onOk={() => setImageModal(false)} onCancel={() => setImageModal(false)}>
                 <div>
                     <iframe id="loaderi" name="loaderi" onChange={() => logReturn()} style={{display: "none"}}></iframe>
                     <form id="imageform" ref={imageF} action="/api/user/uploadfile" method="post" encType="multipart/form-data" target="loaderi" onSubmit={() => {
