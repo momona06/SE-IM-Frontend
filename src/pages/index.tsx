@@ -207,10 +207,6 @@ const Screen = () => {
     useEffect(() => {
         window.messageList = messageList;
         console.log("msg changed", messageList);
-        let last = messageList.at(-1);
-        if (last && last.sender != window.username){
-            Read();
-        }
     }, [messageList]);
 
     useEffect(() => {
@@ -225,7 +221,6 @@ const Screen = () => {
     // 当fetchRoomInfo回传成功后 本地消息列表更新时，执行read / 更新memList
     useEffect(() => {
         window.memList = roomInfo.mem_list;
-        Read();
     }, [roomInfo]);
 
     const WSConnect = () => {
@@ -525,13 +520,11 @@ const Screen = () => {
     };
 
     const verifyPassword = () => {
-        if (verification === password){
-            if (currentPage === CONS.REGISTER) {
-                register();
-            }
-            if (currentPage === CONS.MAIN && menuItem === CONS.SETTINGS) {
-                changePassword();
-            }
+        if (verification === password && currentPage === CONS.REGISTER){
+            register();
+        }
+        else if(currentPage === CONS.MAIN && menuItem === CONS.SETTINGS && verification == newPassword){
+            changePassword();
         }
         else{
             message.warning(STRINGS.PASSWORD_INCONSISTENT, 1);
@@ -819,59 +812,7 @@ const Screen = () => {
         window.ws.send(JSON.stringify(data));
     };
 
-    const Read = () => {
-        let position: number = -1;
-        roomList.forEach(room => {
-            if (room.roomid === window.currentRoomID){
-                position = room.index;
-            }
-        });
-        if (position != -1){
-            console.log("position", position);
-            let readMessageList: number[] = [];
-            // 筛选所有未读信息
-            messageList.filter((msg) => (!msg.read_list[position] && msg.msg_id != -1)).forEach(arr => {
-                readMessageList.push(arr.msg_id);
-            });
-            const data = {
-                "function": "read_message",
-                "read_message_list": readMessageList,
-                "read_user": window.username,
-                "chatroom_id": window.currentRoomID
-            };
-            console.log(data);
-            window.ws.send(JSON.stringify(data));
-
-            // 本地消息状态全部置为已读
-            let temp = window.messageList;
-            temp.forEach(msg => {
-                msg.read_list[position] = true;
-            });
-            setMessageList(temp);
-            console.log("readsend");
-            console.log(messageList);
-
-            // roomList 消息置为已读
-            for (let room of roomList){
-                if (room.roomid === window.currentRoomID){
-                    for (let msg of room.message_list){
-                        msg.read_list[position] = true;
-                    }
-                }
-            }
-        }
-    };
-
-    // 会话列表中的未读消息数
-    const getUnread = (room: roomListData) => {
-        let num = 0;
-        room.message_list.forEach(msg => {
-            if (!msg.read_list[room.index]){
-                num += 1;
-            }
-        });
-        return num;
-    };
+   
 
     const sendMessage = (Message: string, MessageType: string, reply_id?: number) => {
         if (Message != ""){
