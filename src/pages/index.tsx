@@ -1680,8 +1680,8 @@ const Screen = () => {
                                                                                             </div>
                                                                                         ): null}
                                                                                         {(item.msg_type === "audio") ? (
-                                                                                            <div style={{width: "50vh"}}>
-                                                                                                <Player fluid={true} width={"50vh"} height={0}>
+                                                                                            <div style={{width: "50vh", height: "100px"}}>
+                                                                                                <Player fluid={false} width={"50vh"} height={"20px"}>
                                                                                                     <source src={("/api"+item.msg_body)} width={"200px"}/>
                                                                                                     <ControlBar>
                                                                                                         <ReplayControl seconds={10} order={1.1} />
@@ -1738,8 +1738,8 @@ const Screen = () => {
                                                                                             </div>
                                                                                         ): null}
                                                                                         {(item.msg_type === "audio") ? (
-                                                                                            <div style={{width: "50vh"}}>
-                                                                                                <Player fluid={true} width={"50vh"} height={0}>
+                                                                                            <div style={{width: "50vh", height: "100px"}}>
+                                                                                                <Player fluid={false} width={"50vh"} height={"20px"}>
                                                                                                     <source src={("/api"+item.msg_body)} width={"200px"}/>
                                                                                                     <ControlBar>
                                                                                                         <ReplayControl seconds={10} order={1.1} />
