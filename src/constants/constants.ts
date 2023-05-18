@@ -26,3 +26,9 @@ export const EMPTY = -1;
 export const MASTER = 3;
 export const MANAGER = 2;
 export const MEMBER = 1;
+
+//聊天记录过滤方式
+export const NO_FILTER = 0;
+export const FILTER_BY_TIME = 1;
+export const FILTER_BY_TYPE = 2;
+export const FILTER_BY_MEMBER = 3;

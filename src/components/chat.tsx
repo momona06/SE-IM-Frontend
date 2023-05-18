@@ -11,6 +11,7 @@ interface messageListData {
     sender: string;
     read_list: boolean[];
     avatar: string;
+    is_delete: boolean;
 }
 
 interface friendListData {

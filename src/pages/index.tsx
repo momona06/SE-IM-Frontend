@@ -9,7 +9,8 @@ import {
 
 import {
     message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar, Popover, Card, Divider, Row, Col,
-    Upload, Switch, Mentions, Form, Modal, Checkbox, Select, Result, Image, TreeSelect, Radio, RadioChangeEvent, Drawer
+    Upload, Switch, Mentions, Form, Modal, Checkbox, Select, Result, Image, TreeSelect, Radio, RadioChangeEvent,
+    Drawer, DatePicker
 } from "antd";
 
 import {
@@ -137,6 +138,14 @@ const Screen = () => {
     const [imageModal, setImageModal] = useState<boolean>(false);
     const [videoModal, setVideoModal] = useState<boolean>(false);
     const [fileModal, setFileModal] = useState<boolean>(false);
+
+    const [historyModal, setHistoryModal] = useState<boolean>(false);
+    const [filterType, setFilterType] = useState<number>(CONS.NO_FILTER);
+    const [startTime, setStartTime] = useState<string>("");
+    const [endTime, setEndTime] = useState<string>("");
+    const [searchMember, setSearchMember] = useState<string>("");
+    const [searchType, setSearchType] = useState<string>("");
+    const [filterList, setFilterList] = useState<messageListData[]>([]);
 
     const avatarF = useRef<HTMLFormElement>(null);
     const imageF = useRef<HTMLFormElement>(null);
@@ -271,7 +280,8 @@ const Screen = () => {
                     sender: data.sender,
                     combine_list: data.combine_list,
                     read_list: data.read_list,
-                    avatar: data.avatar
+                    avatar: data.avatar,
+                    is_delete: data.is_delete
                 };
                 setCombineList(combineList => combineList.concat(info));
             }
@@ -282,6 +292,8 @@ const Screen = () => {
                     last.msg_id = data.msg_id;
                     let temp = [last];
                     setMessageList(window.messageList.slice(0, window.messageList.length - 1).concat(temp));
+                    console.log("ack2");
+                    console.log(messageList);
                 }
             }
             else if (data.function === "Msg"){
@@ -294,7 +306,8 @@ const Screen = () => {
                     msg_time: data.msg_time,
                     sender: data.sender,
                     read_list: data.read_list, // 自己为true
-                    avatar: data.avatar
+                    avatar: data.avatar,
+                    is_delete: data.is_delete
                 };
                 // 更新本地
                 if (data.room_id === window.currentRoomID){
@@ -302,6 +315,14 @@ const Screen = () => {
                     if (data.sender != window.username) {
                         console.log("msg", newMessage);
                         setMessageList(messageList => messageList.concat(newMessage));
+                        console.log(messageList);
+                    }
+                    else {
+                        // 需更新 read list
+                        let temp = [newMessage];
+                        setMessageList((messageList) => messageList.slice(0, messageList.length - 1).concat(temp));
+                        console.log("msg");
+                        console.log(messageList);
                     }
                 }
                 // 更新 roomlist
@@ -338,6 +359,8 @@ const Screen = () => {
                                 });
                                 if (data.chatroom_id === window.currentRoomID){
                                     setMessageList(room.message_list);
+                                    console.log("read");
+                                    console.log(messageList);
                                 }
                             }
                         });
@@ -825,6 +848,8 @@ const Screen = () => {
                 msg.read_list[position] = true;
             });
             setMessageList(temp);
+            console.log("readsend");
+            console.log(messageList);
 
             // roomList 消息置为已读
             for (let room of roomList){
@@ -865,13 +890,22 @@ const Screen = () => {
                 "msg_time": moment(date).format("YYYY-MM-DD HH:mm:ss"),
                 "sender": window.username,
                 "avatar": window.userAvatar,
-                "read_list": []
+                "read_list": [],
+                "is_delete": false,
             };
             window.ws.send(JSON.stringify(data));
             console.log("send", newMessage);
 
             // 更新本地messageList
             setMessageList(messageList => messageList.concat(newMessage));
+            console.log("send");
+            console.log(messageList);
+            // 更新roomList 消息
+            for (let room of roomList){
+                if (room.roomid === window.currentRoomID){
+                    room.message_list.push(newMessage);
+                }
+            }
         }
         else {
             message.error("输入不能为空", 1);
@@ -895,7 +929,8 @@ const Screen = () => {
                 "msg_time": moment(date).format("YYYY-MM-DD HH:mm:ss"),
                 "sender": window.username,
                 "avatar": window.userAvatar,
-                "read_list": []
+                "read_list": [],
+                "is_delete": false,
             };
             setMessageList(messageList => messageList.concat(newMessage));
             console.log(messageList);
@@ -1042,7 +1077,8 @@ const Screen = () => {
             "msg_body": "",
             "msg_time": moment(date).format("YYYY-MM-DD HH:mm:ss"),
             "sender": window.username,
-            "combine_list": forwardList
+            "combine_list": forwardList,
+            "avatar": window.userAvatar
         };
 
         for (let room of roomList){
@@ -1193,6 +1229,37 @@ const Screen = () => {
         });
     };
 
+    const filter = () => {
+        if (filterType === CONS.NO_FILTER)
+        {
+            setFilterList(() => messageList);
+        }
+        else if (filterType === CONS.FILTER_BY_MEMBER)
+        {
+            setFilterList(() => messageList.filter((val) => val.sender === searchMember));
+        }
+        else if (filterType === CONS.FILTER_BY_TYPE)
+        {
+            setFilterList(() => messageList.filter((val) => val.msg_type === searchType));
+        }
+        else if (filterType === CONS.FILTER_BY_TIME)
+        {
+            setFilterList(() => messageList.filter((val) => (val.msg_time.substring(0,10) >= startTime && val.msg_time.substring(0,10) <= endTime)));
+        }
+    };
+
+    const deleteMessage = (msg_id: number) => {
+        let data = {
+            "function": "delete_message",
+            "msg_id": msg_id
+        };
+        window.ws.send(JSON.stringify(data));
+        setMessageList((messageList) => messageList.filter((val) => val.msg_id != msg_id));
+        console.log("delete");
+        console.log(messageList);
+        filter();
+    };
+
     //会话具体信息
     const roomInfoPage = (
         <div style={{padding: "12px"}}>
@@ -1250,7 +1317,7 @@ const Screen = () => {
                 <Divider type={"horizontal"}/>
 
                 {roomInfo.is_private ? null : (
-                    <Card title={`群聊名称      ${window.currentRoomName}`}>
+                    <Card title={`群聊名称   ${typeof window != "undefined" ? window.currentRoomName : null}`}>
                         <Space direction={"vertical"}>
                             <Button type={"text"} onClick={() => {
                                 setBoardModal(true);
@@ -1265,7 +1332,7 @@ const Screen = () => {
                             <Button type={"text"} danger={true} onClick={leaveChatGroup}>
                                 退出群聊
                             </Button>
-                            {identity(window.username) === CONS.MASTER ? (
+                            {typeof window != "undefined" && identity(window.username) === CONS.MASTER ? (
                                 <Button type={"text"} danger={true} onClick={deleteChatGroup}>
                                     解散群聊
                                 </Button>
@@ -1281,6 +1348,11 @@ const Screen = () => {
                 <Space direction={"horizontal"}>
                     <p>置顶</p>
                     <Switch checked={roomTop} onChange={setTop}/>
+                </Space>
+                <Space direction={"horizontal"}>
+                    <Button type={"primary"} onClick={() => setHistoryModal(true)}>
+                        查看聊天消息
+                    </Button>
                 </Space>
             </Space>
         </div>
@@ -1462,7 +1534,7 @@ const Screen = () => {
                                                                                     getAllCombine(item.message_list);
                                                                                 }}>
                                                                                 <Space>
-                                                                                    <Badge count={item.is_notice ? getUnread(item) : 0}>
+                                                                                    <Badge count={item.is_notice ? /*getUnread(item)*/0 : 0}>
                                                                                         {/* TODO: 添加会话的图标 */}
                                                                                         <Avatar icon={ <CommentOutlined/> }/>
                                                                                     </Badge>
@@ -1492,7 +1564,7 @@ const Screen = () => {
                                                 <Divider type={"horizontal"}/>
                                                 <div style={{padding: "24px", position: "relative", height: "60vh", overflow: "scroll"}}>
                                                     <List
-                                                        dataSource={ messageList.filter((msg) => msg.msg_type != "notice") }
+                                                        dataSource={ messageList.filter((msg) => (msg.msg_type != "notice" && msg.is_delete === false)) }
                                                         split={ false }
                                                         renderItem={(item) => (
                                                             <List.Item key={ item.msg_id }>
@@ -1502,7 +1574,9 @@ const Screen = () => {
                                                                             <Space direction={"horizontal"} size={"small"}>
                                                                                 <Button type={"text"} onClick={() => setForwardModal(true)}> 转发 </Button>
                                                                                 <Button type={"text"} onClick={() => {setReplying(true); setReplyMessageID(item.msg_id); setReplyMessageBody(item.msg_body);}}> 回复 </Button>
-                                                                                <Button type={"text"} onClick={() => translate(item.msg_body)}> 翻译 </Button>
+                                                                                { item.msg_type === "text" ? (
+                                                                                    <Button type={"text"} onClick={() => translate(item.msg_body)}> 翻译 </Button>
+                                                                                ) : null }
                                                                                 { item.sender === window.username ? (
                                                                                     <Button type={"text"} onClick={() => recall(item.msg_id)}> 撤回 </Button>
                                                                                 ) : null }
@@ -1511,21 +1585,21 @@ const Screen = () => {
                                                                             { item.sender === window.username ? (
                                                                                 <div style={{ display: "flex", flexDirection: "row-reverse", justifyContent: "flex-start", marginLeft: "auto"}}>
                                                                                     <div style={{display: "flex", flexDirection: "column"}}>
-                                                                                        <List.Item.Meta avatar/>
+                                                                                        <List.Item.Meta avatar={<Avatar  src={("/api"+item.avatar)}/>}/>
                                                                                         <h6>{item.sender}</h6>
                                                                                     </div>
                                                                                     <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#66B7FF"}}>
                                                                                         { isRead(item.read_list, roomInfo.mem_list, roomInfo.is_private, window.username) }
-                                                                                        {item.msg_type === "text" ? (
-                                                                                            <p>{item.msg_body}</p>
+                                                                                        {(item.msg_type != "combine" && item.msg_type != "image" && item.msg_type != "video" && item.msg_type != "file") ? (
+                                                                                            str2addr(item.msg_body)
                                                                                         ): null}
                                                                                         {item.msg_type === "image" ? (
                                                                                             <Image width={"30vh"} src={("/api"+item.msg_body)}/>
                                                                                         ): null}
                                                                                         {item.msg_type === "video" ? (
                                                                                             <div style={{width: "50vh"}}>
-                                                                                                <Player fluid={false}>
-                                                                                                    <source src={("/api"+item.msg_body)}/>
+                                                                                                <Player fluid={false} width={"50vh"}>
+                                                                                                    <source src={("/api"+item.msg_body)} width={"200px"}/>
                                                                                                     <ControlBar>
                                                                                                         <ReplayControl seconds={10} order={1.1} />
                                                                                                         <ForwardControl seconds={30} order={1.2} />
@@ -1547,19 +1621,50 @@ const Screen = () => {
                                                                                                 </Button>
                                                                                             </div>
                                                                                         ): null}
-                                                                                        { item.msg_type != "combine" ?  str2addr(item.msg_body) : (forwardCard(combineList))}
+                                                                                        { item.msg_type === "combine" ? (forwardCard(combineList)) : null}
                                                                                         <span> { item.msg_time } </span>
                                                                                     </div>
                                                                                 </div>
                                                                             ) : (
                                                                                 <div style={{ display: "flex", flexDirection: "row"}}>
                                                                                     <div style={{display: "flex", flexDirection: "column"}}>
-                                                                                        <List.Item.Meta avatar/>
+                                                                                        <List.Item.Meta avatar={<Avatar  src={("/api"+item.avatar)}/>}/>
                                                                                         <h6>{item.sender}</h6>
                                                                                     </div>
                                                                                     <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF"}}>
                                                                                         { isRead(item.read_list, roomInfo.mem_list, roomInfo.is_private, window.username) }
-                                                                                        { item.msg_type != "combine" ?  str2addr(item.msg_body) : (forwardCard(combineList))}
+                                                                                        {(item.msg_type != "combine" && item.msg_type != "image" && item.msg_type != "video" && item.msg_type != "file") ? (
+                                                                                            str2addr(item.msg_body)
+                                                                                        ): null}
+                                                                                        {item.msg_type === "image" ? (
+                                                                                            <Image width={"30vh"} src={("/api"+item.msg_body)}/>
+                                                                                        ): null}
+                                                                                        {item.msg_type === "video" ? (
+                                                                                            <div style={{width: "50vh"}}>
+                                                                                                <Player fluid={false} width={"50vh"}>
+                                                                                                    <source src={("/api"+item.msg_body)} width={"200px"}/>
+                                                                                                    <ControlBar>
+                                                                                                        <ReplayControl seconds={10} order={1.1} />
+                                                                                                        <ForwardControl seconds={30} order={1.2} />
+                                                                                                        <CurrentTimeDisplay order={4.1} />
+                                                                                                        <TimeDivider order={4.2} />
+                                                                                                        <PlaybackRateMenuButton rates={[5, 2, 1, 0.5, 0.1]} order={7.1} />
+                                                                                                        <VolumeMenuButton disabled />
+                                                                                                    </ControlBar>
+                                                                                                </Player>
+                                                                                            </div>
+                                                                                        ): null}
+                                                                                        {item.msg_type === "file" ? (
+                                                                                            <div>
+                                                                                                <h1> 文件消息 </h1>
+                                                                                                <Button onClick={() => {
+                                                                                                    window.open("/api" + item.msg_body);
+                                                                                                }} type="default">
+                                                                                                    下载
+                                                                                                </Button>
+                                                                                            </div>
+                                                                                        ): null}
+                                                                                        { item.msg_type === "combine" ? (forwardCard(combineList)) : null}
                                                                                         <span> { item.msg_time } </span>
                                                                                     </div>
                                                                                 </div>
@@ -1572,7 +1677,7 @@ const Screen = () => {
                                                                         { item.sender === window.username ? (
                                                                             <div style={{ display: "flex", flexDirection: "row-reverse", justifyContent: "flex-start", marginLeft: "auto"}}>
                                                                                 <div style={{display: "flex", flexDirection: "column"}}>
-                                                                                    <List.Item.Meta avatar={<Avatar src={"https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxgeticon?seq=239472774&username=@c8ef32eea4f34c3becfba86e70bd5320e33c7eba9d35d382ed6185b9c3efbfe0&skey=@crypt_6df0f029_14c4f0a85beaf972ec58feb5ca7dc0e0"}/>}/>
+                                                                                    <List.Item.Meta avatar={<Avatar  src={("/api"+item.avatar)}/>}/>
                                                                                     <h6>{item.sender}</h6>
                                                                                 </div>
                                                                                 <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#66B7FF"}}>
@@ -2234,6 +2339,135 @@ const Screen = () => {
                             确认上传
                         </button>
                     </form>
+                </div>
+            </Modal>
+            <Modal title="聊天信息" open={historyModal} onOk={() => setHistoryModal(false)} onCancel={() => setHistoryModal(false)}>
+                <div style={{display: "flex", flexDirection: "column"}}>
+                    <div style={{display: "flex", flexDirection: "row"}}>
+                        <Button
+                            type={"primary"}
+                            onClick={() => setFilterType(() => CONS.NO_FILTER)}
+                        >
+                            不过滤
+                        </Button>
+                        <Button
+                            type={"primary"}
+                            onClick={() => setFilterType((filterType) => (filterType === CONS.FILTER_BY_TIME ? CONS.NO_FILTER : CONS.FILTER_BY_TIME))}
+                        >
+                            按时间搜索
+                        </Button>
+                        <Button
+                            type={"primary"}
+                            onClick={() => setFilterType((filterType) => (filterType === CONS.FILTER_BY_TYPE ? CONS.NO_FILTER : CONS.FILTER_BY_TYPE))}
+                        >
+                            按类型搜索
+                        </Button>
+                        {roomInfo.is_private ? null : (
+                            <Button
+                                type={"primary"}
+                                onClick={() => setFilterType((filterType) => (filterType === CONS.FILTER_BY_MEMBER ? CONS.NO_FILTER : CONS.FILTER_BY_MEMBER))}
+                            >
+                                按成员搜索
+                            </Button>
+                        )}
+                    </div>
+                    {filterType === CONS.NO_FILTER ? (
+                        <div style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
+                            <Button type="primary" onClick={() => filter()}>
+                                搜索记录
+                            </Button>
+                        </div>
+                    ) : null}
+                    {filterType === CONS.FILTER_BY_TIME ? (
+                        <div style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
+                            <DatePicker onChange={(date, datestring) => {setStartTime(() => datestring);}} format={"YYYY-MM-DD"}/>
+                            <DatePicker onChange={(date, datestring) => {setEndTime(() => datestring);}} format={"YYYY-MM-DD"}/>
+
+                            <Button type="primary" onClick={() => filter()}>
+                                搜索记录
+                            </Button>
+                        </div>
+                    ) : null}
+                    {filterType === CONS.FILTER_BY_MEMBER ? (
+                        <div style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
+                            <List
+                                dataSource={roomInfo.mem_list}
+                                renderItem={(item) => (
+                                    <List.Item
+                                        actions={[
+                                            <Button
+                                                key={item}
+                                                size={"small"}
+                                                type="default"
+                                                onClick={() => {setSearchMember(item);}}>
+                                                {item}
+                                            </Button>
+                                        ]}
+                                    >
+                                    </List.Item>
+                                )}
+                            />
+                            <Button type="primary" onClick={() => filter()}>
+                                搜索记录
+                            </Button>
+                        </div>
+                    ) : null}
+                    {filterType === CONS.FILTER_BY_TYPE ? (
+                        <div style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
+                            <List
+                                dataSource={typeList}
+                                renderItem={(item) => (
+                                    <List.Item
+                                        actions={[
+                                            <Button
+                                                key={item}
+                                                size={"small"}
+                                                type="default"
+                                                onClick={() => {setSearchType(item);}}>
+                                                {item}
+                                            </Button>
+                                        ]}
+                                    >
+                                    </List.Item>
+                                )}
+                            />
+                            <Button type="primary" onClick={() => filter()}>
+                                搜索记录
+                            </Button>
+                        </div>
+                    ) : null}
+                    {filterList.length === 0 ? (
+                        <p>无消息</p>
+                    ) : (
+                        <List
+                            dataSource={filterList}
+                            renderItem={(item) => (
+                                <List.Item
+                                    actions={[
+                                        <Button
+                                            key={item.msg_id}
+                                            size={"large"}
+                                            type="default"
+                                            onClick={() => {deleteMessage(item.msg_id); filter();}}>
+                                            删除该记录
+                                        </Button>
+                                    ]}
+                                >
+                                    <div style={{ display: "flex", flexDirection: "row"}}>
+                                        <div style={{display: "flex", flexDirection: "column"}}>
+                                            <List.Item.Meta avatar={<Avatar  src={("/api"+item.avatar)}/>}/>
+                                            <h6>{item.sender}</h6>
+                                        </div>
+                                        <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF"}}>
+                                            <p>{item.msg_body }</p>
+                                            <span>{ item.msg_time }</span>
+                                        </div>
+                                    </div>
+                                </List.Item>
+                            )}
+                        />
+
+                    )}
                 </div>
             </Modal>
 
