@@ -1204,7 +1204,7 @@ const Screen = () => {
                 setAudioToTextModal(true);
             })
             .catch((err) => message.error(err.message, 1));
-    }
+    };
 
     // 判断成员身份
     function identity(mem: string) {
@@ -1715,7 +1715,7 @@ const Screen = () => {
                                                                                         <h6>{item.sender}</h6>
                                                                                     </div>
                                                                                     <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF"}}>
-                                                                                    {isRead(item.read_list, roomInfo.mem_list, roomInfo.is_private, window.username)}
+                                                                                        {isRead(item.read_list, roomInfo.mem_list, roomInfo.is_private, window.username)}
                                                                                         {(item.msg_type != "combine" && item.msg_type != "image" && item.msg_type != "video" && item.msg_type != "file" && item.msg_type != "audio") ? (
                                                                                             str2addr(item.msg_body)
                                                                                         ): null}
