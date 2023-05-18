@@ -33,7 +33,7 @@ const str2addr = (text : string) => {
                 partss = partss.concat(part.split(atRegex));
             }
         }
-    })
+    });
     console.log(partss);
     return (
         <div>
@@ -45,7 +45,7 @@ const str2addr = (text : string) => {
                         </a>
                     );
                 } else if(part.match(atRegex)) {
-                    return <span style={{color: "blue"}} key={ i }>{part}</span>
+                    return <span style={{color: "blue"}} key={ i }>{part}</span>;
                 } else {
                     return <span key={ i }>{part}</span>;
                 }

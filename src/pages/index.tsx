@@ -1333,7 +1333,7 @@ const Screen = () => {
                     partss = partss.concat(part.split(atRegex));
                 }
             }
-        })
+        });
         console.log(partss);
         return (
             <div>
@@ -1350,7 +1350,7 @@ const Screen = () => {
                                 <Space direction={"horizontal"} size={"small"}>
                                     <p>{part.substring(1)+(readlist[roomInfo.mem_list.lastIndexOf(part.substring(1))] ? "已读" : "未读")}</p>
                                 </Space>
-                            }>
+                            } key = {i}>
                                 <span style={{color: "blue"}} onClick={() => {
                                     window.otherUsername = part.substring(1);
                                     checkFriend();
