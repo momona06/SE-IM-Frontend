@@ -379,8 +379,9 @@ const Screen = () => {
                 };
                 window.ws.send(JSON.stringify(data));
             }
+            // 入群申请
             else if (data.function === "fetch_invite_list") {
-                setRoomApplyList(data.msg_body.map((val: any) => ({...val})));
+                setRoomApplyList(data.message_list[0].map((val: any) => ({...val})));
             }
             else {
                 return;
@@ -1018,7 +1019,6 @@ const Screen = () => {
         window.forwardRoomId = value;
     };
 
-    // 修改多选框值
     const onInviteChange = ({ target: { value } }: RadioChangeEvent) => {
         setInviteUser(value);
     };
@@ -2258,12 +2258,11 @@ const Screen = () => {
                 getContainer={false}
             >
                 <List
-                    dataSource={["申请1", "申请2"]}
+                    dataSource={roomApplyList}
                     renderItem={item => (
                         <Space direction={"horizontal"}>
-                            <div>{item}</div>
-                            <Button>同意</Button>
-                            <Button>拒绝</Button>
+                            <Button onClick={() => replyAddGroup(item.roomid, 1)}>同意</Button>
+                            <Button onClick={() => replyAddGroup(item.roomid, 0)}>拒绝</Button>
                         </Space>
                     )}
                 />
@@ -2272,3 +2271,13 @@ const Screen = () => {
     );
 };
 export default Screen;
+
+const replyAddGroup = (id: number, Answer: number) => {
+    let data = {
+        function: "reply_add_group",
+        chatroom_id: window.currentRoomID,
+        message_id: id,
+        answer: Answer
+    };
+    window.ws.send(JSON.stringify(data));
+};

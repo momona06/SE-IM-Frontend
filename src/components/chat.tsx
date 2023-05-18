@@ -42,7 +42,7 @@ export interface inviteListData {
     roomname: string;
     roomid: number;
     is_private: boolean;
-    message_list: messageListData[];
+    message_list: messageListData[]; //msg body
 
     is_notice?: boolean;
     is_top?: boolean;
