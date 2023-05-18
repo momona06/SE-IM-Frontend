@@ -45,6 +45,7 @@ interface roomListData {
     is_private: boolean;
     message_list: messageListData[];
     index: number;
+    is_specific: boolean;
 }
 
 interface roomInfoData {
@@ -129,6 +130,7 @@ const Screen = () => {
     const [roomInfo, setRoomInfo] = useState<roomInfoData>({is_private: false, mem_list: [], master: "", manager_list: [], mem_count: 0});
     const [roomTop, setRoomTop] = useState<boolean>(false);
     const [roomNotice, setRoomNotice] = useState<boolean>(true);
+    const [roomSpecific, setRoomSpecific] = useState<boolean>(false);
     const [boardModal, setBoardModal] = useState<boolean>(false);
 
     // 全部好友username
@@ -153,6 +155,9 @@ const Screen = () => {
     const [translateModal, setTranslateModal] = useState<boolean>(false);
     const [translateResult, setTranslateResult] = useState<string>("");
 
+    const [audioToTextModal, setAudioToTextModal] = useState<boolean>(false);
+    const [textResult, setTextResult] = useState<string>("");
+
     // 消息转发
     const [forwardModal, setForwardModal] = useState<boolean>(false);
     const [forwardList, setForwardList] = useState<number[]>([]);
@@ -162,6 +167,8 @@ const Screen = () => {
     const [imageModal, setImageModal] = useState<boolean>(false);
     const [videoModal, setVideoModal] = useState<boolean>(false);
     const [fileModal, setFileModal] = useState<boolean>(false);
+    const [audioModal, setAudioModal] = useState<boolean>(false);
+    const [specificModal, setSpecificModal] = useState<boolean>(false);
 
     const [historyModal, setHistoryModal] = useState<boolean>(false);
     const [filterType, setFilterType] = useState<number>(CONS.NO_FILTER);
@@ -175,6 +182,7 @@ const Screen = () => {
     const imageF = useRef<HTMLFormElement>(null);
     const videoF = useRef<HTMLFormElement>(null);
     const fileF = useRef<HTMLFormElement>(null);
+    const audioF = useRef<HTMLFormElement>(null);
 
     // 切换页面时 获取roomlist friendlist
     useEffect(() => {
@@ -207,6 +215,11 @@ const Screen = () => {
     useEffect(() => {
         window.messageList = messageList;
         console.log("msg changed", messageList);
+        let last = messageList.at(-1);
+        if(last && last.sender != window.username)
+        {
+            Read();
+        }
     }, [messageList]);
 
     useEffect(() => {
@@ -221,6 +234,7 @@ const Screen = () => {
     // 当fetchRoomInfo回传成功后 本地消息列表更新时，执行read / 更新memList
     useEffect(() => {
         window.memList = roomInfo.mem_list;
+        Read();
     }, [roomInfo]);
 
     const WSConnect = () => {
@@ -463,6 +477,7 @@ const Screen = () => {
                     message.success(STRINGS.LOGIN_SUCCESS, 1);
                     window.username = res.username;
                     window.userAvatar = res.avatar;
+                    window.password = res.password;
                     setUsername(res.username);
                     setToken(res.token);
                     getAccount(account => "");
@@ -488,6 +503,7 @@ const Screen = () => {
                     message.success(STRINGS.LOGIN_SUCCESS, 1);
                     window.username = res.username;
                     window.userAvatar = res.avatar;
+                    window.password = res.password;
                     setUsername(res.username);
                     setToken(res.token);
                     getAccount(account => "");
@@ -602,7 +618,7 @@ const Screen = () => {
                 token: token,
             },
         )
-            .then(() => message.success(STRINGS.PASSWORD_CHANGE_SUCCESS, 1))
+            .then(() => {message.success(STRINGS.PASSWORD_CHANGE_SUCCESS, 1);window.password = password;})
             .catch((err) => message.error(err.message, 1));
     };
 
@@ -812,6 +828,60 @@ const Screen = () => {
         window.ws.send(JSON.stringify(data));
     };
 
+    const Read = () => {
+        let position: number = -1;
+        roomList.forEach(room => {
+            if (room.roomid === window.currentRoomID){
+                position = room.index;
+            }
+        });
+        if (position != -1){
+            console.log("position", position);
+            let readMessageList: number[] = [];
+            // 筛选所有未读信息
+            messageList.filter((msg) => (!msg.read_list[position] && msg.msg_id != -1)).forEach(arr => {
+                readMessageList.push(arr.msg_id);
+            });
+            const data = {
+                "function": "read_message",
+                "read_message_list": readMessageList,
+                "read_user": window.username,
+                "chatroom_id": window.currentRoomID
+            };
+            console.log(data);
+            window.ws.send(JSON.stringify(data));
+
+            // 本地消息状态全部置为已读
+            let temp = window.messageList;
+            temp.forEach(msg => {
+                msg.read_list[position] = true;
+            });
+            setMessageList(temp);
+            console.log("readsend");
+            console.log(messageList);
+
+            // roomList 消息置为已读
+            for (let room of roomList){
+                if (room.roomid === window.currentRoomID){
+                    for (let msg of room.message_list){
+                        msg.read_list[position] = true;
+                    }
+                }
+            }
+        }
+    };
+
+    // 会话列表中的未读消息数
+    const getUnread = (room: roomListData) => {
+        let num = 0;
+        room.message_list.forEach(msg => {
+            if (!msg.read_list[room.index]){
+                num += 1;
+            }
+        });
+        return num;
+    };
+
    
 
     const sendMessage = (Message: string, MessageType: string, reply_id?: number) => {
@@ -919,6 +989,22 @@ const Screen = () => {
             }
         });
         setRoomNotice(set);
+        window.ws.send(JSON.stringify(data));
+    };
+
+    const setSpecific = (set: boolean) => {
+        const data = {
+            "function": "revise_is_specific",
+            "chatroom_id": window.currentRoomID,
+            "is_specific": set,
+        };
+        // 依次更新 roomlist roomspecific
+        roomList.forEach(arr => {
+            if (arr.roomid === window.currentRoomID){
+                arr.is_specific = set;
+            }
+        });
+        setRoomSpecific(set);
         window.ws.send(JSON.stringify(data));
     };
 
@@ -1104,6 +1190,22 @@ const Screen = () => {
             });
     };
 
+    const audioToText = (fileurl: string) => {
+        request(
+            "api/user/audio",
+            "POST",
+            {
+                url: fileurl,
+            },
+        )
+            .then((res) => {
+                console.log(res.result);
+                setTextResult(res.result);
+                setAudioToTextModal(true);
+            })
+            .catch((err) => message.error(err.message, 1));
+    }
+
     // 判断成员身份
     function identity(mem: string) {
         if (mem === roomInfo.master){
@@ -1188,6 +1290,29 @@ const Screen = () => {
         filter();
     };
 
+    const matchPassword = () => {
+        console.log(password);
+        console.log(window.password);
+        if(password === window.password)
+        {
+            message.success("密码正确", 1);
+            fetchRoomInfo(window.temproomid);
+            addRoom(window.temproomid, window.temproomname);
+            window.currentRoomID = window.temproomid;
+            window.currentRoomName = window.temproomname;
+            setRoomNotice(window.temproomnotice);
+            setRoomTop(window.temproomtop);
+            setRoomSpecific(window.temproomspecific);
+            setMessageList(window.temproomlist);
+            getAllCombine(window.temproomlist);
+            setSpecificModal(false);
+        }
+        else
+        {
+            message.error("密码错误", 1);
+        }
+    }
+
     //会话具体信息
     const roomInfoPage = (
         <div style={{padding: "12px"}}>
@@ -1270,6 +1395,10 @@ const Screen = () => {
                 <Space direction={"horizontal"}>
                     <p>置顶</p>
                     <Switch checked={roomTop} onChange={setTop}/>
+                </Space>
+                <Space direction={"horizontal"}>
+                    <p>设置二次验证</p>
+                    <Switch checked={roomSpecific} onChange={setSpecific}/>
                 </Space>
                 <Space direction={"horizontal"}>
                     <Button type={"primary"} onClick={() => setHistoryModal(true)}>
@@ -1446,17 +1575,31 @@ const Screen = () => {
                                                                                 block
                                                                                 type={"text"}
                                                                                 onClick={()=>{
-                                                                                    fetchRoomInfo(item.roomid);
-                                                                                    addRoom(item.roomid, item.roomname);
-                                                                                    window.currentRoomID = item.roomid;
-                                                                                    window.currentRoomName = item.roomname;
-                                                                                    setRoomNotice(item.is_notice);
-                                                                                    setRoomTop(item.is_top);
-                                                                                    setMessageList(item.message_list);
-                                                                                    getAllCombine(item.message_list);
+                                                                                    if(item.is_specific === true)
+                                                                                    {
+                                                                                        window.temproomid = item.roomid;
+                                                                                        window.temproomname = item.roomname;
+                                                                                        window.temproomnotice = item.is_notice;
+                                                                                        window.temproomtop = item.is_top;
+                                                                                        window.temproomspecific = item.is_specific;
+                                                                                        window.temproomlist = item.message_list;
+                                                                                        setSpecificModal(true);
+                                                                                    }
+                                                                                    else
+                                                                                    {
+                                                                                        fetchRoomInfo(item.roomid);
+                                                                                        addRoom(item.roomid, item.roomname);
+                                                                                        window.currentRoomID = item.roomid;
+                                                                                        window.currentRoomName = item.roomname;
+                                                                                        setRoomNotice(item.is_notice);
+                                                                                        setRoomTop(item.is_top);
+                                                                                        setRoomSpecific(item.is_specific);
+                                                                                        setMessageList(item.message_list);
+                                                                                        getAllCombine(item.message_list);    
+                                                                                    }
                                                                                 }}>
                                                                                 <Space>
-                                                                                    <Badge count={ 0}>
+                                                                                    <Badge count={ item.is_notice ? getUnread(item) : 0}>
                                                                                         {/* TODO: 添加会话的图标 */}
                                                                                         <Avatar icon={ <CommentOutlined/> }/>
                                                                                     </Badge>
@@ -1499,6 +1642,9 @@ const Screen = () => {
                                                                                 { item.msg_type === "text" ? (
                                                                                     <Button type={"text"} onClick={() => translate(item.msg_body)}> 翻译 </Button>
                                                                                 ) : null }
+                                                                                { item.msg_type === "audio" ? (
+                                                                                    <Button type={"text"} onClick={() => audioToText(item.msg_body)}> 转文字 </Button>
+                                                                                ) : null }
                                                                                 { item.sender === window.username ? (
                                                                                     <Button type={"text"} onClick={() => recall(item.msg_id)}> 撤回 </Button>
                                                                                 ) : null }
@@ -1511,16 +1657,31 @@ const Screen = () => {
                                                                                         <h6>{item.sender}</h6>
                                                                                     </div>
                                                                                     <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#66B7FF"}}>
-                                                                                       
-                                                                                        {(item.msg_type != "combine" && item.msg_type != "image" && item.msg_type != "video" && item.msg_type != "file") ? (
+                                                                                        {isRead(item.read_list, roomInfo.mem_list, roomInfo.is_private, window.username)}
+                                                                                        {(item.msg_type != "combine" && item.msg_type != "image" && item.msg_type != "video" && item.msg_type != "file" && item.msg_type != "audio") ? (
                                                                                             str2addr(item.msg_body)
                                                                                         ): null}
                                                                                         {item.msg_type === "image" ? (
                                                                                             <Image width={"30vh"} src={("/api"+item.msg_body)}/>
                                                                                         ): null}
-                                                                                        {item.msg_type === "video" ? (
+                                                                                        {(item.msg_type === "video") ? (
                                                                                             <div style={{width: "50vh"}}>
-                                                                                                <Player fluid={false} width={"50vh"}>
+                                                                                                <Player fluid={true} width={"50vh"}>
+                                                                                                    <source src={("/api"+item.msg_body)} width={"200px"}/>
+                                                                                                    <ControlBar>
+                                                                                                        <ReplayControl seconds={10} order={1.1} />
+                                                                                                        <ForwardControl seconds={30} order={1.2} />
+                                                                                                        <CurrentTimeDisplay order={4.1} />
+                                                                                                        <TimeDivider order={4.2} />
+                                                                                                        <PlaybackRateMenuButton rates={[5, 2, 1, 0.5, 0.1]} order={7.1} />
+                                                                                                        <VolumeMenuButton disabled />
+                                                                                                    </ControlBar>
+                                                                                                </Player>
+                                                                                            </div>
+                                                                                        ): null}
+                                                                                        {(item.msg_type === "audio") ? (
+                                                                                            <div style={{width: "50vh"}}>
+                                                                                                <Player fluid={true} width={"50vh"} height={0}>
                                                                                                     <source src={("/api"+item.msg_body)} width={"200px"}/>
                                                                                                     <ControlBar>
                                                                                                         <ReplayControl seconds={10} order={1.1} />
@@ -1554,16 +1715,31 @@ const Screen = () => {
                                                                                         <h6>{item.sender}</h6>
                                                                                     </div>
                                                                                     <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF"}}>
-                                                                                       
-                                                                                        {(item.msg_type != "combine" && item.msg_type != "image" && item.msg_type != "video" && item.msg_type != "file") ? (
+                                                                                    {isRead(item.read_list, roomInfo.mem_list, roomInfo.is_private, window.username)}
+                                                                                        {(item.msg_type != "combine" && item.msg_type != "image" && item.msg_type != "video" && item.msg_type != "file" && item.msg_type != "audio") ? (
                                                                                             str2addr(item.msg_body)
                                                                                         ): null}
                                                                                         {item.msg_type === "image" ? (
                                                                                             <Image width={"30vh"} src={("/api"+item.msg_body)}/>
                                                                                         ): null}
-                                                                                        {item.msg_type === "video" ? (
+                                                                                        {(item.msg_type === "video") ? (
                                                                                             <div style={{width: "50vh"}}>
-                                                                                                <Player fluid={false} width={"50vh"}>
+                                                                                                <Player fluid={true} width={"50vh"}>
+                                                                                                    <source src={("/api"+item.msg_body)} width={"200px"}/>
+                                                                                                    <ControlBar>
+                                                                                                        <ReplayControl seconds={10} order={1.1} />
+                                                                                                        <ForwardControl seconds={30} order={1.2} />
+                                                                                                        <CurrentTimeDisplay order={4.1} />
+                                                                                                        <TimeDivider order={4.2} />
+                                                                                                        <PlaybackRateMenuButton rates={[5, 2, 1, 0.5, 0.1]} order={7.1} />
+                                                                                                        <VolumeMenuButton disabled />
+                                                                                                    </ControlBar>
+                                                                                                </Player>
+                                                                                            </div>
+                                                                                        ): null}
+                                                                                        {(item.msg_type === "audio") ? (
+                                                                                            <div style={{width: "50vh"}}>
+                                                                                                <Player fluid={true} width={"50vh"} height={0}>
                                                                                                     <source src={("/api"+item.msg_body)} width={"200px"}/>
                                                                                                     <ControlBar>
                                                                                                         <ReplayControl seconds={10} order={1.1} />
@@ -1673,6 +1849,11 @@ const Screen = () => {
                                                             type="primary"
                                                             onClick={() => setImageModal(true)}>
                                                             上传图片
+                                                        </Button>
+                                                        <Button
+                                                            type="primary"
+                                                            onClick={() => setAudioModal(true)}>
+                                                            上传音频
                                                         </Button>
                                                         <Button
                                                             type="primary"
@@ -1991,7 +2172,7 @@ const Screen = () => {
 
                                             {changeUserInfo === CONS.REVISE_PASSWORD ? (
                                                 <div style={{margin: "5px", display: "flex", flexDirection: "column", alignItems: "center"}}>
-                                                    <Input
+                                                    <Input.Password
                                                         size={"large"} maxLength={50}
                                                         type="text"
                                                         prefix={<LockOutlined/>}
@@ -2154,6 +2335,9 @@ const Screen = () => {
             <Modal title="翻译结果" open={translateModal} onOk={() => setTranslateModal(false)} onCancel={() => setTranslateModal(false)}>
                 <p>{translateResult}</p>
             </Modal>
+            <Modal title="转换结果" open={audioToTextModal} onOk={() => setAudioToTextModal(false)} onCancel={() => setAudioToTextModal(false)}>
+                <p>{textResult}</p>
+            </Modal>
 
             <Modal title="上传" open={avatarModal} onOk={() => setAvatarModal(false)} onCancel={() => setAvatarModal(false)}>
                 <div>
@@ -2229,6 +2413,32 @@ const Screen = () => {
                         return false;
                     }}>
                         <input id="image-uploadify" name="file" type="file" accept="video/*" multiple={false}/>
+                        <button type="submit">
+                            确认上传
+                        </button>
+                    </form>
+                </div>
+            </Modal>
+            <Modal title="上传音频" open={audioModal} onOk={() => setAudioModal(false)} onCancel={() => setAudioModal(false)}>
+                <div>
+                    <iframe id="loadera" name="loadera" onChange={() => logReturn()} style={{display: "none"}}></iframe>
+                    <form id="fileform" ref={audioF} action="/api/user/uploadfile" method="post" encType="multipart/form-data" target="loadera" onSubmit={() => {
+                        if(audioF.current) {
+                            var fromdata = new FormData(audioF.current);
+                            console.log(fromdata.get("file"));
+                            axios.post("/api/user/uploadfile", fromdata , avatarconfig)
+                                .then((res) => {
+                                    console.log(res.data.file_url);
+                                    sendFile("audio", res.data.file_url);
+                                })
+                                .catch((err) => {
+                                    console.log(err);
+                                });
+                        }
+                        setAudioModal(false);
+                        return false;
+                    }}>
+                        <input id="image-uploadify" name="file" type="file" accept="audio/*" multiple={false}/>
                         <button type="submit">
                             确认上传
                         </button>
@@ -2389,6 +2599,17 @@ const Screen = () => {
 
                     )}
                 </div>
+            </Modal>
+            <Modal title="请输入密码" open={specificModal} onOk={() => matchPassword()} onCancel={() => setSpecificModal(false)}>
+                <Input.Password
+                    size="large"
+                    type="text"
+                    maxLength={50}
+                    placeholder="请填写密码"
+                    prefix={<LockOutlined />}
+                    value={password}
+                    onChange={(e) => getPassword(e.target.value)}
+                />
             </Modal>
         </div>
     );
