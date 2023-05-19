@@ -31,7 +31,7 @@ import {
 import emojiList from "../components/emojiList";
 import typeList from "../components/typeList";
 
-import axios, { AxiosError, AxiosResponse } from "axios";
+import axios from "axios";
 
 import $ from "jquery";
 import "video-react/dist/video-react.css";
@@ -1317,7 +1317,10 @@ const Screen = () => {
                     )}
                 />
                 {/* 拉人进群 */}
-                <Button type={"default"} icon={<PlusOutlined />} size={"large"} onClick={() => setInviteModal(true)}/>
+                <Button type={"default"} icon={<PlusOutlined />} size={"large"} onClick={() => {
+                    setRoomInfoModal(false);
+                    setInviteModal(true);
+                }}/>
 
                 <Divider type={"horizontal"}/>
 
@@ -1331,7 +1334,7 @@ const Screen = () => {
                                 群公告
                             </Button>
                             {
-                                identity(window.username) >= CONS.MANAGER ? (
+                                typeof window != "undefined" && identity(window.username) >= CONS.MANAGER ? (
                                     <Button type={"text"} onClick={() => {
                                         setRoomInfoModal(false);
                                         setDrawerOpen(true);
@@ -1512,7 +1515,7 @@ const Screen = () => {
                                 {menuItem === CONS.CHATFRAME ? (
                                     <div style={{ display: "flex", flexDirection: "row" }}>
                                         <div style={{ padding: "0 24px", backgroundColor:"#FAF0E6",  width:"20%", minHeight:"100vh" }}>
-                                            <div style={{height: "5vh", margin: "10px, 10px", flexDirection: "row"}}>
+                                            <div style={{height: "4vh", margin: "10px", flexDirection: "row"}}>
                                                 <Space direction={"horizontal"}>
                                                     <h3> 会话列表 </h3>
                                                     <Button icon={<PlusOutlined />} type={"default"} onClick={() => setCreateGroupModal(true) }/>
@@ -1522,7 +1525,7 @@ const Screen = () => {
                                             {roomListRefreshing ? (
                                                 <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />}/>
                                             ) : (
-                                                <div style={{overflow: "scroll", height: "80vh"}}>
+                                                <div style={{overflow: "auto", height: "80vh"}}>
                                                     {roomList.length === 0 ? (
                                                         <p>暂无会话</p>
                                                     ) : (
@@ -1568,7 +1571,7 @@ const Screen = () => {
                                                 <div style={{height: "5vh", margin: "10px, 10px", flexDirection: "row"}}>
                                                     <Space>
                                                         <h1> { window.currentRoomName } </h1>
-                                                        <Popover placement={"bottomRight"} content={ roomInfoPage } trigger={"click"} open={roomInfoModal} onOpenChange={handleOpenChanged}>
+                                                        <Popover placement={"bottomLeft"} content={ roomInfoPage } trigger={"click"} open={roomInfoModal} onOpenChange={handleOpenChanged}>
                                                             <Button
                                                                 type={"primary"} size={"middle"} icon={ <EllipsisOutlined/> }
                                                                 ghost={true} shape={"circle"}
