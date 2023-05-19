@@ -36,8 +36,6 @@ import axios, { AxiosError, AxiosResponse } from "axios";
 import $ from "jquery";
 import "video-react/dist/video-react.css";
 import {CheckboxValueType} from "antd/es/checkbox/Group";
-import {MentionsOptionProps} from "antd/es/mentions";
-
 
 const { SHOW_PARENT } = TreeSelect;
 export const isEmail = (val : string) => {
@@ -1374,8 +1372,8 @@ const Screen = () => {
 
     const logReturn = () => {
         $("#loader").load(function() {
-            var text = $("#loader").contents().find("body").text();
-            var j = $.JSON.parse(text);
+            const text = $("#loader").contents().find("body").text();
+            const j = $.JSON.parse(text);
             console.log("j", j);
         });
     };
@@ -2254,7 +2252,7 @@ const Screen = () => {
                     <iframe id="loader" name="loader" onChange={() => logReturn()} style={{display: "none"}}></iframe>
                     <form id="avatarform" ref={avatarF} action="/api/user/upload" method="post" encType="multipart/form-data" target="loader" onSubmit={() => {
                         if(avatarF.current) {
-                            var fromdata = new FormData(avatarF.current);
+                            const fromdata = new FormData(avatarF.current);
                             console.log(fromdata.get("username"));
                             console.log(fromdata.get("avatar"));
                             axios.post("/api/user/upload", fromdata , avatarconfig)
@@ -2283,7 +2281,7 @@ const Screen = () => {
                     <iframe id="loaderi" name="loaderi" onChange={() => logReturn()} style={{display: "none"}}></iframe>
                     <form id="imageform" ref={imageF} action="/api/user/uploadfile" method="post" encType="multipart/form-data" target="loaderi" onSubmit={() => {
                         if(imageF.current) {
-                            var fromdata = new FormData(imageF.current);
+                            const fromdata = new FormData(imageF.current);
                             console.log(fromdata.get("file"));
                             axios.post("/api/user/uploadfile", fromdata , avatarconfig)
                                 .then((res) => {
@@ -2310,7 +2308,7 @@ const Screen = () => {
                     <iframe id="loaderv" name="loaderv" onChange={() => logReturn()} style={{display: "none"}}></iframe>
                     <form id="videoform" ref={videoF} action="/api/user/uploadfile" method="post" encType="multipart/form-data" target="loaderv" onSubmit={() => {
                         if(videoF.current) {
-                            var fromdata = new FormData(videoF.current);
+                            const fromdata = new FormData(videoF.current);
                             console.log(fromdata.get("file"));
                             axios.post("/api/user/uploadfile", fromdata , avatarconfig)
                                 .then((res) => {
