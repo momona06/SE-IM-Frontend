@@ -119,10 +119,6 @@ const Screen = () => {
     const [friendGroup, setFriendGroup] = useState<string>("");
     const [box, setBox] = useState<number>(0);
 
-    const [newGroupModal, setNewGroupModal] = useState<boolean>(false);
-    const [newGroupName, setNewGroupName] = useState<string>("");
-    const [newGroupMemberList, setNewGroupMemberList] = useState<string[]>([]);
-
     // 创建群聊
     const [createGroupModal, setCreateGroupModal] = useState<boolean>(false);
     const [chatGroupName, setChatGroupName] = useState<string>("");
@@ -132,6 +128,7 @@ const Screen = () => {
     const [replyMessageBody, setReplyMessageBody] = useState<string>("");
     const [replying, setReplying] = useState<boolean>(false);
 
+    // 翻译模块
     const [translateModal, setTranslateModal] = useState<boolean>(false);
     const [translateResult, setTranslateResult] = useState<string>("");
 
@@ -142,7 +139,8 @@ const Screen = () => {
     const [forwardModal, setForwardModal] = useState<boolean>(false);
     const [forwardList, setForwardList] = useState<number[]>([]);
     const [combineList, setCombineList] = useState<messageListData[]>([]);
-    
+
+    // 多媒体 及 特殊群聊
     const [avatarModal, setAvatarModal] = useState<boolean>(false);
     const [imageModal, setImageModal] = useState<boolean>(false);
     const [videoModal, setVideoModal] = useState<boolean>(false);
@@ -169,10 +167,6 @@ const Screen = () => {
 
     const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
     const [roomApplyList, setRoomApplyList] = useState<messageListData[]>([]);
-
-    const showDrawer = () => {
-        setDrawerOpen(true);
-    };
     const onDrawerClose = () => {
         setDrawerOpen(false);
     };
@@ -185,13 +179,9 @@ const Screen = () => {
             if(menuItem === CONS.CHATFRAME) {
                 fetchRoomList();
                 fetchFriendList();
-                window.currentRoomID = 0;
-                window.currentRoomName = "";
             }
-            else {
-                window.currentRoomID = 0;
-                window.currentRoomName = "";
-            }
+            window.currentRoomID = 0;
+            window.currentRoomName = "";
         }
     }, [currentPage, menuItem]);
 
@@ -298,6 +288,7 @@ const Screen = () => {
             }
             else if (data.function === "Ack2"){
                 // 将消息id置为已发送
+
                 let last = window.messageList.at(-1);
                 if (last){
                     last.msg_id = data.msg_id;
@@ -364,8 +355,6 @@ const Screen = () => {
                                 });
                                 if (data.chatroom_id === window.currentRoomID){
                                     setMessageList(room.message_list);
-                                    console.log("read");
-                                    console.log(messageList);
                                 }
                             }
                         });
@@ -390,7 +379,6 @@ const Screen = () => {
                             }
                         }
                         if (room.roomid === window.currentRoomID) {
-                            console.log("withdraw",room.message_list);
                             setMessageList(room.message_list);
                         }
                         break;
@@ -422,13 +410,11 @@ const Screen = () => {
     };
 
     const WSOnerror = () => {
-        console.log("Websocket断开");
         console.log("error重接");
         WSConnect();
     };
 
     const WSOnclose = () => {
-        console.log("Websocket断开连接");
         if (window.heartBeat) {
             console.log("close重接");
             WSConnect();
@@ -745,42 +731,6 @@ const Screen = () => {
             .catch((err) => console.log(err));
     };
 
-    const addToGroup = () => {
-        let flag = 0;
-        friendList.forEach((arr) => {
-            if (arr.groupname === friendGroup){
-                flag = 1;
-                return;
-            }
-        });
-        // 若不存在则创建
-        if (flag === 0){
-            request(
-                "api/friend/createfgroup",
-                "POST",
-                {
-                    username: window.username,
-                    token: token,
-                    fgroup_name: friendGroup,
-                },
-            )
-                .then(() => message.success("成功新建分组", 1))
-                .catch((err) => message.error(err.message, 1));
-        }
-        request(
-            "api/friend/addfgroup",
-            "PUT",
-            {
-                token: token,
-                username: window.username,
-                fgroup_name: friendGroup,
-                friend_name: window.otherUsername,
-            },
-        )
-            .then(() => message.success(STRINGS.FRIEND_GROUP_ADDED, 1))
-            .catch((err) => message.error(err.message, 1));
-    };
-
     const fetchFriendList = () => {
         setFriendListRefreshing(true);
         const data = {
@@ -817,7 +767,7 @@ const Screen = () => {
         window.ws.send(JSON.stringify(data));
     };
 
-    // 加入分组
+    // 加入群聊
     const addRoom = (ID: number, Name: string) => {
         let data = {
             "function": "add_chat",
@@ -825,6 +775,43 @@ const Screen = () => {
             "room_id": ID
         };
         window.ws.send(JSON.stringify(data));
+    };
+
+    // 加入分组
+    const addToGroup = () => {
+        let flag = 0;
+        friendList.forEach((arr) => {
+            if (arr.groupname === friendGroup){
+                flag = 1;
+                return;
+            }
+        });
+        // 若不存在则创建
+        if (flag === 0){
+            request(
+                "api/friend/createfgroup",
+                "POST",
+                {
+                    username: window.username,
+                    token: token,
+                    fgroup_name: friendGroup,
+                },
+            )
+                .then(() => message.success("成功新建分组", 1))
+                .catch((err) => message.error(err.message, 1));
+        }
+        request(
+            "api/friend/addfgroup",
+            "PUT",
+            {
+                token: token,
+                username: window.username,
+                fgroup_name: friendGroup,
+                friend_name: window.otherUsername,
+            },
+        )
+            .then(() => message.success(STRINGS.FRIEND_GROUP_ADDED, 1))
+            .catch((err) => message.error(err.message, 1));
     };
 
     const Read = () => {
@@ -885,6 +872,8 @@ const Screen = () => {
                 "msg_body": Message,
                 "reply_id": reply_id
             };
+            window.ws.send(JSON.stringify(data));
+
             let date = new Date();
             let newMessage = {
                 "msg_id": -1,
@@ -897,9 +886,6 @@ const Screen = () => {
                 "read_list": [],
                 "is_delete": false,
             };
-            window.ws.send(JSON.stringify(data));
-            console.log("send", newMessage);
-
             // 更新本地messageList
             setMessageList(messageList => messageList.concat(newMessage));
             // 更新roomList 消息
@@ -907,12 +893,14 @@ const Screen = () => {
                 if (room.roomid === window.currentRoomID){
                     room.message_list.push(newMessage);
                 }
+                console.log("room:", room.roomname, " msg ", room.message_list);
             }
         }
         else {
             message.error("输入不能为空", 1);
         }
     };
+
     const sendFile = (type: string, url: string) => {
         if (url != ""){
             const data = {
@@ -1010,20 +998,11 @@ const Screen = () => {
         }
         else {
             form.setFieldsValue({box: item});
-            setMessageBody(item);
+            setMessageBody(form.getFieldValue("box") + item);
         }
     };
 
-    const onMsgChange = (value: string) => {
-        setMessageBody(value);
-    };
-
-    // 公告
-    const onBoardChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        setMessageBody(e.target.value);
-    };
-
-    // @ 过滤自己
+    // 提及过滤自己
     function selfFilter(element: string) {
         if (element != window.username){
             return element;
@@ -1045,6 +1024,15 @@ const Screen = () => {
         setCreateGroupModal(false);
     };
 
+    const onMsgChange = (value: string) => {
+        setMessageBody(value);
+    };
+
+    // 公告
+    const onBoardChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        setMessageBody(e.target.value);
+    };
+
     const onCheckChange = (checkedValues: CheckboxValueType[]) => {
         let temp: string[] = [window.username];
         checkedValues.forEach((arr) => {
@@ -1059,15 +1047,10 @@ const Screen = () => {
             temp.push(typeof arr === "number" ? arr : 0);
         });
         setForwardList(temp);
-        console.log("ids:", temp);
     };
 
     const onForwardModalChanged = (value: number) => {
         window.forwardRoomId = value;
-    };
-
-    const onInviteChange = ({ target: { value } }: RadioChangeEvent) => {
-        setInviteUser(value);
     };
 
     // 合并转发
@@ -1101,6 +1084,10 @@ const Screen = () => {
         window.forwardRoomId = 0;
     };
 
+    const onInviteChange = ({ target: { value } }: RadioChangeEvent) => {
+        setInviteUser(value);
+    };
+
     // 获取被转发的消息
     const getAllCombine = (List: messageListData[]) => {
         let combineMessages = List.filter(arr => arr.msg_type === "combine");
@@ -1126,7 +1113,6 @@ const Screen = () => {
             chatroom_id: window.currentRoomID
         };
         window.ws.send(JSON.stringify(data));
-        console.log("leave", data);
         window.currentRoomID = 0;
         window.currentRoomName = "";
         setCreateGroupModal(false);
@@ -1185,7 +1171,6 @@ const Screen = () => {
             },
         )
             .then((res) => {
-                console.log(res.result);
                 setTextResult(res.result);
                 setAudioToTextModal(true);
             })
@@ -1311,7 +1296,6 @@ const Screen = () => {
     };
 
     const matchPassword = () => {
-        console.log(password);
         console.log(window.password);
         if(password === window.password)
         {
@@ -1339,7 +1323,6 @@ const Screen = () => {
         const urlRegex2 = /((https?:\/\/)?([a-zA-Z0-9]+\.)+[a-zA-Z0-9]+)/g;
         const atRegex = /(@[A-Za-z0-9]+)/g;
         const parts = text.split(urlRegex); // 使用正则表达式拆分字符串
-        console.log(parts);
         var partss: string[] = [];
         parts.forEach((part) => {
             if(typeof part != undefined)
@@ -1353,7 +1336,6 @@ const Screen = () => {
                 }
             }
         });
-        console.log(partss);
         return (
             <div>
                 {partss.map((part, i) => {
@@ -2363,7 +2345,12 @@ const Screen = () => {
                 ) : null}
             </div>
 
-            <Modal title={"群公告"} open={ boardModal } onCancel={() => setBoardModal(false)} onOk={() => {sendMessage(messageBody, "notice"); console.log("messagelist:",messageList);}} okButtonProps={{disabled: identity(username) == CONS.MANAGER}}>
+            <Modal
+                title={"群公告"} open={ boardModal } onCancel={() => setBoardModal(false)}
+                onOk={() => {
+                    sendMessage(messageBody, "notice");
+                }} okButtonProps={{disabled: identity(username) == CONS.MANAGER}}>
+
                 <div style={{height: "50vh", overflow: "scroll"}}>
                     <List
                         itemLayout={"vertical"}
@@ -2435,11 +2422,8 @@ const Screen = () => {
                     <form id="avatarform" ref={avatarF} action="/api/user/upload" method="post" encType="multipart/form-data" target="loader" onSubmit={() => {
                         if(avatarF.current) {
                             const fromdata = new FormData(avatarF.current);
-                            console.log(fromdata.get("username"));
-                            console.log(fromdata.get("avatar"));
                             axios.post("/api/user/upload", fromdata , avatarconfig)
                                 .then((res) => {
-                                    console.log(res.data.avatar);
                                     window.userAvatar = res.data.avatar;
                                 })
                                 .catch((err) => {
@@ -2464,10 +2448,8 @@ const Screen = () => {
                     <form id="imageform" ref={imageF} action="/api/user/uploadfile" method="post" encType="multipart/form-data" target="loaderi" onSubmit={() => {
                         if(imageF.current) {
                             const fromdata = new FormData(imageF.current);
-                            console.log(fromdata.get("file"));
                             axios.post("/api/user/uploadfile", fromdata , avatarconfig)
                                 .then((res) => {
-                                    console.log(res.data.file_url);
                                     sendFile("image", res.data.file_url);
                                 })
                                 .catch((err) => {
@@ -2491,10 +2473,8 @@ const Screen = () => {
                     <form id="videoform" ref={videoF} action="/api/user/uploadfile" method="post" encType="multipart/form-data" target="loaderv" onSubmit={() => {
                         if(videoF.current) {
                             const fromdata = new FormData(videoF.current);
-                            console.log(fromdata.get("file"));
                             axios.post("/api/user/uploadfile", fromdata , avatarconfig)
                                 .then((res) => {
-                                    console.log(res.data.file_url);
                                     sendFile("video", res.data.file_url);
                                 })
                                 .catch((err) => {
@@ -2518,7 +2498,6 @@ const Screen = () => {
                     <form id="fileform" ref={audioF} action="/api/user/uploadfile" method="post" encType="multipart/form-data" target="loadera" onSubmit={() => {
                         if(audioF.current) {
                             var fromdata = new FormData(audioF.current);
-                            console.log(fromdata.get("file"));
                             axios.post("/api/user/uploadfile", fromdata , avatarconfig)
                                 .then((res) => {
                                     console.log(res.data.file_url);
@@ -2545,10 +2524,8 @@ const Screen = () => {
                     <form id="fileform" ref={fileF} action="/api/user/uploadfile" method="post" encType="multipart/form-data" target="loaderf" onSubmit={() => {
                         if (fileF.current) {
                             let fromData = new FormData(fileF.current);
-                            console.log(fromData.get("file"));
                             axios.post("/api/user/uploadfile", fromData , avatarconfig)
                                 .then((res) => {
-                                    console.log(res.data.file_url);
                                     sendFile("file", res.data.file_url);
                                 })
                                 .catch(err => {
