@@ -173,11 +173,12 @@ const Screen = () => {
 
     const [form] = Form.useForm();
 
-    // 切换页面时 获取roomlist friendlist
+    // 切换页面时 获取roomlist friendlist roominvitelist
     useEffect(() => {
         if(currentPage === CONS.MAIN) {
             if(menuItem === CONS.CHATFRAME) {
                 fetchRoomList();
+                fetchRoomInviteList();
                 fetchFriendList();
             }
             window.currentRoomID = 0;
@@ -288,7 +289,6 @@ const Screen = () => {
             }
             else if (data.function === "Ack2"){
                 // 将消息id置为已发送
-
                 let last = window.messageList.at(-1);
                 if (last){
                     last.msg_id = data.msg_id;
@@ -389,11 +389,7 @@ const Screen = () => {
                 message.error("消息超时", 1);
             }
             else if (data.function === "send_message_invite"){
-                let data = {
-                    function: "fetch_invite_list",
-                    username: window.username
-                };
-                window.ws.send(JSON.stringify(data));
+                fetchRoomInviteList();
             }
             // 入群申请
             else if (data.function === "fetch_invite_list") {
@@ -763,6 +759,15 @@ const Screen = () => {
         const data = {
             "function": "fetch_room",
             "username": window.username
+        };
+        window.ws.send(JSON.stringify(data));
+    };
+
+    // 获取加群消息
+    const fetchRoomInviteList = () => {
+        let data = {
+            function: "fetch_invite_list",
+            username: window.username
         };
         window.ws.send(JSON.stringify(data));
     };
