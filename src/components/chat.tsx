@@ -39,6 +39,7 @@ interface roomListData {
     message_list: messageListData[];
     index: number;
     is_delete: boolean;
+    is_specific: boolean;
 }
 
 interface roomInfoData {

@@ -195,8 +195,6 @@ const Screen = () => {
         }
     }, [currentPage, menuItem]);
 
-    const [form] = Form.useForm();
-
     // 更新全部好友
     useEffect(() => {
         let temp:string[] = [];
