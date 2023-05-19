@@ -480,8 +480,8 @@ const Screen = () => {
                     window.password = res.password;
                     setUsername(res.username);
                     setToken(res.token);
-                    getAccount(account => "");
-                    getPassword(password => "");
+                    getAccount(() => "");
+                    getPassword(() => "");
                     setCurrentPage(CONS.MAIN);
                 })
                 .catch((err) => {
@@ -1638,7 +1638,7 @@ const Screen = () => {
                                 {menuItem === CONS.CHATFRAME ? (
                                     <div style={{ display: "flex", flexDirection: "row" }}>
                                         <div style={{ padding: "0 24px", backgroundColor:"#FAF0E6",  width:"20%", minHeight:"100vh" }}>
-                                            <div style={{height: "4vh", margin: "10px", flexDirection: "row"}}>
+                                            <div style={{height: "3vh", margin: "10px", flexDirection: "row"}}>
                                                 <Space direction={"horizontal"}>
                                                     <h3> 会话列表 </h3>
                                                     <Button icon={<PlusOutlined />} type={"default"} onClick={() => setCreateGroupModal(true) }/>
@@ -1687,7 +1687,6 @@ const Screen = () => {
                                                                                 }}>
                                                                                 <Space>
                                                                                     <Badge count={ item.is_notice ? getUnread(item) : 0}>
-                                                                                        {/* TODO: 添加会话的图标 */}
                                                                                         <Avatar icon={ <CommentOutlined/> }/>
                                                                                     </Badge>
                                                                                     <div style={{width: "50px"}}>
@@ -1707,20 +1706,19 @@ const Screen = () => {
                                         {/* 消息页面 */}
                                         {window.currentRoomID === 0 ? null : (
                                             <div style={{ padding: "0 24px", backgroundColor:"#FFF5EE",  width:"80%", minHeight:"100vh" }}>
-                                                <div style={{height: "5vh", margin: "10px, 10px", flexDirection: "row"}}>
+                                                <div style={{height: "3vh", margin: "10px", flexDirection: "row"}}>
                                                     <Space>
                                                         <h1> { window.currentRoomName } </h1>
                                                         <Popover placement={"bottomLeft"} content={ roomInfoPage } trigger={"click"} open={roomInfoModal} onOpenChange={handleOpenChanged}>
                                                             <Button
-                                                                type={"primary"} size={"middle"} icon={ <EllipsisOutlined/> }
-                                                                ghost={true} shape={"circle"}
-                                                                onClick={() => setRoomInfoModal(true)}
+                                                                type={"default"} size={"middle"} icon={ <EllipsisOutlined/> }
+                                                                shape={"round"} onClick={() => setRoomInfoModal(true)}
                                                             />
                                                         </Popover>
                                                     </Space>
                                                 </div>
                                                 <Divider type={"horizontal"}/>
-                                                <div style={{padding: "24px", position: "relative", height: "60vh", overflow: "scroll"}}>
+                                                <div style={{padding: "24px", position: "relative", height: "60vh", overflow: "auto"}}>
                                                     <List
                                                         dataSource={ messageList.filter((msg) => (msg.msg_type != "notice" && !msg.is_delete)) }
                                                         split={ false }
