@@ -5,7 +5,7 @@ ENV FRONTEND=/opt/frontend
 
 WORKDIR $FRONTEND
 
-RUN yarn config set registry https://registry.npmmirror.com
+RUN yarn config set registry https://registry.npm.taobao.org
 
 COPY . .
 
