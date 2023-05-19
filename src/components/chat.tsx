@@ -50,46 +50,6 @@ interface roomInfoData {
     is_private: boolean;
 }
 
-// 地址字符串特殊显示
-const str2addr = (text : string) => {
-    const urlRegex2 = /(https?:\/\/[^\s]+)/g; // 匹配 URL 的正则表达式
-    const urlRegex = /((https?:\/\/)?([a-zA-Z0-9]+\.)+[a-zA-Z0-9]+)/g;
-    const atRegex = /(@[A-Za-z0-9]+)/g;
-    const parts = text.split(urlRegex); // 使用正则表达式拆分字符串
-    console.log(parts);
-    var partss: string[] = [];
-    parts.forEach((part) => {
-        if(typeof part != undefined)
-        {    
-            if(part.match(urlRegex)){
-                partss = partss.concat([part]);
-            }
-            else
-            {
-                partss = partss.concat(part.split(atRegex));
-            }
-        }
-    });
-    console.log(partss);
-    return (
-        <div>
-            {partss.map((part, i) => {
-                if (part.match(urlRegex)) {
-                    return (
-                        <a href= "_blank" rel="noopener noreferrer" key={i}>
-                            {part}
-                        </a>
-                    );
-                } else if(part.match(atRegex)) {
-                    return <span style={{color: "blue"}} key={ i }>{part}</span>;
-                } else {
-                    return <span key={ i }>{part}</span>;
-                }
-            })}
-        </div>
-    );
-};
-
 // 整合转发
 const forwardCard = (combineList: messageListData[]) => {
     return (
@@ -140,5 +100,5 @@ const isRead = (readList: boolean[], memberList: string[], isPrivate: boolean, u
     }
 };
 
-export {isRead, forwardCard, str2addr};
+export {isRead, forwardCard};
 export type { friendListData, messageListData, roomListData, roomInfoData, userData, receiveData };

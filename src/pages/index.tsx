@@ -3,13 +3,13 @@ import * as STRINGS from "../constants/string";
 import * as CONS from "../constants/constants";
 import { request } from "../utils/network";
 import {
-    isRead, forwardCard, str2addr, messageListData, roomListData,
+    isRead, forwardCard, messageListData, roomListData,
     receiveData, friendListData, roomInfoData, userData
 } from "../components/chat";
 
 import {
     message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar, Popover, Card, Divider, Row, Col,
-    Upload, Switch, Mentions, Form, Modal, Checkbox, Select, Result, Image, TreeSelect, Radio, RadioChangeEvent,
+    Upload, Switch, Mentions, Form, Modal, Checkbox, Select, Result, Image, Radio, RadioChangeEvent,
     Drawer, DatePicker
 } from "antd";
 
@@ -37,7 +37,6 @@ import $ from "jquery";
 import "video-react/dist/video-react.css";
 import {CheckboxValueType} from "antd/es/checkbox/Group";
 
-const { SHOW_PARENT } = TreeSelect;
 export const isEmail = (val : string) => {
     return /^[A-Za-z0-9\u4e00-\u9fa5]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/i.test(val);
 };
@@ -392,10 +391,12 @@ const Screen = () => {
                 fetchRoomInviteList();
             }
             // 入群申请
-            else if (data.function === "fetch_invite_list") {
+            else if (data.function === "fetchinvitelist") {
+                console.log("here");
                 let temp: messageListData[] = [];
                 data.room_list.forEach((room: { message_list: messageListData[]; }) => {
                     temp.push(room.message_list[0]);
+                    console.log("room", room.message_list[0]);
                 });
                 setRoomApplyList(temp);
             }
@@ -1298,6 +1299,7 @@ const Screen = () => {
             answer: Answer
         };
         window.ws.send(JSON.stringify(data));
+        setRoomApplyList([]);
     };
 
     const matchPassword = () => {
@@ -2714,6 +2716,9 @@ const Screen = () => {
                     dataSource={roomApplyList}
                     renderItem={item => (
                         <Space direction={"horizontal"}>
+                            <>
+                                {item.msg_body}
+                            </>
                             <Button disabled={item.msg_answer === 1} onClick={() => {
                                 replyAddGroup(item.msg_id, 1);
                             }}>
