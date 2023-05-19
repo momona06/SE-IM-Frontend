@@ -14,33 +14,33 @@ build:
     - export BUILD_IMAGE_PASSWORD=$CI_REGISTRY_PASSWORD
     - deployer build
 
-#.test:
-#  image: node:18
-#
-#  stage: test
-#
-#  before_script:
-#    - yarn config set registry https://registry.npmmirror.com
-#    - yarn install -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt
-#
-#unit-test:
-#  extends: .test
-#
-#  script:
-#    - yarn test
-#
-#  after_script:
-#    - SUFFIX=$RANDOM
-#    - curl "http://api.secoder.net/static/sonar-scanner.tar.gz" -s -o "/tmp/sonar-$SUFFIX.tar.gz"
-#    - tar -xf "/tmp/sonar-$SUFFIX.tar.gz" -C /opt
-#    - /opt/sonar-scanner/bin/sonar-scanner
-#
-#style-test:
-#  extends: .test
-#  allow_failure: true
-#
-#  script:
-#    - yarn lint
+.test:
+ image: node:18
+
+ stage: test
+
+ before_script:
+   - yarn config set registry https://registry.npmmirror.com
+   - yarn install -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt
+
+unit-test:
+ extends: .test
+
+ script:
+   - yarn test
+
+ after_script:
+   - SUFFIX=$RANDOM
+   - curl "http://api.secoder.net/static/sonar-scanner.tar.gz" -s -o "/tmp/sonar-$SUFFIX.tar.gz"
+   - tar -xf "/tmp/sonar-$SUFFIX.tar.gz" -C /opt
+   - /opt/sonar-scanner/bin/sonar-scanner
+
+style-test:
+ extends: .test
+ allow_failure: true
+
+ script:
+   - yarn lint
 
 
 deploy:
