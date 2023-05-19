@@ -1340,7 +1340,7 @@ const Screen = () => {
                 {partss.map((part, i) => {
                     if (part.match(urlRegex)) {
                         return (
-                            <a href= "_blank" rel="noopener noreferrer" key={i}>
+                            <a target="_blank" href={part} rel="noopener noreferrer" key={i}>
                                 {part}
                             </a>
                         );
