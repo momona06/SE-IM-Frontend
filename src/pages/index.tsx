@@ -4,7 +4,7 @@ import * as CONS from "../constants/constants";
 import { request } from "../utils/network";
 import {
     isRead, forwardCard, str2addr, messageListData, roomListData,
-    receiveData, friendListData, roomInfoData, userData, inviteListData
+    receiveData, friendListData, roomInfoData, userData
 } from "../components/chat";
 
 import {
@@ -108,6 +108,7 @@ const Screen = () => {
     const [messageList, setMessageList] = useState<messageListData[]>([]);
     const [messageBody, setMessageBody] = useState<string>("");
 
+    const [roomInfoModal, setRoomInfoModal] = useState<boolean>(false);
     const [roomInfo, setRoomInfo] = useState<roomInfoData>({is_private: false, mem_list: [], master: "", manager_list: [], mem_count: 0});
     const [roomTop, setRoomTop] = useState<boolean>(false);
     const [roomNotice, setRoomNotice] = useState<boolean>(true);
@@ -158,7 +159,7 @@ const Screen = () => {
     const [inviteUser, setInviteUser] = useState<string>("");
 
     const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
-    const [roomApplyList, setRoomApplyList] = useState<inviteListData[]>([]);
+    const [roomApplyList, setRoomApplyList] = useState<messageListData[]>([]);
 
     const showDrawer = () => {
         setDrawerOpen(true);
@@ -258,7 +259,6 @@ const Screen = () => {
             else if (data.function === "fetchroom") {
                 setRoomList(((data.roomlist.filter((val: any) => val.is_top)).concat(data.roomlist.filter((val: any) => !val.is_top)).map((val: any) => ({...val}))));
                 setRoomListRefreshing(false);
-                console.log(roomList);
             }
             // 会话具体信息， 包括成员列表，管理员等
             else if (data.function === "fetchroominfo"){
@@ -294,8 +294,6 @@ const Screen = () => {
                     last.msg_id = data.msg_id;
                     let temp = [last];
                     setMessageList(window.messageList.slice(0, window.messageList.length - 1).concat(temp));
-                    console.log("ack2");
-                    console.log(messageList);
                 }
             }
             else if (data.function === "Msg"){
@@ -315,16 +313,12 @@ const Screen = () => {
                 if (data.room_id === window.currentRoomID){
                     // A无需将new msg加入messageList
                     if (data.sender != window.username) {
-                        console.log("msg", newMessage);
                         setMessageList(messageList => messageList.concat(newMessage));
-                        console.log(messageList);
                     }
                     else {
                         // 需更新 read list
                         let temp = [newMessage];
                         setMessageList((messageList) => messageList.slice(0, messageList.length - 1).concat(temp));
-                        console.log("msg");
-                        console.log(messageList);
                     }
                 }
                 // 更新 roomlist
@@ -406,7 +400,11 @@ const Screen = () => {
             }
             // 入群申请
             else if (data.function === "fetch_invite_list") {
-                setRoomApplyList(data.message_list[0].map((val: any) => ({...val})));
+                let temp: messageListData[] = [];
+                data.room_list.forEach((room: { message_list: messageListData[]; }) => {
+                    temp.push(room.message_list[0]);
+                });
+                setRoomApplyList(temp);
             }
             else {
                 return;
@@ -676,7 +674,6 @@ const Screen = () => {
             "to": window.username,
             "username": window.username,
         };
-        console.log(data);
         window.ws.send(JSON.stringify(data));
         message.success("已同意申请", 1);
     };
@@ -781,7 +778,6 @@ const Screen = () => {
             "username": window.username
         };
         window.ws.send(JSON.stringify(data));
-        console.log(data);
     };
 
     const fetchReceiveList = () => {
@@ -829,7 +825,6 @@ const Screen = () => {
             }
         });
         if (position != -1){
-            console.log("position", position);
             let readMessageList: number[] = [];
             // 筛选所有未读信息
             messageList.filter((msg) => (!msg.read_list[position] && msg.msg_id != -1)).forEach(arr => {
@@ -841,7 +836,6 @@ const Screen = () => {
                 "read_user": window.username,
                 "chatroom_id": window.currentRoomID
             };
-            console.log(data);
             window.ws.send(JSON.stringify(data));
 
             // 本地消息状态全部置为已读
@@ -850,8 +844,6 @@ const Screen = () => {
                 msg.read_list[position] = true;
             });
             setMessageList(temp);
-            console.log("readsend");
-            console.log(messageList);
 
             // roomList 消息置为已读
             for (let room of roomList){
@@ -900,8 +892,6 @@ const Screen = () => {
 
             // 更新本地messageList
             setMessageList(messageList => messageList.concat(newMessage));
-            console.log("send");
-            console.log(messageList);
             // 更新roomList 消息
             for (let room of roomList){
                 if (room.roomid === window.currentRoomID){
@@ -935,7 +925,6 @@ const Screen = () => {
                 "is_delete": false,
             };
             setMessageList(messageList => messageList.concat(newMessage));
-            console.log(messageList);
         }
         else {
             message.error("发送错误", 1);
@@ -951,7 +940,6 @@ const Screen = () => {
     };
 
     const setTop = (set: boolean) => {
-        console.log("将置顶状态设置为" + set);
         const data = {
             "function": "revise_is_top",
             "chatroom_id": window.currentRoomID,
@@ -1009,10 +997,6 @@ const Screen = () => {
         setMessageBody(e.target.value);
     };
 
-    const onSelect = (options: MentionsOptionProps) => {
-        console.log("选中:", options);
-    };
-
     // @ 过滤自己
     function selfFilter(element: string) {
         if (element != window.username){
@@ -1029,7 +1013,6 @@ const Screen = () => {
             member_list: newRoomMemberList,
             room_name: chatGroupName
         };
-        console.log("创建群聊", data);
         window.ws.send(JSON.stringify(data));
         setNewRoomMemberList([]);
         setChatGroupName("");
@@ -1069,7 +1052,6 @@ const Screen = () => {
             combine_list: forwardList,
             transroom_id: window.forwardRoomId
         };
-        console.log(data);
         window.ws.send(JSON.stringify(data));
 
         let date = new Date();
@@ -1159,7 +1141,6 @@ const Screen = () => {
     const translate = (message: string) =>{
         axios.post(`/translate/${"translate?&doctype=json&type=AUTO&i="+message}`,{}, translateConfig)
             .then((res) => {
-                console.log(res);
                 setTranslateResult(res.data.translateResult[0][0].tgt);
                 setTranslateModal(true);
             })
@@ -1257,9 +1238,33 @@ const Screen = () => {
         };
         window.ws.send(JSON.stringify(data));
         setMessageList((messageList) => messageList.filter((val) => val.msg_id != msg_id));
-        console.log("delete");
-        console.log(messageList);
         filter();
+    };
+
+    const handleOpenChanged = (newOpen: boolean) => {
+        setRoomInfoModal(newOpen);
+    };
+
+    const id2str = (id: number) => {
+        if (id === CONS.MASTER){
+            return "群主";
+        }
+        else if (id === CONS.MANAGER){
+            return "管理员";
+        }
+        else if (id === CONS.MEMBER){
+            return "成员";
+        }
+    };
+
+    const replyAddGroup = (id: number, Answer: number) => {
+        let data = {
+            function: "reply_add_group",
+            chatroom_id: window.currentRoomID,
+            message_id: id,
+            answer: Answer
+        };
+        window.ws.send(JSON.stringify(data));
     };
 
     //会话具体信息
@@ -1307,7 +1312,7 @@ const Screen = () => {
                                 <Meta
                                     avatar={<Avatar src="https://xsgames.co/randomusers/avatar.php?g=pixel"/>}
                                     title={item}
-                                    description={!roomInfo.is_private ? identity(item) : null}
+                                    description={!roomInfo.is_private ? id2str(identity(item)) : null}
                                 />
                             </Card>
                         </List.Item>
@@ -1322,13 +1327,17 @@ const Screen = () => {
                     <Card title={`群聊名称   ${typeof window != "undefined" ? window.currentRoomName : null}`}>
                         <Space direction={"vertical"}>
                             <Button type={"text"} onClick={() => {
+                                setRoomInfoModal(false);
                                 setBoardModal(true);
                             }}>
                                 群公告
                             </Button>
                             {
                                 identity(window.username) >= CONS.MANAGER ? (
-                                    <Button type={"text"} onClick={() => setDrawerOpen(true)}>查看申请列表</Button>
+                                    <Button type={"text"} onClick={() => {
+                                        setRoomInfoModal(false);
+                                        setDrawerOpen(true);
+                                    }}>查看申请列表</Button>
                                 ) : null
                             }
                             <Button type={"text"} danger={true} onClick={leaveChatGroup}>
@@ -1352,7 +1361,10 @@ const Screen = () => {
                     <Switch checked={roomTop} onChange={setTop}/>
                 </Space>
                 <Space direction={"horizontal"}>
-                    <Button type={"primary"} onClick={() => setHistoryModal(true)}>
+                    <Button type={"primary"} onClick={() => {
+                        setRoomInfoModal(false);
+                        setHistoryModal(true);
+                    }}>
                         查看聊天消息
                     </Button>
                 </Space>
@@ -1364,7 +1376,7 @@ const Screen = () => {
         $("#loader").load(function() {
             var text = $("#loader").contents().find("body").text();
             var j = $.JSON.parse(text);
-            console.log(j);
+            console.log("j", j);
         });
     };
 
@@ -1558,15 +1570,19 @@ const Screen = () => {
                                                 <div style={{height: "5vh", margin: "10px, 10px", flexDirection: "row"}}>
                                                     <Space>
                                                         <h1> { window.currentRoomName } </h1>
-                                                        <Popover placement={"bottomRight"} content={ roomInfoPage } trigger={"click"}>
-                                                            <Button type={"primary"} size={"middle"} icon={ <EllipsisOutlined/> } ghost={true} shape={"circle"}/>
+                                                        <Popover placement={"bottomRight"} content={ roomInfoPage } trigger={"click"} open={roomInfoModal} onOpenChange={handleOpenChanged}>
+                                                            <Button
+                                                                type={"primary"} size={"middle"} icon={ <EllipsisOutlined/> }
+                                                                ghost={true} shape={"circle"}
+                                                                onClick={() => setRoomInfoModal(true)}
+                                                            />
                                                         </Popover>
                                                     </Space>
                                                 </div>
                                                 <Divider type={"horizontal"}/>
                                                 <div style={{padding: "24px", position: "relative", height: "60vh", overflow: "scroll"}}>
                                                     <List
-                                                        dataSource={ messageList.filter((msg) => (msg.msg_type != "notice" && msg.is_delete === false)) }
+                                                        dataSource={ messageList.filter((msg) => (msg.msg_type != "notice" && !msg.is_delete)) }
                                                         split={ false }
                                                         renderItem={(item) => (
                                                             <List.Item key={ item.msg_id }>
@@ -1730,7 +1746,6 @@ const Screen = () => {
                                                             <Mentions
                                                                 rows={4}
                                                                 onChange={onMsgChange}
-                                                                onSelect={onSelect}
                                                                 placement={"top"}
                                                                 options={(roomInfo.mem_list.filter(selfFilter)).map((value) => ({
                                                                     key: value,
@@ -2343,6 +2358,7 @@ const Screen = () => {
                     </form>
                 </div>
             </Modal>
+
             <Modal title="聊天信息" open={historyModal} onOk={() => setHistoryModal(false)} onCancel={() => setHistoryModal(false)}>
                 <div style={{display: "flex", flexDirection: "column"}}>
                     <div style={{display: "flex", flexDirection: "row"}}>
@@ -2497,8 +2513,16 @@ const Screen = () => {
                     dataSource={roomApplyList}
                     renderItem={item => (
                         <Space direction={"horizontal"}>
-                            <Button onClick={() => replyAddGroup(item.roomid, 1)}>同意</Button>
-                            <Button onClick={() => replyAddGroup(item.roomid, 0)}>拒绝</Button>
+                            <Button disabled={item.msg_answer === 1} onClick={() => {
+                                replyAddGroup(item.msg_id, 1);
+                            }}>
+                                同意
+                            </Button>
+                            <Button disabled={item.msg_answer === 1} onClick={() =>
+                                replyAddGroup(item.msg_id, 0)
+                            }>
+                                拒绝
+                            </Button>
                         </Space>
                     )}
                 />
@@ -2507,13 +2531,3 @@ const Screen = () => {
     );
 };
 export default Screen;
-
-const replyAddGroup = (id: number, Answer: number) => {
-    let data = {
-        function: "reply_add_group",
-        chatroom_id: window.currentRoomID,
-        message_id: id,
-        answer: Answer
-    };
-    window.ws.send(JSON.stringify(data));
-};

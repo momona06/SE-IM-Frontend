@@ -12,6 +12,7 @@ interface messageListData {
     read_list: boolean[];
     avatar: string;
     is_delete: boolean;
+    msg_answer?: number;
 }
 
 interface friendListData {
@@ -46,17 +47,6 @@ interface roomInfoData {
     master: string;
     mem_count: number;
     is_private: boolean;
-}
-
-export interface inviteListData {
-    roomname: string;
-    roomid: number;
-    is_private: boolean;
-    message_list: messageListData[]; //msg body
-
-    is_notice?: boolean;
-    is_top?: boolean;
-    index?: number;
 }
 
 // 地址字符串特殊显示
