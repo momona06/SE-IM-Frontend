@@ -1344,7 +1344,7 @@ const Screen = () => {
                                 {part}
                             </a>
                         );
-                    } else if(part.match(atRegex)) {
+                    } else if(part.match(atRegex) && roomInfo.mem_list.lastIndexOf(part.substring(1)) != -1) {
                         return (
                             <Popover trigger={"hover"} content={
                                 <Space direction={"horizontal"} size={"small"}>
