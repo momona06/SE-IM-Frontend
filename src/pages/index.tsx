@@ -12,6 +12,10 @@ import EmailIcon from '@mui/icons-material/Email';
 import FaceIcon from '@mui/icons-material/Face';
 import LogoutIcon from '@mui/icons-material/Logout';
 import CancelIcon from '@mui/icons-material/Cancel';
+import PersonIcon from '@mui/icons-material/Person';
+import TelegramIcon from '@mui/icons-material/Telegram';
+import SettingsIcon from '@mui/icons-material/Settings';
+import AddCircleIcon from '@mui/icons-material/AddCircle';
 
 import React, {useEffect, useRef, useState } from "react";
 import * as STRINGS from "../constants/string";
@@ -1658,14 +1662,16 @@ const Screen = () => {
 
                 {currentPage === CONS.MAIN ? (
                     <div>
-                        <Layout style={{ minHeight: "100vh" }}>
-                            <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
-                                <Menu theme={"dark"} defaultSelectedKeys={["1"]} mode="inline">
-                                    <Menu.Item icon={<MessageOutlined/>} key={"1"} onClick={()=> setMenuItem(CONS.CHATFRAME)}> 聊天 </Menu.Item>
+                        <Layout style={{ minHeight: "100vh" }} >
+                            <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)} theme={"light"}>
+                                <Menu theme={"light"} defaultSelectedKeys={["1"]} mode="inline">
 
-                                    <Menu.Item icon={<UsergroupAddOutlined />} key={"2"} onClick={()=> setMenuItem(CONS.ADDRESSBOOK)}> 通讯录 </Menu.Item>
 
-                                    <Menu.Item icon={<SettingOutlined />} key={"3"} onClick={()=> setMenuItem(CONS.SETTINGS)}> 设置 </Menu.Item>
+                                    <Menu.Item icon={<TelegramIcon />} key={"1"} onClick={()=> setMenuItem(CONS.CHATFRAME)}> 聊天 </Menu.Item>
+
+                                    <Menu.Item icon={<PersonIcon />} key={"2"} onClick={()=> setMenuItem(CONS.ADDRESSBOOK)}> 通讯录 </Menu.Item>
+
+                                    <Menu.Item icon={<SettingsIcon />} key={"3"} onClick={()=> setMenuItem(CONS.SETTINGS)}> 设置 </Menu.Item>
                                 </Menu>
                             </Sider>
 
@@ -1673,14 +1679,12 @@ const Screen = () => {
                                 { /*聊天组件*/}
                                 {menuItem === CONS.CHATFRAME ? (
                                     <div style={{ display: "flex", flexDirection: "row" }}>
-                                        <div style={{ padding: "0 24px", backgroundColor:"#FAF0E6",  width:"20%", minHeight:"100vh" }}>
+                                        <div style={{ padding: "0 24px", backgroundColor:"#FFFFFF",  width:"20%", minHeight:"100vh" }}>
                                             <div style={{height: "3vh", margin: "10px", flexDirection: "row"}}>
                                                 <Space direction={"horizontal"}>
-                                                    <h3> 会话列表 </h3>
-                                                    <Button icon={<PlusOutlined />} type={"default"} onClick={() => setCreateGroupModal(true) }/>
+                                                    <AddCircleIcon onClick={() => setCreateGroupModal(true) }/>
                                                 </Space>
                                             </div>
-                                            <Divider type={"horizontal"}/>
                                             {roomListRefreshing ? (
                                                 <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />}/>
                                             ) : (
@@ -1741,8 +1745,8 @@ const Screen = () => {
                                         </div>
 
                                         {/* 消息页面 */}
-                                        {window.currentRoomID === 0 ? null : (
-                                            <div style={{ padding: "0 24px", backgroundColor:"#FFF5EE",  width:"80%", minHeight:"100vh" }}>
+                                        {window.currentRoomID === 0 ? (<div style={{backgroundColor: "#FFFFFF"}}></div>) : (
+                                            <div style={{ padding: "0 24px", backgroundColor:"#FFFFFF",  width:"80%", minHeight:"100vh" }}>
                                                 <div style={{height: "3vh", margin: "10px", flexDirection: "row"}}>
                                                     <Space>
                                                         <h1> { window.currentRoomName } </h1>
@@ -2005,11 +2009,10 @@ const Screen = () => {
                                 { /*通讯录组件*/}
                                 {menuItem === CONS.ADDRESSBOOK ? (
                                     <div style={{ display: "flex", flexDirection: "row" }}>
-                                        <div style={{ padding: "0 24px", backgroundColor:"#FAF0E6",  width:"20%", minHeight:"100vh" }}>
+                                        <div style={{ padding: "0 24px", backgroundColor:"#FFFFFF",  width:"20%", minHeight:"100vh" }}>
                                             <Button type="default" shape={"round"} onClick={()=>setAddressItem(CONS.SEARCH)} icon={<SearchOutlined/>} block> 搜索 </Button>
                                             <Button type="default" shape={"round"} onClick={() => {setAddressItem(CONS.NEWFRIEND); fetchReceiveList(); fetchApplyList();}} block icon={<UserAddOutlined />}> 新的朋友 </Button>
 
-                                            <h3> 好友列表 </h3>
                                             {friendListRefreshing ? (
                                                 <Spin indicator={<LoadingOutlined style={{ fontSize: 24, color: "#000000"}} spin />}/>
                                             ) : (
@@ -2064,7 +2067,7 @@ const Screen = () => {
                                             )}
                                         </div>
 
-                                        <div style={{ padding: "24px", backgroundColor:"#FFF5EE",  width:"80%", minHeight:"100vh" }}>
+                                        <div style={{ padding: "24px", backgroundColor:"#FFFFFF",  width:"80%", minHeight:"100vh" }}>
                                             {addressItem === CONS.NEWFRIEND ? (
                                                 <div>
                                                     {receiveRefreshing ? (
@@ -2231,7 +2234,7 @@ const Screen = () => {
 
                                 {menuItem === CONS.SETTINGS ? (
                                     <div style={{
-                                        display: "flex", flexDirection: "column", justifyContent: "center ", alignItems: "center", position: "absolute", marginLeft: "30vh", top: 0, bottom: 0, margin: "auto"
+                                        display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", position: "absolute", marginLeft: "30vh", top: 0, bottom: 0, margin: "auto"
                                     }}>
                                         <h1>
                                             设置
@@ -2506,6 +2509,7 @@ const Screen = () => {
                     </form>
                 </div>
             </Modal>
+
 
             <Modal title="上传视频" open={videoModal} onOk={() => setVideoModal(false)} onCancel={() => setVideoModal(false)}>
                 <div>
