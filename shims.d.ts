@@ -7,17 +7,21 @@ declare global {
         serverTimeoutObj: NodeJS.Timeout
         heartBeat: boolean
         loginToken?: number
+
         username: string
         password: string
         userAvatar: string
-        playVideoUrl: string
         otherUsername: string
+
+        playVideoUrl: string
+
         currentRoomID: number
         currentRoomName: string
+        memList: string[]
         messageList: messageListData[]
         roomList: roomListData[]
         forwardRoomId: number
-        memList: string[]
+
         temproomid: number
         temproomname: string
         temproomnotice: boolean

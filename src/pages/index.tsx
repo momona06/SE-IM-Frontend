@@ -79,7 +79,7 @@ const Screen = () => {
     const [token, setToken] = useState<number>(0);
 
     const {Content, Sider } = Layout;
-    const [collapsed, setCollapsed] = useState(false);
+    const [collapsed, setCollapsed] = useState(true);
 
     const [newUsername, getNewUsername] = useState<string>("");
     const [newPassword, setNewPassword] = useState<string>("");
@@ -100,6 +100,8 @@ const Screen = () => {
 
     const [roomList, setRoomList] = useState<roomListData[]>([]);
     const [roomListRefreshing, setRoomListRefreshing] = useState<boolean>(true);
+    // 全部room id
+    const [allRoomList, setAllRoomList] = useState<number[]>([]);
     const [newRoomMemberList, setNewRoomMemberList] = useState<string[]>([]);
 
     const [messageList, setMessageList] = useState<messageListData[]>([]);
@@ -193,6 +195,14 @@ const Screen = () => {
         });
         setAllFriendList(temp);
     }, [friendList]);
+
+    useEffect(() => {
+        let temp: number[] = [];
+        roomList.forEach(room => {
+            temp = temp.concat(room.roomid);
+        });
+        setAllRoomList(temp);
+    }, [roomList]);
 
     // 当本地message更新
     useEffect(() => {
@@ -562,6 +572,12 @@ const Screen = () => {
             },
         )
             .then(() => {
+                let data = {
+                    function: "refresh",
+                    friend_list: allFriendList,
+                    chatroom_list: allRoomList
+                };
+                window.ws.send(JSON.stringify(data));
                 message.success(STRINGS.USERNAME_CHANGE_SUCCESS, 1);
                 window.username = newUsername;
             })
@@ -621,6 +637,7 @@ const Screen = () => {
         )
             .then(() => {
                 setCurrentPage(CONS.LOGIN);
+                setMenuItem(CONS.EMPTY);
                 WSClose();
             })
             .catch((err) => message.error(err.message, 1));
@@ -635,7 +652,16 @@ const Screen = () => {
                 input_password: password,
             },
         )
-            .then(() => {setCurrentPage(CONS.LOGIN); WSClose();})
+            .then(() => {
+                let data = {
+                    function: "refresh",
+                    friend_list: allFriendList,
+                    chatroom_list: allRoomList
+                };
+                window.ws.send(JSON.stringify(data));
+                setCurrentPage(CONS.LOGIN);
+                WSClose();
+            })
             .catch((err) => message.error(err.message, 1));
     };
 
@@ -1612,11 +1638,11 @@ const Screen = () => {
                         <Layout style={{ minHeight: "100vh" }}>
                             <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
                                 <Menu theme={"dark"} defaultSelectedKeys={["1"]} mode="inline">
-                                    <Menu.Item title={"聊天"} icon={<MessageOutlined/>} key={"1"} onClick={()=> setMenuItem(CONS.CHATFRAME)}> 聊天 </Menu.Item>
+                                    <Menu.Item icon={<MessageOutlined/>} key={"1"} onClick={()=> setMenuItem(CONS.CHATFRAME)}> 聊天 </Menu.Item>
 
-                                    <Menu.Item title={"通讯录"} icon={<UsergroupAddOutlined />} key={"2"} onClick={()=> setMenuItem(CONS.ADDRESSBOOK)}> 通讯录 </Menu.Item>
+                                    <Menu.Item icon={<UsergroupAddOutlined />} key={"2"} onClick={()=> setMenuItem(CONS.ADDRESSBOOK)}> 通讯录 </Menu.Item>
 
-                                    <Menu.Item title={"设置"} icon={<SettingOutlined />} key={"3"} onClick={()=> setMenuItem(CONS.SETTINGS)}> 设置 </Menu.Item>
+                                    <Menu.Item icon={<SettingOutlined />} key={"3"} onClick={()=> setMenuItem(CONS.SETTINGS)}> 设置 </Menu.Item>
                                 </Menu>
                             </Sider>
 
