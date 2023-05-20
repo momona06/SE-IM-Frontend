@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 
 import {
     Button
@@ -232,7 +232,7 @@ const VideoCall = (userName, userToCall) => {
     function beReady() {
         return navigator.mediaDevices.getUserMedia({
             audio: true,
-            video: isVideo ? true : false
+            video: isVideo
         })
             .then(stream => {
                 localStream = stream;

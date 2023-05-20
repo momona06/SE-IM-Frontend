@@ -1,4 +1,17 @@
 import VideoCall from "../components/VideoCall";
+import MoodIcon from '@mui/icons-material/Mood';
+import PhotoIcon from '@mui/icons-material/Photo';
+import HeadphonesIcon from '@mui/icons-material/Headphones';
+import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
+import OndemandVideoIcon from '@mui/icons-material/OndemandVideo';
+import VideocamIcon from '@mui/icons-material/Videocam';
+import SendIcon from '@mui/icons-material/Send';
+import BadgeIcon from '@mui/icons-material/Badge';
+import KeyIcon from '@mui/icons-material/Key';
+import EmailIcon from '@mui/icons-material/Email';
+import FaceIcon from '@mui/icons-material/Face';
+import LogoutIcon from '@mui/icons-material/Logout';
+import CancelIcon from '@mui/icons-material/Cancel';
 
 import React, {useEffect, useRef, useState } from "react";
 import * as STRINGS from "../constants/string";
@@ -232,7 +245,7 @@ const Screen = () => {
     }, [roomInfo]);
 
     const WSConnect = () => {
-        let DEBUG = false;
+        let DEBUG = true;
         window.ws = new WebSocket(DEBUG ? "ws://localhost:8000/wsconnect" : "wss://se-im-backend-test-overflowlab.app.secoder.net/wsconnect");
         window.ws.onopen = function () {
             setMenuItem(CONS.CHATFRAME);
@@ -1921,7 +1934,8 @@ const Screen = () => {
                                                     <div style={{flexDirection: "row"}}>
                                                         <Space direction={"horizontal"}>
 
-                                                            <Popover content={<Row gutter={0}>
+                                                            <Popover content={
+                                                                <Row gutter={0}>
                                                                 {emojiList.map((item) => {
                                                                     return (
                                                                         <Col span={1} onClick={() => {appendEmoji(item.emoji);}} key={item.id}>
@@ -1929,35 +1943,18 @@ const Screen = () => {
                                                                         </Col>
                                                                     );
                                                                 })}
-                                                            </Row>
-                                                            } title="Title" trigger="click" placement={"topRight"}>
-                                                                <Button><SmileOutlined />
-                                                                    表情
-                                                                </Button>
+                                                                </Row>}
+                                                                     title="Icons" trigger="click" placement={"topLeft"}>
+                                                                    <MoodIcon/>
                                                             </Popover>
 
-                                                            <Button
-                                                                type="primary"
-                                                                onClick={() => setImageModal(true)}>
-                                                                上传图片
-                                                            </Button>
-                                                            <Button
-                                                                type="primary"
-                                                                onClick={() => setAudioModal(true)}>
-                                                                上传音频
-                                                            </Button>
-                                                            <Button
-                                                                type="primary"
-                                                                onClick={() => setVideoModal(true)}>
-                                                                上传视频
-                                                            </Button>
-                                                            <Button
-                                                                type="primary"
-                                                                onClick={() => setFileModal(true)}>
-                                                                上传文件
-                                                            </Button>
+                                                            <PhotoIcon onClick={() => setImageModal(true)}/>
+                                                            <HeadphonesIcon onClick={() => setAudioModal(true)}/>
+                                                            <OndemandVideoIcon onClick={() => setVideoModal(true)}/>
+                                                            <InsertDriveFileIcon onClick={() => setFileModal(true)}/>
 
-                                                            {VideoCall("audioorvideo_" + window.username, "audioorvideo_" + window.currentRoomName)}
+
+                                                            {/*{VideoCall("audioorvideo_" + window.username, "audioorvideo_" + window.currentRoomName)}*/}
 
 
                                                         </Space>
@@ -1965,9 +1962,13 @@ const Screen = () => {
 
 
                                                     <Form form={form} layout={"horizontal"}>
-                                                        {replying ? (
-                                                            <p> {replyMessageBody} </p>
+                                                        {replying ?
+                                                            (
+                                                            <div>
+                                                                <p> {replyMessageBody} </p>
+                                                            </div>
                                                         ) : null}
+
                                                         <Form.Item name={"box"}>
                                                             <Mentions
                                                                 rows={4}
@@ -1978,22 +1979,23 @@ const Screen = () => {
                                                                     value,
                                                                     label: value,
                                                                 }))}
+                                                                onPressEnter={() => {replying ? sendMessage(messageBody, "reply", replyMessageID) : sendMessage(messageBody, "text");
+                                                                    setReplying(false);
+                                                                }}
                                                             />
                                                         </Form.Item>
+
+                                                        <div style={{flexDirection: "row-reverse", display:"flex"}}>
+                                                            <SendIcon onClick={() => {replying ? sendMessage(messageBody, "reply", replyMessageID) : sendMessage(messageBody, "text");
+                                                                setReplying(false);
+                                                            }}/>
+                                                        </div>
+
                                                     </Form>
 
 
-                                                    <div style={{flexDirection: "row-reverse", display:"flex"}}>
-                                                        <Button
-                                                            type="primary"
-                                                            onClick={() => {
-                                                                replying ? sendMessage(messageBody, "reply", replyMessageID) : sendMessage(messageBody, "text");
-                                                                setReplying(false);
-                                                            }}>
-                                                            发送
-                                                        </Button>
 
-                                                    </div>
+
                                                 </div>
                                             </div>
                                         )}
@@ -2009,7 +2011,7 @@ const Screen = () => {
 
                                             <h3> 好友列表 </h3>
                                             {friendListRefreshing ? (
-                                                <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />}/>
+                                                <Spin indicator={<LoadingOutlined style={{ fontSize: 24, color: "#000000"}} spin />}/>
                                             ) : (
                                                 <div style={{ padding: 12}}>
                                                     {friendList.length === 0 ? (
@@ -2232,7 +2234,7 @@ const Screen = () => {
                                         display: "flex", flexDirection: "column", justifyContent: "center ", alignItems: "center", position: "absolute", marginLeft: "30vh", top: 0, bottom: 0, margin: "auto"
                                     }}>
                                         <h1>
-                                            用户管理
+                                            设置
                                         </h1>
                                         <div style={{
                                             display: "flex",
@@ -2249,25 +2251,13 @@ const Screen = () => {
                                             <h3>用户名：{ window.username }</h3>
                                             <div style={{height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
                                                 <Space size={50}>
-                                                    <Button
-                                                        size={"large"} type={"primary"}
-                                                        onClick={() => ((changeUserInfo === CONS.REVISE_USERNAME) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.REVISE_USERNAME))}>
-                                                        修改用户名
-                                                    </Button>
-                                                    <Button
-                                                        size={"large"} type={"primary"}
-                                                        onClick={() => ((changeUserInfo === CONS.REVISE_PASSWORD) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.REVISE_PASSWORD))}>
-                                                        修改密码
-                                                    </Button>
-                                                    <Button
-                                                        size={"large"} type={"primary"}
-                                                        onClick={() => ((changeUserInfo === CONS.REVISE_EMAIL) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.REVISE_EMAIL))}>
-                                                        修改邮箱
-                                                    </Button>
-                                                    <Button size={"large"} type={"primary"}
-                                                        onClick={() => setAvatarModal(true)}>
-                                                        上传头像
-                                                    </Button>
+                                                    <BadgeIcon onClick={() => ((changeUserInfo === CONS.REVISE_USERNAME) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.REVISE_USERNAME))}/>
+
+                                                    <KeyIcon onClick={() => ((changeUserInfo === CONS.REVISE_PASSWORD) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.REVISE_PASSWORD))}/>
+
+                                                    <EmailIcon onClick={() => ((changeUserInfo === CONS.REVISE_EMAIL) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.REVISE_EMAIL))}/>
+
+                                                    <FaceIcon onClick={() => setAvatarModal(true)}/>
                                                 </Space>
                                             </div>
 
@@ -2381,14 +2371,9 @@ const Screen = () => {
                                             ) : null}
                                             <div style={{height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
                                                 <Space size={150}>
-                                                    <Button size={"large"} shape={"round"} type={"primary"} onClick={()=>logout()}>
-                                                        登出
-                                                    </Button>
-                                                    <Button
-                                                        size={"large"} shape={"round"} type={"primary"} danger={true}
-                                                        onClick={() => ((changeUserInfo === CONS.WRITE_OFF) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.WRITE_OFF))}>
-                                                        注销账户
-                                                    </Button>
+                                                    <LogoutIcon onClick={()=>logout()}/>
+
+                                                    <CancelIcon onClick={() => ((changeUserInfo === CONS.WRITE_OFF) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.WRITE_OFF))}/>
                                                 </Space>
                                             </div>
                                         </div>
