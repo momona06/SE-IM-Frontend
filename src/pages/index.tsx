@@ -1397,6 +1397,14 @@ const Screen = () => {
         );
     };
 
+    const logReturn = () => {
+        $("#loader").load(function() {
+            const text = $("#loader").contents().find("body").text();
+            const j = $.JSON.parse(text);
+            console.log("j", j);
+        });
+    };
+
     //会话具体信息
     const roomInfoPage = (
         <div style={{padding: "12px"}}>
@@ -1508,14 +1516,6 @@ const Screen = () => {
             </Space>
         </div>
     );
-
-    const logReturn = () => {
-        $("#loader").load(function() {
-            const text = $("#loader").contents().find("body").text();
-            const j = $.JSON.parse(text);
-            console.log("j", j);
-        });
-    };
 
     return (
         <div style={{
