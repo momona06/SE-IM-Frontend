@@ -1,3 +1,5 @@
+import VideoCall from "../components/VideoCall";
+
 import React, {useEffect, useRef, useState } from "react";
 import * as STRINGS from "../constants/string";
 import * as CONS from "../constants/constants";
@@ -231,7 +233,7 @@ const Screen = () => {
 
     const WSConnect = () => {
         let DEBUG = false;
-        window.ws = new WebSocket(DEBUG ? "ws://localhost:8000/wsconnect" : "wss://se-im-backend-overflowlab.app.secoder.net/wsconnect");
+        window.ws = new WebSocket(DEBUG ? "ws://localhost:8000/wsconnect" : "wss://se-im-backend-test-overflowlab.app.secoder.net/wsconnect");
         window.ws.onopen = function () {
             setMenuItem(CONS.CHATFRAME);
             let data = {
@@ -658,6 +660,7 @@ const Screen = () => {
                     friend_list: allFriendList,
                     chatroom_list: allRoomList
                 };
+                console.log("refresh",data);
                 window.ws.send(JSON.stringify(data));
                 setCurrentPage(CONS.LOGIN);
                 WSClose();
@@ -1352,6 +1355,8 @@ const Screen = () => {
     const str2addr = (text : string, readlist: boolean[]) => {
         const urlRegex = /(https?:\/\/[^\s]+)/g; // 匹配 URL 的正则表达式
         const urlRegex2 = /((https?:\/\/)?([a-zA-Z0-9]+\.)+[a-zA-Z0-9]+)/g;
+        const urlRegex3 = /^(https?:\/\/)?(www\.)?[a-zA-Z0-9_-]+\.[a-zA-Z]{2,}([a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;=]+)?$/g;
+        const urlRegexn = /(https?:\/\/(www\.)?)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/;
         const atRegex = /(@[A-Za-z0-9]+)/g;
         const parts = text.split(urlRegex); // 使用正则表达式拆分字符串
         var partss: string[] = [];
@@ -1369,14 +1374,16 @@ const Screen = () => {
         });
         return (
             <div>
-                {partss.map((part, i) => {
+                {
+                    partss.map((part, i) => {
                     if (part.match(urlRegex)) {
                         return (
                             <a target="_blank" href={part} rel="noopener noreferrer" key={i}>
                                 {part}
                             </a>
                         );
-                    } else if(part.match(atRegex) && roomInfo.mem_list.lastIndexOf(part.substring(1)) != -1) {
+                    }
+                    else if (part.match(atRegex) && roomInfo.mem_list.lastIndexOf(part.substring(1)) != -1) {
                         return (
                             <Popover trigger={"hover"} content={
                                 <Space direction={"horizontal"} size={"small"}>
@@ -1389,8 +1396,11 @@ const Screen = () => {
                                 }} key={ i }>{part}</span>
                             </Popover>
                         );
-                    } else {
-                        return <span key={ i }>{part}</span>;
+                    }
+                    else {
+                        return <span key={ i }>
+                            {part}
+                        </span>;
                     }
                 })}
             </div>
@@ -1910,6 +1920,7 @@ const Screen = () => {
                                                 <div style={{ padding: "24px", position: "relative", display: "flex", flexDirection: "column", bottom: 0, left: 0, right: 0}}>
                                                     <div style={{flexDirection: "row"}}>
                                                         <Space direction={"horizontal"}>
+
                                                             <Popover content={<Row gutter={0}>
                                                                 {emojiList.map((item) => {
                                                                     return (
@@ -1918,11 +1929,41 @@ const Screen = () => {
                                                                         </Col>
                                                                     );
                                                                 })}
-                                                            </Row>} title="Title" trigger="click" placement={"topRight"}>
-                                                                <Button><SmileOutlined />表情</Button>
+                                                            </Row>
+                                                            } title="Title" trigger="click" placement={"topRight"}>
+                                                                <Button><SmileOutlined />
+                                                                    表情
+                                                                </Button>
                                                             </Popover>
+
+                                                            <Button
+                                                                type="primary"
+                                                                onClick={() => setImageModal(true)}>
+                                                                上传图片
+                                                            </Button>
+                                                            <Button
+                                                                type="primary"
+                                                                onClick={() => setAudioModal(true)}>
+                                                                上传音频
+                                                            </Button>
+                                                            <Button
+                                                                type="primary"
+                                                                onClick={() => setVideoModal(true)}>
+                                                                上传视频
+                                                            </Button>
+                                                            <Button
+                                                                type="primary"
+                                                                onClick={() => setFileModal(true)}>
+                                                                上传文件
+                                                            </Button>
+
+                                                            {VideoCall("audioorvideo_" + window.username, "audioorvideo_" + window.currentRoomName)}
+
+
                                                         </Space>
                                                     </div>
+
+
                                                     <Form form={form} layout={"horizontal"}>
                                                         {replying ? (
                                                             <p> {replyMessageBody} </p>
@@ -1940,6 +1981,8 @@ const Screen = () => {
                                                             />
                                                         </Form.Item>
                                                     </Form>
+
+
                                                     <div style={{flexDirection: "row-reverse", display:"flex"}}>
                                                         <Button
                                                             type="primary"
@@ -1949,27 +1992,7 @@ const Screen = () => {
                                                             }}>
                                                             发送
                                                         </Button>
-                                                        <Button
-                                                            type="primary"
-                                                            onClick={() => setImageModal(true)}>
-                                                            上传图片
-                                                        </Button>
-                                                        <Button
-                                                            type="primary"
-                                                            onClick={() => setAudioModal(true)}>
-                                                            上传音频
-                                                        </Button>
-                                                        <Button
-                                                            type="primary"
-                                                            onClick={() => setVideoModal(true)}>
-                                                            上传视频
-                                                        </Button>
-                                                        <Button
-                                                            type="primary"
-                                                            onClick={() => setFileModal(true)}>
-                                                            上传文件
-                                                        </Button>
-                                                        
+
                                                     </div>
                                                 </div>
                                             </div>
