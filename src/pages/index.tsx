@@ -310,26 +310,28 @@ const Screen = () => {
                 };
                 // 更新本地
                 if (data.room_id === window.currentRoomID){
-                    // A无需将new msg加入messageList
+                    // B将new msg加入messageList
                     if (data.sender != window.username) {
                         setMessageList(messageList => messageList.concat(newMessage));
                     }
                     else {
-                        // 需更新 read list
-                        let temp = [newMessage];
-                        setMessageList((messageList) => messageList.slice(0, messageList.length - 1).concat(temp));
+                        // A更新 read list
+                        setMessageList((messageList) => messageList.slice(0, messageList.length - 1).concat(newMessage));
                     }
                 }
                 // 更新 roomlist
-                for (let room of roomList){
+                for (let room of window.roomList){
                     if (room.roomid === data.room_id){
                         room.message_list.push(newMessage);
+                        setRoomList(window.roomList);
+                        break;
                     }
                 }
 
                 if (data.msg_type === "combine"){
                     getAllCombine(messageList);
                 }
+
                 let ACK = {
                     "function": "acknowledge_message",
                     "is_back": false,
@@ -392,11 +394,14 @@ const Screen = () => {
             }
             // 入群申请
             else if (data.function === "fetchinvitelist") {
-                console.log("here");
                 let temp: messageListData[] = [];
-                data.room_list.forEach((room: { message_list: messageListData[]; }) => {
-                    temp.push(room.message_list[0]);
-                    console.log("room", room.message_list[0]);
+                data.room_list.forEach((room: roomListData) => {
+                    room.message_list.forEach(msg => {
+                        temp.push(msg);
+                    });
+                    if (room.roomid === window.currentRoomID){
+                        setRoomApplyList(temp);
+                    }
                 });
                 setRoomApplyList(temp);
             }
@@ -894,13 +899,6 @@ const Screen = () => {
             };
             // 更新本地messageList
             setMessageList(messageList => messageList.concat(newMessage));
-            // 更新roomList 消息
-            for (let room of roomList){
-                if (room.roomid === window.currentRoomID){
-                    room.message_list.push(newMessage);
-                }
-                console.log("room:", room.roomname, " msg ", room.message_list);
-            }
         }
         else {
             message.error("输入不能为空", 1);
@@ -1664,6 +1662,7 @@ const Screen = () => {
                                                                                     else
                                                                                     {
                                                                                         fetchRoomInfo(item.roomid);
+                                                                                        fetchRoomInviteList();
                                                                                         addRoom(item.roomid, item.roomname);
                                                                                         window.currentRoomID = item.roomid;
                                                                                         window.currentRoomName = item.roomname;
