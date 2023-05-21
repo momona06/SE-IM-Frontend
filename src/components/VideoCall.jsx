@@ -1,5 +1,8 @@
 import React from 'react';
-
+import HeadphonesIcon from '@mui/icons-material/Headphones';
+import VideocamIcon from '@mui/icons-material/Videocam';
+import CableIcon from '@mui/icons-material/Cable';
+import StopCircleIcon from '@mui/icons-material/StopCircle';
 import {
     Button
 } from "antd";
@@ -13,7 +16,6 @@ const VideoCall = (userName, userToCall) => {
     let peerConnection;
     let remoteStream;
     let localStream;
-    //let [callSocket, setcallSocket] = useState(null);
     let callSocket;
     let isVideo;
 
@@ -81,22 +83,31 @@ const VideoCall = (userName, userToCall) => {
                 localStream.getTracks().forEach(track => track.stop());
                 peerConnection.close();
             }
-
             callInProgress = false;
             peerConnection = null;
             //otherUser = null;
-            document.getElementById("call").style.display = "inline";
+
+            document.getElementById("audiocall").style.display = "inline";
+            document.getElementById("videocall").style.display = "inline";
+
+            document.getElementById("answer").style.display = "none";
+            document.getElementById("stop").style.display = "none";
+
             document.getElementById("videos").style.display = "none";
+
             console.log("STOP FROM OTHER");
-            //callSocket.close();
         }
 
         const onNewCall = (data) => {
             // when other called you
             otherUser = data.caller;
             remoteRTCMessage = data.rtcMessage;
-            document.getElementById("call").style.display = "none";
+
+            document.getElementById("audiocall").style.display = "none";
+            document.getElementById("videocall").style.display = "none";
+
             document.getElementById("answer").style.display = "inline";
+            document.getElementById("stop").style.display = "inline";
         };
 
         const onCallAnswered = (data) => {
@@ -139,7 +150,10 @@ const VideoCall = (userName, userToCall) => {
         peerConnection.close();
         peerConnection = null;
         otherUser = null;
-        document.getElementById("call").style.display = "inline";
+
+        document.getElementById("audiocall").display = "inline";
+        document.getElementById("videocall").display = "inline";
+
         document.getElementById("videos").style.display = "none";
         callSocket.send(JSON.stringify({
             type: 'stop_call',
@@ -162,6 +176,14 @@ const VideoCall = (userName, userToCall) => {
             connectSocket();
         }
 
+        document.getElementById("audiocall").style.display = "none";
+        document.getElementById("videocall").style.display = "none";
+
+        document.getElementById("answer").style.display = "inline";
+        document.getElementById("stop").style.display = "inline";
+
+        document.getElementById("videos").style.display="inline";
+
         otherUser = userToCall;
         setTimeout(preProcess, 4000);
     }
@@ -171,6 +193,13 @@ const VideoCall = (userName, userToCall) => {
         if(typeof callSocket == "undefined" || callSocket == null) {
             connectSocket();
         }
+        document.getElementById("audiocall").style.display = "none";
+        document.getElementById("videocall").style.display = "none";
+
+        document.getElementById("answer").style.display = "inline";
+        document.getElementById("stop").style.display = "inline";
+
+        document.getElementById("videos").style.display="inline";
 
         otherUser = userToCall;
         setTimeout(preProcess, 4000);
@@ -197,7 +226,8 @@ const VideoCall = (userName, userToCall) => {
             type: 'call',
             data
         }));
-        document.getElementById("call").style.display = "none";
+        document.getElementById("audiocall").style.display = "none";
+        document.getElementById("videocall").style.display = "none";
     }
 
     /**
@@ -358,37 +388,16 @@ const VideoCall = (userName, userToCall) => {
 
 
     return (
-        <div>
-            <div id="call">
-                <div>
-                    <Button onClick={audioCall}>
-                        Audio Call
-                    </Button>
-                    <Button onClick={videoCall}>
-                        Video Call
-                    </Button>
-                </div>
-            </div>
-
-            <div id="answer">
-                <div>
-                    <Button onClick={answer}>
-                        Answer
-                    </Button>
-                </div>
+        <div direction={"horizontal"}>
+            <div>
+                <HeadphonesIcon id="audiocall" onClick={audioCall}/>
+                <VideocamIcon id="videocall" onClick={videoCall}/>
+                <CableIcon style={{display: "none"}} id="answer" onClick={answer}/>
+                <StopCircleIcon style={{display: "none"}} id="stop" onClick={stop}/>
             </div>
 
 
-            <div id="stop">
-                <div>
-                    <Button onClick={stop}>
-                        Stop
-                    </Button>
-                </div>
-            </div>
-
-
-            <div id="videos">
+            <div id="videos" style={{display: "none"}}>
                 <div style={{
                         position: "absolute",
                         top: 0,
