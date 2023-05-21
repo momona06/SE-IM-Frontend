@@ -16,6 +16,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import TelegramIcon from '@mui/icons-material/Telegram';
 import SettingsIcon from '@mui/icons-material/Settings';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
+import CheckIcon from '@mui/icons-material/Check';
 
 import React, {useEffect, useRef, useState } from "react";
 import * as STRINGS from "../constants/string";
@@ -1746,7 +1747,7 @@ const Screen = () => {
 
                                         {/* 消息页面 */}
                                         {window.currentRoomID === 0 ? (<div style={{backgroundColor: "#FFFFFF"}}></div>) : (
-                                            <div style={{ padding: "0 24px", backgroundColor:"#FFFFFF",  width:"80%", minHeight:"100vh" }}>
+                                            <div style={{ padding: "0 24px", backgroundColor:"#F5F5F5",  width:"80%", minHeight:"100vh" }}>
                                                 <div style={{height: "3vh", margin: "10px", flexDirection: "row"}}>
                                                     <Space>
                                                         <h1> { window.currentRoomName } </h1>
@@ -2284,9 +2285,10 @@ const Screen = () => {
                                                         onChange={(e) => getPassword(e.target.value)}
                                                     />
                                                     <br/>
-                                                    <Button size={"large"} type={"dashed"} onClick={changeUsername}>
-                                                        确认修改用户名
-                                                    </Button>
+                                                    {/*<Button size={"large"} type={"dashed"} onClick={changeUsername}>*/}
+                                                    {/*    确认修改用户名*/}
+                                                    {/*</Button>*/}
+                                                    <CheckIcon onClick={()=>changeUsername()}/>
                                                 </div>
                                             ) : null}
 
@@ -2319,18 +2321,15 @@ const Screen = () => {
                                                         onChange={(e) => getVerification(e.target.value)}
                                                     />
                                                     <br/>
-                                                    <Button
-                                                        size={"large"} type={"dashed"}
-                                                        onClick={verifyPassword}>
-                                                        确认修改密码
-                                                    </Button>
+
+                                                    <CheckIcon onClick={()=>verifyPassword()}/>
                                                 </div>
                                             ) : null}
 
                                             {changeUserInfo === CONS.REVISE_EMAIL ? (
                                                 <div style={{margin: "5px", display: "flex", flexDirection: "column", alignItems: "center"}}>
                                                     <Input
-                                                        size={"large"}
+                                                        size={"middle"}
                                                         type="text"
                                                         prefix={<MailOutlined />}
                                                         placeholder="请填写邮箱"
@@ -2346,14 +2345,14 @@ const Screen = () => {
                                                             value={sms}
                                                             onChange={(e) => setSms(e.target.value)}
                                                         />
-                                                        <Button type="primary" onClick={() => sendEmail()}>
-                                                            发送验证码
-                                                        </Button>
+                                                        {/*<Button type="primary" onClick={() => sendEmail()}>*/}
+                                                        {/*    发送验证码*/}
+                                                        {/*</Button>*/}
+                                                        <SendIcon onClick={()=>sendEmail()}/>
+
                                                     </Space.Compact>
                                                     <br/>
-                                                    <Button size={"large"} type={"dashed"} onClick={()=>verifySms()}>
-                                                        确认修改邮箱
-                                                    </Button>
+                                                    <CheckIcon onClick={()=>verifySms()}/>
                                                 </div>
                                             ) : null}
 
