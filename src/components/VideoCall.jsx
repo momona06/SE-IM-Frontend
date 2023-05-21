@@ -40,7 +40,8 @@ const VideoCall = (userName, userToCall) => {
 
 
     function connectSocket() {
-        callSocket = new WebSocket("wss://se-im-backend-test-overflowlab.app.secoder.net/ws/call/");
+        //callSocket = new WebSocket("wss://se-im-backend-test-overflowlab.app.secoder.net/ws/call/");
+        callSocket = new WebSocket("ws://localhost:8000/ws/call/");
         console.log("Video Websocket Connect");
         callSocket.onopen = event => {
             callSocket.send(JSON.stringify({
@@ -110,6 +111,7 @@ const VideoCall = (userName, userToCall) => {
             document.getElementById("stop").style.display = "inline";
         };
 
+
         const onCallAnswered = (data) => {
             // when other accept our call
             remoteRTCMessage = data.rtcMessage;
@@ -154,7 +156,11 @@ const VideoCall = (userName, userToCall) => {
         document.getElementById("audiocall").display = "inline";
         document.getElementById("videocall").display = "inline";
 
+        document.getElementById("answer").display = "none";
+        document.getElementById("stop").display = "none";
+
         document.getElementById("videos").style.display = "none";
+
         callSocket.send(JSON.stringify({
             type: 'stop_call',
             data: {

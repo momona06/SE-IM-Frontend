@@ -4,7 +4,7 @@ import PhotoIcon from '@mui/icons-material/Photo';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import AlbumIcon from '@mui/icons-material/Album';
 import OndemandVideoIcon from '@mui/icons-material/OndemandVideo';
-import SendIcon from '@mui/icons-material/Send';56
+import SendIcon from '@mui/icons-material/Send';
 import BadgeIcon from '@mui/icons-material/Badge';
 import KeyIcon from '@mui/icons-material/Key';
 import EmailIcon from '@mui/icons-material/Email';
@@ -1533,7 +1533,7 @@ const Screen = () => {
                     setInviteModal(true);
                 }}/>
 
-                {roomInfo.is_private ? null: (<h2>{`群聊名称   ${typeof window != "undefined" ? window.currentRoomName : null}`}</h2>)}
+                {roomInfo.is_private ? null: (<h2>{`群聊名称   ${typeof window != "undefined" && typeof window.currentRoom != "undefined" ? window.currentRoom.roomname : null}`}</h2>)}
 
                 <Space direction={"horizontal"}>
                     <p>消息免打扰</p>
@@ -1985,7 +1985,7 @@ const Screen = () => {
                                                             <AlbumIcon onClick={() => setAudioModal(true)}/>
                                                             <OndemandVideoIcon onClick={() => setVideoModal(true)}/>
                                                             <InsertDriveFileIcon onClick={() => setFileModal(true)}/>
-                                                            {VideoCall("audio_or_video_" + window.username, "audio_or_video_" + window.currentRoomName)}
+                                                            {VideoCall("audio_or_video_" + window.username, "audio_or_video_" + (typeof window.currentRoom != "undefined" ? window.currentRoom.roomname : ""))}
                                                             <AccessTimeIcon onClick={() => {
                                                                 setRoomInfoModal(false);
                                                                 setHistoryModal(true);
