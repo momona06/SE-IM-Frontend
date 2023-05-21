@@ -15,18 +15,12 @@ declare global {
 
         playVideoUrl: string
 
-        currentRoomID: number
-        currentRoomName: string
+        currentRoom: roomListData
+        tempRoom: roomListData
+
         memList: string[]
         messageList: messageListData[]
         roomList: roomListData[]
         forwardRoomId: number
-
-        temproomid: number
-        temproomname: string
-        temproomnotice: boolean
-        temproomtop: boolean
-        temproomspecific: boolean
-        temproomlist: messageListData[]
     }
 }

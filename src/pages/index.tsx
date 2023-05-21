@@ -10,14 +10,14 @@ import {
 import {
     message, Input, Button, Space, Layout, List, Menu, Spin, Badge, Avatar, Popover, Card, Divider, Row, Col,
     Upload, Switch, Mentions, Form, Modal, Checkbox, Select, Result, Image, Radio, RadioChangeEvent,
-    Drawer, DatePicker
+    Drawer, DatePicker, Collapse
 } from "antd";
 
 import {
     ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined,
     ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined,
     CommentOutlined, EllipsisOutlined, SmileOutlined, UploadOutlined, LoadingOutlined, PlusOutlined,
-    UserSwitchOutlined, IdcardOutlined, UserDeleteOutlined
+    UserSwitchOutlined, IdcardOutlined, UserDeleteOutlined, RestOutlined, CaretRightOutlined
 } from "@ant-design/icons";
 
 import type { UploadProps } from "antd";
@@ -173,6 +173,7 @@ const Screen = () => {
     };
 
     const [form] = Form.useForm();
+    const { Panel } = Collapse;
 
     // 切换页面时 获取roomlist friendlist roominvitelist
     useEffect(() => {
@@ -182,8 +183,17 @@ const Screen = () => {
                 fetchRoomInviteList();
                 fetchFriendList();
             }
-            window.currentRoomID = 0;
-            window.currentRoomName = "";
+            window.currentRoom = {
+                index: 0,
+                is_delete: false,
+                is_notice: false,
+                is_private: false,
+                is_specific: false,
+                is_top: false,
+                message_list: [],
+                roomid: 0,
+                roomname: ""
+            };
         }
     }, [currentPage, menuItem]);
 
@@ -204,13 +214,16 @@ const Screen = () => {
         setAllRoomList(temp);
     }, [roomList]);
 
+    const scrollRef = useRef<HTMLDivElement>(null);
     // 当本地message更新
     useEffect(() => {
         window.messageList = messageList;
         console.log("msg changed", messageList);
-        let last = messageList.at(-1);
-        if (last && last.sender != window.username){
-            Read();
+
+        // 保持滚动条在底部
+        if (scrollRef.current) {
+            const scrollElement = scrollRef.current;
+            scrollElement.scrollTop = scrollElement.scrollHeight;
         }
     }, [messageList]);
 
@@ -226,7 +239,6 @@ const Screen = () => {
     // 当fetchRoomInfo回传成功后 本地消息列表更新时，执行read / 更新memList
     useEffect(() => {
         window.memList = roomInfo.mem_list;
-        Read();
     }, [roomInfo]);
 
     const WSConnect = () => {
@@ -319,7 +331,7 @@ const Screen = () => {
                     is_delete: data.is_delete
                 };
                 // 更新本地
-                if (data.room_id === window.currentRoomID){
+                if (data.room_id === window.currentRoom.roomid){
                     // B将new msg加入messageList
                     if (data.sender != window.username) {
                         setMessageList(messageList => messageList.concat(newMessage));
@@ -333,6 +345,9 @@ const Screen = () => {
                 for (let room of window.roomList){
                     if (room.roomid === data.room_id){
                         room.message_list.push(newMessage);
+                        if (room.roomid === window.currentRoom.roomid){
+                            Read(room);
+                        }
                         setRoomList(window.roomList);
                         break;
                     }
@@ -364,7 +379,7 @@ const Screen = () => {
                                     msg => (msgList.indexOf(msg.msg_id) !== -1)).forEach((arr) => {
                                     arr.read_list[room.index] = true;
                                 });
-                                if (data.chatroom_id === window.currentRoomID){
+                                if (data.chatroom_id === window.currentRoom.roomid){
                                     setMessageList(room.message_list);
                                 }
                             }
@@ -389,7 +404,7 @@ const Screen = () => {
                                 break;
                             }
                         }
-                        if (room.roomid === window.currentRoomID) {
+                        if (room.roomid === window.currentRoom.roomid) {
                             setMessageList(room.message_list);
                         }
                         break;
@@ -409,7 +424,7 @@ const Screen = () => {
                     room.message_list.forEach(msg => {
                         temp.push(msg);
                     });
-                    if (room.roomid === window.currentRoomID){
+                    if (room.roomid === window.currentRoom.roomid){
                         setRoomApplyList(temp);
                     }
                 });
@@ -851,40 +866,34 @@ const Screen = () => {
             .catch((err) => message.error(err.message, 1));
     };
 
-    const Read = () => {
-        let position: number = -1;
-        roomList.forEach(room => {
-            if (room.roomid === window.currentRoomID){
-                position = room.index;
-            }
+    // 设为已读
+    const Read = (room: roomListData) => {
+        let position = room.index;
+        let readMessageList: number[] = [];
+        // 筛选所有未读信息
+        messageList.filter(msg => (!msg.read_list[position] && msg.sender != window.username)).forEach(arr => {
+            readMessageList.push(arr.msg_id);
         });
-        if (position != -1){
-            let readMessageList: number[] = [];
-            // 筛选所有未读信息
-            messageList.filter((msg) => (!msg.read_list[position] && msg.msg_id != -1)).forEach(arr => {
-                readMessageList.push(arr.msg_id);
-            });
-            const data = {
-                "function": "read_message",
-                "read_message_list": readMessageList,
-                "read_user": window.username,
-                "chatroom_id": window.currentRoomID
-            };
-            window.ws.send(JSON.stringify(data));
+        const data = {
+            "function": "read_message",
+            "read_message_list": readMessageList,
+            "read_user": window.username,
+            "chatroom_id": window.currentRoom.roomid
+        };
+        window.ws.send(JSON.stringify(data));
 
-            // 本地消息状态全部置为已读
-            let temp = window.messageList;
-            temp.forEach(msg => {
-                msg.read_list[position] = true;
-            });
-            setMessageList(temp);
+        // 本地消息状态全部置为已读
+        let temp = messageList;
+        temp.forEach(msg => {
+            msg.read_list[position] = true;
+        });
+        setMessageList(temp);
 
-            // roomList 消息置为已读
-            for (let room of roomList){
-                if (room.roomid === window.currentRoomID){
-                    for (let msg of room.message_list){
-                        msg.read_list[position] = true;
-                    }
+        // roomList 消息置为已读
+        for (let room of roomList){
+            if (room.roomid === window.currentRoom.roomid){
+                for (let msg of room.message_list){
+                    msg.read_list[position] = true;
                 }
             }
         }
@@ -894,7 +903,7 @@ const Screen = () => {
     const getUnread = (room: roomListData) => {
         let num = 0;
         room.message_list.forEach(msg => {
-            if (!msg.read_list[room.index]){
+            if (!msg.read_list[room.index] && msg.sender != window.username){
                 num += 1;
             }
         });
@@ -970,12 +979,12 @@ const Screen = () => {
     const setTop = (set: boolean) => {
         const data = {
             "function": "revise_is_top",
-            "chatroom_id": window.currentRoomID,
+            "chatroom_id": window.currentRoom.roomid,
             "is_top": set,
         };
         // 依次更新 roomlist roomtop
         roomList.forEach(arr => {
-            if (arr.roomid === window.currentRoomID){
+            if (arr.roomid === window.currentRoom.roomid){
                 arr.is_top = set;
             }
         });
@@ -986,12 +995,12 @@ const Screen = () => {
     const setNotice = (set: boolean) => {
         const data = {
             "function": "revise_is_notice",
-            "chatroom_id": window.currentRoomID,
+            "chatroom_id": window.currentRoom.roomid,
             "is_notice": set,
         };
         // 依次更新 roomlist roomnotice
         roomList.forEach(arr => {
-            if (arr.roomid === window.currentRoomID){
+            if (arr.roomid === window.currentRoom.roomid){
                 arr.is_notice = set;
             }
         });
@@ -1002,12 +1011,12 @@ const Screen = () => {
     const setSpecific = (set: boolean) => {
         const data = {
             "function": "revise_is_specific",
-            "chatroom_id": window.currentRoomID,
+            "chatroom_id": window.currentRoom.roomid,
             "is_specific": set,
         };
         // 依次更新 roomlist roomspecific
         roomList.forEach(arr => {
-            if (arr.roomid === window.currentRoomID){
+            if (arr.roomid === window.currentRoom.roomid){
                 arr.is_specific = set;
             }
         });
@@ -1140,11 +1149,20 @@ const Screen = () => {
     const leaveChatGroup = () => {
         let data = {
             function: "leave_group",
-            chatroom_id: window.currentRoomID
+            chatroom_id: window.currentRoom.roomid
         };
         window.ws.send(JSON.stringify(data));
-        window.currentRoomID = 0;
-        window.currentRoomName = "";
+        window.currentRoom = {
+            index: 0,
+            is_delete: false,
+            is_notice: false,
+            is_private: false,
+            is_specific: false,
+            is_top: false,
+            message_list: [],
+            roomid: 0,
+            roomname: ""
+        };
         setCreateGroupModal(false);
         fetchRoomList();
     };
@@ -1152,11 +1170,20 @@ const Screen = () => {
     const deleteChatGroup = () => {
         let data = {
             function: "delete_chat_group",
-            chatroom_id: window.currentRoomID
+            chatroom_id: window.currentRoom.roomid
         };
         window.ws.send(JSON.stringify(data));
-        window.currentRoomID = 0;
-        window.currentRoomName = "";
+        window.currentRoom = {
+            index: 0,
+            is_delete: false,
+            is_notice: false,
+            is_private: false,
+            is_specific: false,
+            is_top: false,
+            message_list: [],
+            roomid: 0,
+            roomname: ""
+        };
         setCreateGroupModal(false);
     };
 
@@ -1173,7 +1200,6 @@ const Screen = () => {
             "Access-Control-Allow-Origin": "*"
         }
     };
-    
 
     const avatarconfig = {
         headers:{
@@ -1221,7 +1247,7 @@ const Screen = () => {
         if (identity(username) === CONS.MEMBER){
             let data = {
                 "function": "appoint_manager",
-                "chatroom_id": window.currentRoomID,
+                "chatroom_id": window.currentRoom.roomid,
                 "manager_name": username
             };
             window.ws.send(JSON.stringify(data));
@@ -1230,7 +1256,7 @@ const Screen = () => {
         else if (identity(username) === CONS.MANAGER){
             let data = {
                 "function": "remove_manager",
-                "chatroom_id": window.currentRoomID,
+                "chatroom_id": window.currentRoom.roomid,
                 "manager_name": username
             };
             window.ws.send(JSON.stringify(data));
@@ -1242,7 +1268,7 @@ const Screen = () => {
     const setMaster = (username: string) => {
         let data = {
             "function": "transfer_master",
-            "chatroom_id": window.currentRoomID,
+            "chatroom_id": window.currentRoom.roomid,
             "new_master_name": username
         };
         window.ws.send(JSON.stringify(data));
@@ -1252,7 +1278,7 @@ const Screen = () => {
     const removeMem = (username: string) => {
         let data = {
             "function": "remove_group_member",
-            "chatroom_id": window.currentRoomID,
+            "chatroom_id": window.currentRoom.roomid,
             "member_name": username
         };
         window.ws.send(JSON.stringify(data));
@@ -1318,7 +1344,7 @@ const Screen = () => {
     const replyAddGroup = (id: number, Answer: number) => {
         let data = {
             function: "reply_add_group",
-            chatroom_id: window.currentRoomID,
+            chatroom_id: window.currentRoom.roomid,
             message_id: id,
             answer: Answer
         };
@@ -1331,15 +1357,14 @@ const Screen = () => {
         if(password === window.password)
         {
             message.success("密码正确", 1);
-            fetchRoomInfo(window.temproomid);
-            addRoom(window.temproomid, window.temproomname);
-            window.currentRoomID = window.temproomid;
-            window.currentRoomName = window.temproomname;
-            setRoomNotice(window.temproomnotice);
-            setRoomTop(window.temproomtop);
-            setRoomSpecific(window.temproomspecific);
-            setMessageList(window.temproomlist);
-            getAllCombine(window.temproomlist);
+            fetchRoomInfo(window.tempRoom.roomid);
+            addRoom(window.tempRoom.roomid, window.tempRoom.roomname);
+            window.currentRoom = window.tempRoom;
+            setRoomNotice(window.tempRoom.is_notice);
+            setRoomTop(window.tempRoom.is_top);
+            setRoomSpecific(window.tempRoom.is_specific);
+            setMessageList(window.tempRoom.message_list);
+            getAllCombine(window.tempRoom.message_list);
             setSpecificModal(false);
         }
         else
@@ -1465,7 +1490,7 @@ const Screen = () => {
                 <Divider type={"horizontal"}/>
 
                 {roomInfo.is_private ? null : (
-                    <Card title={`群聊名称   ${typeof window != "undefined" ? window.currentRoomName : null}`}>
+                    <Card title={`群聊名称   ${typeof window.currentRoom != "undefined" ? window.currentRoom.roomname : null}`}>
                         <Space direction={"vertical"}>
                             <Button type={"text"} onClick={() => {
                                 setRoomInfoModal(false);
@@ -1669,46 +1694,32 @@ const Screen = () => {
                                                             dataSource={ roomList }
                                                             renderItem={(item) => (
                                                                 <List.Item key={item.roomid}>
-                                                                    <List.Item.Meta
-                                                                        title={
-                                                                            <Button
-                                                                                block
-                                                                                type={"text"}
-                                                                                onClick={()=>{
-                                                                                    if(item.is_specific === true)
-                                                                                    {
-                                                                                        window.temproomid = item.roomid;
-                                                                                        window.temproomname = item.roomname;
-                                                                                        window.temproomnotice = item.is_notice;
-                                                                                        window.temproomtop = item.is_top;
-                                                                                        window.temproomspecific = item.is_specific;
-                                                                                        window.temproomlist = item.message_list;
-                                                                                        setSpecificModal(true);
-                                                                                    }
-                                                                                    else
-                                                                                    {
-                                                                                        fetchRoomInfo(item.roomid);
-                                                                                        fetchRoomInviteList();
-                                                                                        addRoom(item.roomid, item.roomname);
-                                                                                        window.currentRoomID = item.roomid;
-                                                                                        window.currentRoomName = item.roomname;
-                                                                                        setRoomNotice(item.is_notice);
-                                                                                        setRoomTop(item.is_top);
-                                                                                        setRoomSpecific(item.is_specific);
-                                                                                        setMessageList(item.message_list);
-                                                                                        getAllCombine(item.message_list);
-                                                                                    }
-                                                                                }}>
-                                                                                <Space>
-                                                                                    <Badge count={ item.is_notice ? getUnread(item) : 0}>
-                                                                                        <Avatar icon={ <CommentOutlined/> }/>
-                                                                                    </Badge>
-                                                                                    <div style={{width: "50px"}}>
-                                                                                        { item.roomname }
-                                                                                    </div>
-                                                                                </Space>
-                                                                            </Button>}
-                                                                    />
+                                                                    <Card bordered={false} onClick={()=> {
+                                                                        if(item.is_specific === true) {
+                                                                            window.tempRoom = item;
+                                                                            setSpecificModal(true);
+                                                                        }
+                                                                        else {
+                                                                            window.currentRoom = item;
+                                                                            fetchRoomInfo(item.roomid);
+                                                                            fetchRoomInviteList();
+                                                                            addRoom(item.roomid, item.roomname);
+                                                                            setRoomNotice(item.is_notice);
+                                                                            setRoomTop(item.is_top);
+                                                                            setRoomSpecific(item.is_specific);
+                                                                            setMessageList(item.message_list);
+                                                                            getAllCombine(item.message_list);
+                                                                        }
+                                                                    }}>
+                                                                        <Meta
+                                                                            avatar={
+                                                                                <Badge count={ item.is_notice ? getUnread(item) : 0}>
+                                                                                    <Avatar icon={ <CommentOutlined/> }/>
+                                                                                </Badge>
+                                                                            }
+                                                                            title={item.roomname}
+                                                                        />
+                                                                    </Card>
                                                                 </List.Item>
                                                             )}
                                                         />
@@ -1718,11 +1729,11 @@ const Screen = () => {
                                         </div>
 
                                         {/* 消息页面 */}
-                                        {window.currentRoomID === 0 ? null : (
+                                        {window.currentRoom.roomid === 0 ? null : (
                                             <div style={{ padding: "0 24px", backgroundColor:"#FFF5EE",  width:"80%", minHeight:"100vh" }}>
                                                 <div style={{height: "3vh", margin: "10px", flexDirection: "row"}}>
                                                     <Space>
-                                                        <h1> { window.currentRoomName } </h1>
+                                                        <h1> { window.currentRoom.roomname } </h1>
                                                         <Popover placement={"bottomLeft"} content={ roomInfoPage } trigger={"click"} open={roomInfoModal} onOpenChange={handleOpenChanged}>
                                                             <Button
                                                                 type={"default"} size={"middle"} icon={ <EllipsisOutlined/> }
@@ -1732,7 +1743,7 @@ const Screen = () => {
                                                     </Space>
                                                 </div>
                                                 <Divider type={"horizontal"}/>
-                                                <div style={{padding: "24px", position: "relative", height: "60vh", overflow: "auto"}}>
+                                                <div style={{padding: "24px", position: "relative", height: "60vh", overflow: "auto"}} ref={scrollRef}>
                                                     <List
                                                         dataSource={ messageList.filter((msg) => (msg.msg_type != "notice" && !msg.is_delete)) }
                                                         split={ false }
@@ -1743,6 +1754,7 @@ const Screen = () => {
                                                                         <Popover trigger={"contextMenu"} placement={"top"} content={
                                                                             <Space direction={"horizontal"} size={"small"}>
                                                                                 <Button type={"text"} onClick={() => setForwardModal(true)}> 转发 </Button>
+                                                                                <Button type={"text"} onClick={() => deleteMessage(item.msg_id)}> 删除 </Button>
                                                                                 <Button type={"text"} onClick={() => {setReplying(true); setReplyMessageID(item.msg_id); setReplyMessageBody(item.msg_body);}}> 回复 </Button>
                                                                                 { item.msg_type === "text" ? (
                                                                                     <Button type={"text"} onClick={() => translate(item.msg_body)}> 翻译 </Button>
@@ -1969,7 +1981,6 @@ const Screen = () => {
                                                             onClick={() => setFileModal(true)}>
                                                             上传文件
                                                         </Button>
-                                                        
                                                     </div>
                                                 </div>
                                             </div>
@@ -1980,7 +1991,7 @@ const Screen = () => {
                                 { /*通讯录组件*/}
                                 {menuItem === CONS.ADDRESSBOOK ? (
                                     <div style={{ display: "flex", flexDirection: "row" }}>
-                                        <div style={{ padding: "0 24px", backgroundColor:"#FAF0E6",  width:"20%", minHeight:"100vh" }}>
+                                        <div style={{ backgroundColor:"#FAF0E6",  width:"20%", minHeight:"100vh" }}>
                                             <Button type="default" shape={"round"} onClick={()=>setAddressItem(CONS.SEARCH)} icon={<SearchOutlined/>} block> 搜索 </Button>
                                             <Button type="default" shape={"round"} onClick={() => {setAddressItem(CONS.NEWFRIEND); fetchReceiveList(); fetchApplyList();}} block icon={<UserAddOutlined />}> 新的朋友 </Button>
 
@@ -1988,49 +1999,44 @@ const Screen = () => {
                                             {friendListRefreshing ? (
                                                 <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />}/>
                                             ) : (
-                                                <div style={{ padding: 12}}>
+                                                <div style={{ padding: 12  }}>
                                                     {friendList.length === 0 ? (
                                                         <p> 无好友分组 </p>
                                                     ) : (
-                                                        <List
+                                                        <List itemLayout={"vertical"}
                                                             dataSource={friendList}
                                                             renderItem={(item) => (
                                                                 <List.Item
                                                                     actions={[
-                                                                        <Button
+                                                                        <RestOutlined
                                                                             key={item.groupname}
-                                                                            size={"large"}
-                                                                            type="default"
-                                                                            onClick={() => {deleteGroup(item.groupname); fetchFriendList();}}>
-                                                                            删除分组
-                                                                        </Button>
+                                                                            onClick={() => {
+                                                                                deleteGroup(item.groupname);
+                                                                                fetchFriendList();
+                                                                            }}
+                                                                        />
                                                                     ]}
                                                                 >
-                                                                    {item.groupname}
-                                                                    {item.username.length === 0 ? (
-                                                                        <p> 该分组为空 </p>
-                                                                    ) : (
-                                                                        <List
-                                                                            dataSource={item.username}
-                                                                            renderItem={(subItem) => (
-                                                                                <List.Item>
-                                                                                    <List.Item.Meta
-                                                                                        title={<Button
-                                                                                            key={ subItem }
-                                                                                            block
-                                                                                            type="text"
-                                                                                            onClick={() => {
-                                                                                                window.otherUsername = subItem;
-                                                                                                checkFriend();
-                                                                                            }}>
-                                                                                            { subItem }
-                                                                                        </Button>}
-                                                                                        avatar={ <Avatar icon={<UserOutlined />}/> }
-                                                                                    />
-                                                                                </List.Item>
-                                                                            )}
-                                                                        />
-                                                                    )}
+                                                                    <Collapse accordion expandIcon={({ isActive }) => <CaretRightOutlined rotate={isActive ? 90 : 0} />}>
+                                                                        <Panel header={item.groupname} key={item.groupname} style={{border: "none"}}>
+                                                                            <List itemLayout={"vertical"}
+                                                                                dataSource={item.username}
+                                                                                renderItem={(subItem) => (
+                                                                                    <List.Item>
+                                                                                        <Card bordered={false} style={{ marginTop: 8 }} onClick={() => {
+                                                                                            window.otherUsername = subItem;
+                                                                                            checkFriend();
+                                                                                        }}>
+                                                                                            <Meta
+                                                                                                avatar={ <Avatar icon={<UserOutlined />}/> }
+                                                                                                title={subItem}
+                                                                                            />
+                                                                                        </Card>
+                                                                                    </List.Item>
+                                                                                )}
+                                                                            />
+                                                                        </Panel>
+                                                                    </Collapse>
                                                                 </List.Item>
                                                             )}
                                                         />
