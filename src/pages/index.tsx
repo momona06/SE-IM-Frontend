@@ -1,3 +1,28 @@
+import VideoCall from "../components/VideoCall";
+import MoodIcon from '@mui/icons-material/Mood';
+import PhotoIcon from '@mui/icons-material/Photo';
+import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
+import AlbumIcon from '@mui/icons-material/Album';
+import OndemandVideoIcon from '@mui/icons-material/OndemandVideo';
+import SendIcon from '@mui/icons-material/Send';56
+import BadgeIcon from '@mui/icons-material/Badge';
+import KeyIcon from '@mui/icons-material/Key';
+import EmailIcon from '@mui/icons-material/Email';
+import FaceIcon from '@mui/icons-material/Face';
+import LogoutIcon from '@mui/icons-material/Logout';
+import CancelIcon from '@mui/icons-material/Cancel';
+import PersonIcon from '@mui/icons-material/Person';
+import TelegramIcon from '@mui/icons-material/Telegram';
+import SettingsIcon from '@mui/icons-material/Settings';
+import AddCircleIcon from '@mui/icons-material/AddCircle';
+import CheckIcon from '@mui/icons-material/Check';
+import ClearIcon from '@mui/icons-material/Clear';
+import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import InsertInvitationIcon from '@mui/icons-material/InsertInvitation';
+import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
+import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace';
+
 import React, {useEffect, useRef, useState } from "react";
 import * as STRINGS from "../constants/string";
 import * as CONS from "../constants/constants";
@@ -673,6 +698,7 @@ const Screen = () => {
                     friend_list: allFriendList,
                     chatroom_list: allRoomList
                 };
+                console.log("refresh",data);
                 window.ws.send(JSON.stringify(data));
                 setCurrentPage(CONS.LOGIN);
                 WSClose();
@@ -1390,6 +1416,8 @@ const Screen = () => {
     const str2addr = (text : string, readlist: boolean[]) => {
         const urlRegex = /(https?:\/\/[^\s]+)/g; // 匹配 URL 的正则表达式
         const urlRegex2 = /((https?:\/\/)?([a-zA-Z0-9]+\.)+[a-zA-Z0-9]+)/g;
+        const urlRegex3 = /^(https?:\/\/)?(www\.)?[a-zA-Z0-9_-]+\.[a-zA-Z]{2,}([a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;=]+)?$/g;
+        const urlRegexn = /(https?:\/\/(www\.)?)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/;
         const atRegex = /(@[A-Za-z0-9]+)/g;
         const parts = text.split(urlRegex); // 使用正则表达式拆分字符串
         var partss: string[] = [];
@@ -1407,14 +1435,16 @@ const Screen = () => {
         });
         return (
             <div>
-                {partss.map((part, i) => {
+                {
+                    partss.map((part, i) => {
                     if (part.match(urlRegex)) {
                         return (
                             <a target="_blank" href={part} rel="noopener noreferrer" key={i}>
                                 {part}
                             </a>
                         );
-                    } else if(part.match(atRegex) && roomInfo.mem_list.lastIndexOf(part.substring(1)) != -1) {
+                    }
+                    else if (part.match(atRegex) && roomInfo.mem_list.lastIndexOf(part.substring(1)) != -1) {
                         return (
                             <Popover trigger={"hover"} content={
                                 <Space direction={"horizontal"} size={"small"}>
@@ -1427,8 +1457,11 @@ const Screen = () => {
                                 }} key={ i }>{part}</span>
                             </Popover>
                         );
-                    } else {
-                        return <span key={ i }>{part}</span>;
+                    }
+                    else {
+                        return <span key={ i }>
+                            {part}
+                        </span>;
                     }
                 })}
             </div>
@@ -1500,57 +1533,54 @@ const Screen = () => {
                     setInviteModal(true);
                 }}/>
 
-                <Divider type={"horizontal"}/>
-
-                {roomInfo.is_private ? null : (
-                    <Card title={`群聊名称   ${typeof window != "undefined" && typeof window.currentRoom != "undefined" ? window.currentRoom.roomname : null}`}>
-                        <Space direction={"vertical"}>
-                            <Button type={"text"} onClick={() => {
-                                setRoomInfoModal(false);
-                                setBoardModal(true);
-                            }}>
-                                群公告
-                            </Button>
-                            {
-                                typeof window != "undefined" && identity(window.username) >= CONS.MANAGER ? (
-                                    <Button type={"text"} onClick={() => {
-                                        setRoomInfoModal(false);
-                                        setDrawerOpen(true);
-                                    }}>查看申请列表</Button>
-                                ) : null
-                            }
-                            <Button type={"text"} danger={true} onClick={leaveChatGroup}>
-                                退出群聊
-                            </Button>
-                            {typeof window != "undefined" && identity(window.username) === CONS.MASTER ? (
-                                <Button type={"text"} danger={true} onClick={deleteChatGroup}>
-                                    解散群聊
-                                </Button>
-                            ) : null}
-                        </Space>
-                    </Card>
-                )}
+                {roomInfo.is_private ? null: (<h2>{`群聊名称   ${typeof window != "undefined" ? window.currentRoomName : null}`}</h2>)}
 
                 <Space direction={"horizontal"}>
-                    <p>免打扰</p>
+                    <p>消息免打扰</p>
                     <Switch checked={!roomNotice} onChange={setNotice}/>
                 </Space>
                 <Space direction={"horizontal"}>
-                    <p>置顶</p>
+                    <p>置顶聊天</p>
                     <Switch checked={roomTop} onChange={setTop}/>
                 </Space>
                 <Space direction={"horizontal"}>
-                    <p>设置二次验证</p>
+                    <p>二次验证</p>
                     <Switch checked={roomSpecific} onChange={setSpecific}/>
                 </Space>
-                <Space direction={"horizontal"}>
-                    <Button type={"primary"} onClick={() => {
-                        setRoomInfoModal(false);
-                        setHistoryModal(true);
-                    }}>
-                        查看聊天消息
-                    </Button>
-                </Space>
+
+                {roomInfo.is_private ? null : (
+                    //<Card title={`群聊名称   ${typeof window != "undefined" ? window.currentRoomName : null}`}>
+                        <Space direction={"horizontal"}>
+                            <Popover trigger={"hover"} content={"群公告"}>
+                            <InsertInvitationIcon onClick={() => {
+                                setRoomInfoModal(false);
+                                setBoardModal(true);
+                            }}/>
+                            </Popover>
+                            {typeof window != "undefined" && identity(window.username) >= CONS.MANAGER ? (
+                                    // <Button type={"text"} onClick={() => {
+                                    //     setRoomInfoModal(false);
+                                    //     setDrawerOpen(true);
+                                    // }}>查看申请列表</Button>
+                                    <Popover trigger={"hover"} content={"申请列表"}>
+                                    <FormatListBulletedIcon onClick={() => {
+                                        setRoomInfoModal(false);
+                                        setDrawerOpen(true);
+                                    }}/>
+                                    </Popover>
+                                ) : null}
+                            <Popover trigger={"hover"} content={"退出群聊"}>
+                                <KeyboardBackspaceIcon onClick={leaveChatGroup}/>
+                            </Popover>
+                            {typeof window != "undefined" && identity(window.username) === CONS.MASTER ? (
+                                <Popover trigger={"hover"} content={"解散群聊"}>
+                                    <ClearIcon onClick={deleteChatGroup}/>
+                                </Popover>
+                            ) : null}
+                        </Space>
+                    //</Card>
+                )}
+
             </Space>
         </div>
     );
@@ -1673,14 +1703,16 @@ const Screen = () => {
 
                 {currentPage === CONS.MAIN ? (
                     <div>
-                        <Layout style={{ minHeight: "100vh" }}>
-                            <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
-                                <Menu theme={"dark"} defaultSelectedKeys={["1"]} mode="inline">
-                                    <Menu.Item icon={<MessageOutlined/>} key={"1"} onClick={()=> setMenuItem(CONS.CHATFRAME)}> 聊天 </Menu.Item>
+                        <Layout style={{ minHeight: "100vh" }} >
+                            <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)} theme={"light"}>
+                                <Menu theme={"light"} defaultSelectedKeys={["1"]} mode="inline">
 
-                                    <Menu.Item icon={<UsergroupAddOutlined />} key={"2"} onClick={()=> setMenuItem(CONS.ADDRESSBOOK)}> 通讯录 </Menu.Item>
 
-                                    <Menu.Item icon={<SettingOutlined />} key={"3"} onClick={()=> setMenuItem(CONS.SETTINGS)}> 设置 </Menu.Item>
+                                    <Menu.Item icon={<TelegramIcon />} key={"1"} onClick={()=> setMenuItem(CONS.CHATFRAME)}> 聊天 </Menu.Item>
+
+                                    <Menu.Item icon={<PersonIcon />} key={"2"} onClick={()=> setMenuItem(CONS.ADDRESSBOOK)}> 通讯录 </Menu.Item>
+
+                                    <Menu.Item icon={<SettingsIcon />} key={"3"} onClick={()=> setMenuItem(CONS.SETTINGS)}> 设置 </Menu.Item>
                                 </Menu>
                             </Sider>
 
@@ -1688,14 +1720,12 @@ const Screen = () => {
                                 { /*聊天组件*/}
                                 {menuItem === CONS.CHATFRAME ? (
                                     <div style={{ display: "flex", flexDirection: "row" }}>
-                                        <div style={{ padding: "0 24px", backgroundColor:"#FAF0E6",  width:"20%", minHeight:"100vh" }}>
+                                        <div style={{ padding: "0 24px", backgroundColor:"#FFFFFF",  width:"20%", minHeight:"100vh" }}>
                                             <div style={{height: "3vh", margin: "10px", flexDirection: "row"}}>
                                                 <Space direction={"horizontal"}>
-                                                    <h3> 会话列表 </h3>
-                                                    <Button icon={<PlusOutlined />} type={"default"} onClick={() => setCreateGroupModal(true) }/>
+                                                    <AddCircleIcon onClick={() => setCreateGroupModal(true) }/>
                                                 </Space>
                                             </div>
-                                            <Divider type={"horizontal"}/>
                                             {roomListRefreshing ? (
                                                 <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />}/>
                                             ) : (
@@ -1748,10 +1778,11 @@ const Screen = () => {
                                                     <Space>
                                                         <h1> { typeof window.currentRoom != "undefined" ?  window.currentRoom.roomname : "" } </h1>
                                                         <Popover placement={"bottomLeft"} content={ roomInfoPage } trigger={"click"} open={roomInfoModal} onOpenChange={handleOpenChanged}>
-                                                            <Button
-                                                                type={"default"} size={"middle"} icon={ <EllipsisOutlined/> }
-                                                                shape={"round"} onClick={() => setRoomInfoModal(true)}
-                                                            />
+                                                            {/*<Button*/}
+                                                            {/*    type={"default"} size={"middle"} icon={ <EllipsisOutlined/> }*/}
+                                                            {/*    shape={"round"} onClick={() => setRoomInfoModal(true)}*/}
+                                                            {/*/>*/}
+                                                            <MoreHorizIcon onClick={() => setRoomInfoModal(true)}/>
                                                         </Popover>
                                                     </Space>
                                                 </div>
@@ -1935,7 +1966,9 @@ const Screen = () => {
                                                 <div style={{ padding: "24px", position: "relative", display: "flex", flexDirection: "column", bottom: 0, left: 0, right: 0}}>
                                                     <div style={{flexDirection: "row"}}>
                                                         <Space direction={"horizontal"}>
-                                                            <Popover content={<Row gutter={0}>
+
+                                                            <Popover content={
+                                                                <Row gutter={0}>
                                                                 {emojiList.map((item) => {
                                                                     return (
                                                                         <Col span={1} onClick={() => {appendEmoji(item.emoji);}} key={item.id}>
@@ -1943,15 +1976,33 @@ const Screen = () => {
                                                                         </Col>
                                                                     );
                                                                 })}
-                                                            </Row>} title="Title" trigger="click" placement={"topRight"}>
-                                                                <Button><SmileOutlined />表情</Button>
+                                                                </Row>}
+                                                                     title="Icons" trigger="click" placement={"topLeft"}>
+                                                                    <MoodIcon/>
                                                             </Popover>
+
+                                                            <PhotoIcon onClick={() => setImageModal(true)}/>
+                                                            <AlbumIcon onClick={() => setAudioModal(true)}/>
+                                                            <OndemandVideoIcon onClick={() => setVideoModal(true)}/>
+                                                            <InsertDriveFileIcon onClick={() => setFileModal(true)}/>
+                                                            {VideoCall("audio_or_video_" + window.username, "audio_or_video_" + window.currentRoomName)}
+                                                            <AccessTimeIcon onClick={() => {
+                                                                setRoomInfoModal(false);
+                                                                setHistoryModal(true);
+                                                            }}/>
+
                                                         </Space>
                                                     </div>
+
+
                                                     <Form form={form} layout={"horizontal"}>
-                                                        {replying ? (
-                                                            <p> {replyMessageBody} </p>
+                                                        {replying ?
+                                                            (
+                                                            <div>
+                                                                <p> {replyMessageBody} </p>
+                                                            </div>
                                                         ) : null}
+
                                                         <Form.Item name={"box"}>
                                                             <Mentions
                                                                 rows={4}
@@ -1962,39 +2013,23 @@ const Screen = () => {
                                                                     value,
                                                                     label: value,
                                                                 }))}
+                                                                onPressEnter={() => {replying ? sendMessage(messageBody, "reply", replyMessageID) : sendMessage(messageBody, "text");
+                                                                    setReplying(false);
+                                                                }}
                                                             />
                                                         </Form.Item>
-                                                    </Form>
-                                                    <div style={{flexDirection: "row-reverse", display:"flex"}}>
-                                                        <Button
-                                                            type="primary"
-                                                            onClick={() => {
-                                                                replying ? sendMessage(messageBody, "reply", replyMessageID) : sendMessage(messageBody, "text");
+
+                                                        <div style={{flexDirection: "row-reverse", display:"flex"}}>
+                                                            <SendIcon onClick={() => {replying ? sendMessage(messageBody, "reply", replyMessageID) : sendMessage(messageBody, "text");
                                                                 setReplying(false);
-                                                            }}>
-                                                            发送
-                                                        </Button>
-                                                        <Button
-                                                            type="primary"
-                                                            onClick={() => setImageModal(true)}>
-                                                            上传图片
-                                                        </Button>
-                                                        <Button
-                                                            type="primary"
-                                                            onClick={() => setAudioModal(true)}>
-                                                            上传音频
-                                                        </Button>
-                                                        <Button
-                                                            type="primary"
-                                                            onClick={() => setVideoModal(true)}>
-                                                            上传视频
-                                                        </Button>
-                                                        <Button
-                                                            type="primary"
-                                                            onClick={() => setFileModal(true)}>
-                                                            上传文件
-                                                        </Button>
-                                                    </div>
+                                                            }}/>
+                                                        </div>
+
+                                                    </Form>
+
+
+
+
                                                 </div>
                                             </div>
                                         )}
@@ -2004,13 +2039,12 @@ const Screen = () => {
                                 { /*通讯录组件*/}
                                 {menuItem === CONS.ADDRESSBOOK ? (
                                     <div style={{ display: "flex", flexDirection: "row" }}>
-                                        <div style={{ backgroundColor:"#FAF0E6",  width:"20%", minHeight:"100vh" }}>
+                                        <div style={{ padding: "0 24px", backgroundColor:"#FFFFFF",  width:"20%", minHeight:"100vh" }}>
                                             <Button type="default" shape={"round"} onClick={()=>setAddressItem(CONS.SEARCH)} icon={<SearchOutlined/>} block> 搜索 </Button>
                                             <Button type="default" shape={"round"} onClick={() => {setAddressItem(CONS.NEWFRIEND); fetchReceiveList(); fetchApplyList();}} block icon={<UserAddOutlined />}> 新的朋友 </Button>
 
-                                            <h3> 好友列表 </h3>
                                             {friendListRefreshing ? (
-                                                <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />}/>
+                                                <Spin indicator={<LoadingOutlined style={{ fontSize: 24, color: "#000000"}} spin />}/>
                                             ) : (
                                                 <div style={{ padding: 12  }}>
                                                     {friendList.length === 0 ? (
@@ -2058,7 +2092,7 @@ const Screen = () => {
                                             )}
                                         </div>
 
-                                        <div style={{ padding: "24px", backgroundColor:"#FFF5EE",  width:"80%", minHeight:"100vh" }}>
+                                        <div style={{ padding: "24px", backgroundColor:"#FFFFFF",  width:"80%", minHeight:"100vh" }}>
                                             {addressItem === CONS.NEWFRIEND ? (
                                                 <div>
                                                     {receiveRefreshing ? (
@@ -2077,16 +2111,14 @@ const Screen = () => {
                                                                                     disabled={item.make_sure}
                                                                                     key = {item.username + "1"}
                                                                                     type="primary"
-                                                                                    onClick={() => accept(item.username)}
-                                                                                >
+                                                                                    onClick={() => accept(item.username)}>
                                                                                     接受申请
                                                                                 </Button>,
                                                                                 <Button
                                                                                     disabled={item.make_sure}
                                                                                     key={item.username + "2"}
                                                                                     type="primary"
-                                                                                    onClick={() => decline(item.username)}
-                                                                                >
+                                                                                    onClick={() => decline(item.username)}>
                                                                                     拒绝申请
                                                                                 </Button>
                                                                             ]}
@@ -2225,10 +2257,10 @@ const Screen = () => {
 
                                 {menuItem === CONS.SETTINGS ? (
                                     <div style={{
-                                        display: "flex", flexDirection: "column", justifyContent: "center ", alignItems: "center", position: "absolute", marginLeft: "30vh", top: 0, bottom: 0, margin: "auto"
+                                        display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", position: "absolute", marginLeft: "30vh", top: 0, bottom: 0, margin: "auto"
                                     }}>
                                         <h1>
-                                            用户管理
+                                            设置
                                         </h1>
                                         <div style={{
                                             display: "flex",
@@ -2245,25 +2277,13 @@ const Screen = () => {
                                             <h3>用户名：{ window.username }</h3>
                                             <div style={{height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
                                                 <Space size={50}>
-                                                    <Button
-                                                        size={"large"} type={"primary"}
-                                                        onClick={() => ((changeUserInfo === CONS.REVISE_USERNAME) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.REVISE_USERNAME))}>
-                                                        修改用户名
-                                                    </Button>
-                                                    <Button
-                                                        size={"large"} type={"primary"}
-                                                        onClick={() => ((changeUserInfo === CONS.REVISE_PASSWORD) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.REVISE_PASSWORD))}>
-                                                        修改密码
-                                                    </Button>
-                                                    <Button
-                                                        size={"large"} type={"primary"}
-                                                        onClick={() => ((changeUserInfo === CONS.REVISE_EMAIL) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.REVISE_EMAIL))}>
-                                                        修改邮箱
-                                                    </Button>
-                                                    <Button size={"large"} type={"primary"}
-                                                            onClick={() => setAvatarModal(true)}>
-                                                        上传头像
-                                                    </Button>
+                                                    <BadgeIcon onClick={() => ((changeUserInfo === CONS.REVISE_USERNAME) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.REVISE_USERNAME))}/>
+
+                                                    <KeyIcon onClick={() => ((changeUserInfo === CONS.REVISE_PASSWORD) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.REVISE_PASSWORD))}/>
+
+                                                    <EmailIcon onClick={() => ((changeUserInfo === CONS.REVISE_EMAIL) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.REVISE_EMAIL))}/>
+
+                                                    <FaceIcon onClick={() => setAvatarModal(true)}/>
                                                 </Space>
                                             </div>
 
@@ -2287,9 +2307,10 @@ const Screen = () => {
                                                         onChange={(e) => getPassword(e.target.value)}
                                                     />
                                                     <br/>
-                                                    <Button size={"large"} type={"dashed"} onClick={changeUsername}>
-                                                        确认修改用户名
-                                                    </Button>
+                                                    {/*<Button size={"large"} type={"dashed"} onClick={changeUsername}>*/}
+                                                    {/*    确认修改用户名*/}
+                                                    {/*</Button>*/}
+                                                    <CheckIcon onClick={()=>changeUsername()}/>
                                                 </div>
                                             ) : null}
 
@@ -2322,18 +2343,15 @@ const Screen = () => {
                                                         onChange={(e) => getVerification(e.target.value)}
                                                     />
                                                     <br/>
-                                                    <Button
-                                                        size={"large"} type={"dashed"}
-                                                        onClick={verifyPassword}>
-                                                        确认修改密码
-                                                    </Button>
+
+                                                    <CheckIcon onClick={()=>verifyPassword()}/>
                                                 </div>
                                             ) : null}
 
                                             {changeUserInfo === CONS.REVISE_EMAIL ? (
                                                 <div style={{margin: "5px", display: "flex", flexDirection: "column", alignItems: "center"}}>
                                                     <Input
-                                                        size={"large"}
+                                                        size={"middle"}
                                                         type="text"
                                                         prefix={<MailOutlined />}
                                                         placeholder="请填写邮箱"
@@ -2349,14 +2367,14 @@ const Screen = () => {
                                                             value={sms}
                                                             onChange={(e) => setSms(e.target.value)}
                                                         />
-                                                        <Button type="primary" onClick={() => sendEmail()}>
-                                                            发送验证码
-                                                        </Button>
+                                                        {/*<Button type="primary" onClick={() => sendEmail()}>*/}
+                                                        {/*    发送验证码*/}
+                                                        {/*</Button>*/}
+                                                        <SendIcon onClick={()=>sendEmail()}/>
+
                                                     </Space.Compact>
                                                     <br/>
-                                                    <Button size={"large"} type={"dashed"} onClick={()=>verifySms()}>
-                                                        确认修改邮箱
-                                                    </Button>
+                                                    <CheckIcon onClick={()=>verifySms()}/>
                                                 </div>
                                             ) : null}
 
@@ -2370,21 +2388,17 @@ const Screen = () => {
                                                         value={password}
                                                         onChange={(e) => getPassword(e.target.value)}
                                                     />
-                                                    <Button size={"large"} shape={"round"} type={"dashed"} danger={true} onClick={()=>deleteUser()}>
-                                                        确认注销
-                                                    </Button>
+                                                    {/*<Button size={"large"} shape={"round"} type={"dashed"} danger={true} onClick={()=>deleteUser()}>*/}
+                                                    {/*    确认注销*/}
+                                                    {/*</Button>*/}
+                                                    <CheckIcon onClick={()=>deleteUser()}/>
                                                 </div>
                                             ) : null}
                                             <div style={{height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
                                                 <Space size={150}>
-                                                    <Button size={"large"} shape={"round"} type={"primary"} onClick={()=>logout()}>
-                                                        登出
-                                                    </Button>
-                                                    <Button
-                                                        size={"large"} shape={"round"} type={"primary"} danger={true}
-                                                        onClick={() => ((changeUserInfo === CONS.WRITE_OFF) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.WRITE_OFF))}>
-                                                        注销账户
-                                                    </Button>
+                                                    <LogoutIcon onClick={()=>logout()}/>
+
+                                                    <CancelIcon onClick={() => ((changeUserInfo === CONS.WRITE_OFF) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.WRITE_OFF))}/>
                                                 </Space>
                                             </div>
                                         </div>
@@ -2467,7 +2481,7 @@ const Screen = () => {
                 <p>{textResult}</p>
             </Modal>
 
-            <Modal title="上传" open={avatarModal} onOk={() => setAvatarModal(false)} onCancel={() => setAvatarModal(false)}>
+            <Modal title="头像上传" footer={[]} open={avatarModal} onOk={() => setAvatarModal(false)} onCancel={() => setAvatarModal(false)}>
                 <div>
                     <iframe id="loader" name="loader" onChange={() => logReturn()} style={{display: "none"}}></iframe>
                     <form id="avatarform" ref={avatarF} action="/api/user/upload" method="post" encType="multipart/form-data" target="loader" onSubmit={() => {
@@ -2487,13 +2501,14 @@ const Screen = () => {
                         <input id="image-uploadify" name="avatar" type="file" accept="image/*" multiple={false}/>
                         <input id="text" name="username" type="text" value={username} style={{display: "none"}} readOnly/>
                         <button type="submit">
-                            确认上传
+                            <CheckIcon/>
                         </button>
+
                     </form>
                 </div>
             </Modal>
 
-            <Modal title="上传图片" open={ imageModal } onOk={() => setImageModal(false)} onCancel={() => setImageModal(false)}>
+            <Modal title="图片上传" footer={[]} open={ imageModal } onOk={() => setImageModal(false)} onCancel={() => setImageModal(false)}>
                 <div>
                     <iframe id="loaderi" name="loaderi" onChange={() => logReturn()} style={{display: "none"}}></iframe>
                     <form id="imageform" ref={imageF} action="/api/user/uploadfile" method="post" encType="multipart/form-data" target="loaderi" onSubmit={() => {
@@ -2512,13 +2527,14 @@ const Screen = () => {
                     }}>
                         <input id="image-uploadify" name="file" type="file" accept="image/*" multiple={false}/>
                         <button type="submit">
-                            确认上传
+                            <CheckIcon/>
                         </button>
                     </form>
                 </div>
             </Modal>
 
-            <Modal title="上传视频" open={videoModal} onOk={() => setVideoModal(false)} onCancel={() => setVideoModal(false)}>
+
+            <Modal title="视频上传" footer={[]} open={videoModal} onOk={() => setVideoModal(false)} onCancel={() => setVideoModal(false)}>
                 <div>
                     <iframe id="loaderv" name="loaderv" onChange={() => logReturn()} style={{display: "none"}}></iframe>
                     <form id="videoform" ref={videoF} action="/api/user/uploadfile" method="post" encType="multipart/form-data" target="loaderv" onSubmit={() => {
@@ -2537,15 +2553,22 @@ const Screen = () => {
                     }}>
                         <input id="image-uploadify" name="file" type="file" accept="video/*" multiple={false}/>
                         <button type="submit">
-                            确认上传
+                            <CheckIcon/>
                         </button>
+
                     </form>
                 </div>
             </Modal>
 
-            <Modal title="上传音频" open={audioModal} onOk={() => setAudioModal(false)} onCancel={() => setAudioModal(false)}>
+            <Modal title="上传音频"
+                   footer={[]}
+                   open={audioModal}
+                   onOk={() => {setAudioModal(false)}}
+                   onCancel={() => setAudioModal(false)}>
+
                 <div>
                     <iframe id="loadera" name="loadera" onChange={() => logReturn()} style={{display: "none"}}></iframe>
+
                     <form id="fileform" ref={audioF} action="/api/user/uploadfile" method="post" encType="multipart/form-data" target="loadera" onSubmit={() => {
                         if(audioF.current) {
                             var fromdata = new FormData(audioF.current);
@@ -2562,14 +2585,17 @@ const Screen = () => {
                         return false;
                     }}>
                         <input id="image-uploadify" name="file" type="file" accept="audio/*" multiple={false}/>
+
                         <button type="submit">
-                            确认上传
+                            <CheckIcon/>
                         </button>
+
+
                     </form>
                 </div>
             </Modal>
 
-            <Modal title="上传文件" open={fileModal} onOk={() => setFileModal(false)} onCancel={() => setFileModal(false)}>
+            <Modal title="文件上传" footer={[]} open={fileModal} onOk={() => setFileModal(false)} onCancel={() => setFileModal(false)}>
                 <div>
                     <iframe id="loaderf" name="loaderf" onChange={() => logReturn()} style={{display: "none"}}></iframe>
                     <form id="fileform" ref={fileF} action="/api/user/uploadfile" method="post" encType="multipart/form-data" target="loaderf" onSubmit={() => {
@@ -2588,8 +2614,9 @@ const Screen = () => {
                     }}>
                         <input id="image-uploadify" name="file" type="file" accept=".xlsx,.xls,image/*,.doc,audio/*,.docx,video/*,.ppt,.pptx,.txt,.pdf" multiple={false}/>
                         <button type="submit">
-                            确认上传
+                            <CheckIcon/>
                         </button>
+
                     </form>
                 </div>
             </Modal>
@@ -2697,13 +2724,14 @@ const Screen = () => {
                             renderItem={(item) => (
                                 <List.Item
                                     actions={[
-                                        <Button
-                                            key={item.msg_id}
-                                            size={"large"}
-                                            type="default"
-                                            onClick={() => {deleteMessage(item.msg_id); filter();}}>
-                                            删除该记录
-                                        </Button>
+                                        // <Button
+                                        //     key={item.msg_id}
+                                        //     size={"large"}
+                                        //     type="default"
+                                        //     onClick={() => {deleteMessage(item.msg_id); filter();}}>
+                                        //     删除该记录
+                                        // </Button>
+                                        <ClearIcon onClick={() => {deleteMessage(item.msg_id); filter();}}/>
                                     ]}
                                 >
                                     <div style={{ display: "flex", flexDirection: "row"}}>
