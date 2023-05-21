@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 
-let DEBUG = false;
+let DEBUG = true;
 
 const nextConfig = {
     reactStrictMode: false, /* @note: To prevent duplicated call of useEffect */
