@@ -193,6 +193,7 @@ const Screen = () => {
 
     const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
     const [roomApplyList, setRoomApplyList] = useState<messageListData[]>([]);
+
     const onDrawerClose = () => {
         setDrawerOpen(false);
     };
@@ -232,6 +233,7 @@ const Screen = () => {
     }, [friendList]);
 
     useEffect(() => {
+        // 全room id
         let temp: number[] = [];
         roomList.forEach(room => {
             temp = temp.concat(room.roomid);
@@ -246,12 +248,13 @@ const Screen = () => {
         window.messageList = messageList;
         console.log("msg changed", messageList);
 
+        Read();
+
         // 保持滚动条在底部
         if (scrollRef.current) {
             const scrollElement = scrollRef.current;
             scrollElement.scrollTop = scrollElement.scrollHeight;
         }
-        Read();
     }, [messageList]);
 
     useEffect(() => {
@@ -263,7 +266,7 @@ const Screen = () => {
         setRoomList(roomList => ((roomList.filter((val => val.is_top)).concat(roomList.filter(val => !val.is_top)))));
     }, [roomTop]);
 
-    // 当fetchRoomInfo回传成功后 本地消息列表更新时，执行read / 更新memList
+    // 更新memList
     useEffect(() => {
         window.memList = roomInfo.mem_list;
     }, [roomInfo]);
@@ -369,14 +372,21 @@ const Screen = () => {
                         setMessageList(window.messageList);
                     }
                 }
-                // 更新 roomList
-                for (let room of window.roomList){
-                    if (room.roomid === data.room_id){
-                        room.message_list.push(newMessage);
-                        break;
-                    }
+
+                // 未读消息抓取
+                if (data.sender != window.username){
+                    fetchRoomList();
                 }
-                setRoomList(window.roomList);
+                else {
+                    // 更新 roomList
+                    for (let room of window.roomList){
+                        if (room.roomid === data.room_id){
+                            room.message_list.push(newMessage);
+                            break;
+                        }
+                    }
+                    setRoomList(window.roomList);
+                }
 
                 if (data.msg_type === "combine"){
                     getAllCombine(messageList);
@@ -393,16 +403,16 @@ const Screen = () => {
             // 其他人已读消息
             else if (data.function === "read_message"){
                 if (data.read_user != window.username){
-                    let readUser: string = data.read_user;
                     // 已读消息id
                     let msgList: number[] = data.read_message_list;
                     if (msgList.length != 0){
-                        // 遍历roomlist 修改roomlist中msg
+                        // 遍历roomList 修改msg
                         window.roomList.forEach(room => {
                             if (room.roomid === data.chatroom_id){
-                                room.message_list.filter(
-                                    msg => (msgList.indexOf(msg.msg_id) !== -1)).forEach((arr) => {
-                                    arr.read_list[room.index] = true;
+                                room.message_list.forEach(msg => {
+                                   if (msgList.indexOf(msg.msg_id) != -1){
+                                       msg.read_list[data.index] = true;
+                                   }
                                 });
                                 if (data.chatroom_id === window.currentRoom.roomid){
                                     setMessageList(room.message_list);
@@ -615,9 +625,11 @@ const Screen = () => {
                 let data = {
                     function: "refresh",
                     friend_list: allFriendList,
-                    chatroom_list: allRoomList
+                    chatroom_list: allRoomList,
+                    refresh: newUsername
                 };
                 window.ws.send(JSON.stringify(data));
+                console.log(data);
                 message.success(STRINGS.USERNAME_CHANGE_SUCCESS, 1);
                 window.username = newUsername;
             })
@@ -696,7 +708,8 @@ const Screen = () => {
                 let data = {
                     function: "refresh",
                     friend_list: allFriendList,
-                    chatroom_list: allRoomList
+                    chatroom_list: allRoomList,
+                    refresh: ""
                 };
                 console.log("refresh",data);
                 window.ws.send(JSON.stringify(data));
@@ -895,38 +908,36 @@ const Screen = () => {
     // 设为已读
     const Read = () => {
         if (typeof window.memList != "undefined"){
-            let position = window.memList.indexOf(window.username);
+            let position = window.currentRoom.index;
             let readMessageList: number[] = [];
             // 筛选所有未读信息
-            if (position != -1){
-                window.messageList.filter(msg => (!msg.read_list[position] && msg.sender != window.username)).forEach(arr => {
-                    readMessageList.push(arr.msg_id);
-                });
-                const data = {
-                    "function": "read_message",
-                    "read_message_list": readMessageList,
-                    "read_user": window.username,
-                    "chatroom_id": window.currentRoom.roomid
-                };
-                window.ws.send(JSON.stringify(data));
-                console.log(data);
+            window.messageList.filter(msg => (!msg.read_list[position] && msg.sender != window.username)).forEach(arr => {
+                readMessageList.push(arr.msg_id);
+            });
+            const data = {
+                "function": "read_message",
+                "read_message_list": readMessageList,
+                "read_user": window.username,
+                "chatroom_id": window.currentRoom.roomid
+            };
+            window.ws.send(JSON.stringify(data));
+            console.log(data);
 
-                // 本地消息状态全部置为已读
-                window.messageList.forEach(msg => {
-                    msg.read_list[position] = true;
-                });
-                setMessageList(window.messageList);
+            // 本地消息状态全部置为已读
+            window.messageList.forEach(msg => {
+                msg.read_list[position] = true;
+            });
+            setMessageList(window.messageList);
 
-                // roomList 消息置为已读
-                for (let room of window.roomList){
-                    if (room.roomid === window.currentRoom.roomid){
-                        for (let msg of room.message_list){
-                            msg.read_list[position] = true;
-                        }
+            // roomList 消息置为已读
+            for (let room of window.roomList){
+                if (room.roomid === window.currentRoom.roomid){
+                    for (let msg of room.message_list){
+                        msg.read_list[position] = true;
                     }
                 }
-                setRoomList(window.roomList);
             }
+            setRoomList(window.roomList);
         }
     };
 
@@ -1031,15 +1042,15 @@ const Screen = () => {
         const data = {
             "function": "revise_is_notice",
             "chatroom_id": window.currentRoom.roomid,
-            "is_notice": set,
+            "is_notice": !set,
         };
         // 依次更新 roomlist roomnotice
         roomList.forEach(arr => {
             if (arr.roomid === window.currentRoom.roomid){
-                arr.is_notice = set;
+                arr.is_notice = !set;
             }
         });
-        setRoomNotice(set);
+        setRoomNotice(!set);
         window.ws.send(JSON.stringify(data));
     };
 
@@ -1182,7 +1193,6 @@ const Screen = () => {
             "msg_id": msg_id
         };
         window.ws.send(JSON.stringify(data));
-        console.log("fetch", data);
     };
 
     const leaveChatGroup = () => {
@@ -1549,38 +1559,31 @@ const Screen = () => {
                 </Space>
 
                 {roomInfo.is_private ? null : (
-                    //<Card title={`群聊名称   ${typeof window != "undefined" ? window.currentRoomName : null}`}>
-                        <Space direction={"horizontal"}>
-                            <Popover trigger={"hover"} content={"群公告"}>
-                            <InsertInvitationIcon onClick={() => {
-                                setRoomInfoModal(false);
-                                setBoardModal(true);
-                            }}/>
-                            </Popover>
-                            {typeof window != "undefined" && identity(window.username) >= CONS.MANAGER ? (
-                                    // <Button type={"text"} onClick={() => {
-                                    //     setRoomInfoModal(false);
-                                    //     setDrawerOpen(true);
-                                    // }}>查看申请列表</Button>
-                                    <Popover trigger={"hover"} content={"申请列表"}>
-                                    <FormatListBulletedIcon onClick={() => {
-                                        setRoomInfoModal(false);
-                                        setDrawerOpen(true);
-                                    }}/>
-                                    </Popover>
-                                ) : null}
-                            <Popover trigger={"hover"} content={"退出群聊"}>
-                                <KeyboardBackspaceIcon onClick={leaveChatGroup}/>
-                            </Popover>
-                            {typeof window != "undefined" && identity(window.username) === CONS.MASTER ? (
-                                <Popover trigger={"hover"} content={"解散群聊"}>
-                                    <ClearIcon onClick={deleteChatGroup}/>
+                    <Space direction={"horizontal"}>
+                        <Popover trigger={"hover"} content={"群公告"}>
+                        <InsertInvitationIcon onClick={() => {
+                            setRoomInfoModal(false);
+                            setBoardModal(true);
+                        }}/>
+                        </Popover>
+                        {typeof window != "undefined" && identity(window.username) >= CONS.MANAGER ? (
+                                <Popover trigger={"hover"} content={"申请列表"}>
+                                <FormatListBulletedIcon onClick={() => {
+                                    setRoomInfoModal(false);
+                                    setDrawerOpen(true);
+                                }}/>
                                 </Popover>
                             ) : null}
-                        </Space>
-                    //</Card>
+                        <Popover trigger={"hover"} content={"退出群聊"}>
+                            <KeyboardBackspaceIcon onClick={leaveChatGroup}/>
+                        </Popover>
+                        {typeof window != "undefined" && identity(window.username) === CONS.MASTER ? (
+                            <Popover trigger={"hover"} content={"解散群聊"}>
+                                <ClearIcon onClick={deleteChatGroup}/>
+                            </Popover>
+                        ) : null}
+                    </Space>
                 )}
-
             </Space>
         </div>
     );
@@ -1747,10 +1750,10 @@ const Screen = () => {
                                                                             fetchRoomInfo(item.roomid);
                                                                             fetchRoomInviteList();
                                                                             addRoom(item.roomid, item.roomname);
+                                                                            setMessageList(item.message_list);
                                                                             setRoomNotice(item.is_notice);
                                                                             setRoomTop(item.is_top);
                                                                             setRoomSpecific(item.is_specific);
-                                                                            setMessageList(item.message_list);
                                                                             getAllCombine(item.message_list);
                                                                         }
                                                                     }}>
@@ -1985,7 +1988,7 @@ const Screen = () => {
                                                             <AlbumIcon onClick={() => setAudioModal(true)}/>
                                                             <OndemandVideoIcon onClick={() => setVideoModal(true)}/>
                                                             <InsertDriveFileIcon onClick={() => setFileModal(true)}/>
-                                                            {VideoCall("audio_or_video_" + window.username, "audio_or_video_" + (typeof window.currentRoom != "undefined" ? window.currentRoom.roomname : ""))}
+                                                            {/*VideoCall("audio_or_video_" + window.username, "audio_or_video_" + (typeof window.currentRoom != "undefined" ? window.currentRoom.roomname : ""))*/}
                                                             <AccessTimeIcon onClick={() => {
                                                                 setRoomInfoModal(false);
                                                                 setHistoryModal(true);
@@ -2310,7 +2313,7 @@ const Screen = () => {
                                                     {/*<Button size={"large"} type={"dashed"} onClick={changeUsername}>*/}
                                                     {/*    确认修改用户名*/}
                                                     {/*</Button>*/}
-                                                    <CheckIcon onClick={()=>changeUsername()}/>
+                                                    <CheckIcon onClick={changeUsername}/>
                                                 </div>
                                             ) : null}
 

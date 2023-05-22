@@ -52,7 +52,6 @@ interface roomInfoData {
 
 // 整合转发
 const forwardCard = (combineList: messageListData[]) => {
-    console.log("forward:", combineList);
     return (
         <Card title={"聊天记录"}>
             <List
