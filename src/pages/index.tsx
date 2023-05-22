@@ -40,8 +40,8 @@ import {
 
 import {
     ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined,
-    ArrowLeftOutlined, MessageOutlined, SettingOutlined, UsergroupAddOutlined, MailOutlined, SearchOutlined,
-    CommentOutlined, EllipsisOutlined, SmileOutlined, UploadOutlined, LoadingOutlined, PlusOutlined,
+    ArrowLeftOutlined, MailOutlined, SearchOutlined,
+    CommentOutlined, UploadOutlined, LoadingOutlined, PlusOutlined,
     UserSwitchOutlined, IdcardOutlined, UserDeleteOutlined, RestOutlined, CaretRightOutlined
 } from "@ant-design/icons";
 
@@ -165,6 +165,7 @@ const Screen = () => {
     const [forwardModal, setForwardModal] = useState<boolean>(false);
     const [forwardList, setForwardList] = useState<number[]>([]);
     const [combineList, setCombineList] = useState<messageListData[]>([]);
+    const [combineLists, setCombineLists] = useState<Map<number, messageListData[]>>(new Map());
 
     // 多媒体 及 特殊群聊
     const [avatarModal, setAvatarModal] = useState<boolean>(false);
@@ -1180,9 +1181,14 @@ const Screen = () => {
     const getAllCombine = (List: messageListData[]) => {
         let combineMessages = List.filter(arr => arr.msg_type === "combine");
         combineMessages.forEach((arr) => {
+            let key = arr.msg_id;
             arr.combine_list?.forEach(id => {
                 fetchMessage(id);
             });
+            let value = combineList;
+            const updateMap = new Map(combineLists);
+            updateMap.set(key, value);
+            setCombineLists(updateMap);
         });
     };
 
@@ -1781,10 +1787,6 @@ const Screen = () => {
                                                     <Space>
                                                         <h1> { typeof window.currentRoom != "undefined" ?  window.currentRoom.roomname : "" } </h1>
                                                         <Popover placement={"bottomLeft"} content={ roomInfoPage } trigger={"click"} open={roomInfoModal} onOpenChange={handleOpenChanged}>
-                                                            {/*<Button*/}
-                                                            {/*    type={"default"} size={"middle"} icon={ <EllipsisOutlined/> }*/}
-                                                            {/*    shape={"round"} onClick={() => setRoomInfoModal(true)}*/}
-                                                            {/*/>*/}
                                                             <MoreHorizIcon onClick={() => setRoomInfoModal(true)}/>
                                                         </Popover>
                                                     </Space>
@@ -1868,7 +1870,7 @@ const Screen = () => {
                                                                                                 </Button>
                                                                                             </div>
                                                                                         ): null}
-                                                                                        { item.msg_type === "combine" ? (forwardCard(combineList)) : null}
+                                                                                        { item.msg_type === "combine" ? (forwardCard(item.msg_id, combineLists)) : null}
                                                                                         <span> { item.msg_time } </span>
                                                                                     </div>
                                                                                 </div>
@@ -1926,7 +1928,7 @@ const Screen = () => {
                                                                                                 </Button>
                                                                                             </div>
                                                                                         ): null}
-                                                                                        { item.msg_type === "combine" ? (forwardCard(combineList)) : null}
+                                                                                        { item.msg_type === "combine" ? (forwardCard(item.msg_id, combineLists)) : null}
                                                                                         <span> { item.msg_time } </span>
                                                                                     </div>
                                                                                 </div>
@@ -2734,7 +2736,7 @@ const Screen = () => {
                                         //     onClick={() => {deleteMessage(item.msg_id); filter();}}>
                                         //     删除该记录
                                         // </Button>
-                                        <ClearIcon onClick={() => {deleteMessage(item.msg_id); filter();}}/>
+                                        <ClearIcon onClick={() => {deleteMessage(item.msg_id); filter();}}key={"delete"}/>
                                     ]}
                                 >
                                     <div style={{ display: "flex", flexDirection: "row"}}>
