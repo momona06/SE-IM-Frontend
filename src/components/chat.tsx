@@ -5,14 +5,14 @@ interface messageListData {
     msg_id: number;
     msg_type: string;
     msg_body: string;
-    reply_id?: number;
-    combine_list?: number[];
     msg_time: string;
     sender: string;
     read_list: boolean[];
     avatar: string;
     is_delete: boolean;
     msg_answer?: number;
+    reply_id?: number;
+    combine_list?: number[];
 }
 
 interface friendListData {
@@ -56,9 +56,9 @@ const forwardCard = (combineList: messageListData[]) => {
         <Card title={"聊天记录"}>
             <List
                 dataSource={combineList}
-                renderItem={(combine) => (
-                    <List.Item key={combine.msg_id}>
-                        {combine.sender + " " + combine.msg_body + " " + combine.msg_time}
+                renderItem={(msg) => (
+                    <List.Item key={msg.msg_id}>
+                        {msg.sender + " " + msg.msg_body + " " + msg.msg_time}
                     </List.Item>
                 )}
             />
