@@ -58,7 +58,7 @@ const forwardCard = (id: number, combineLists: Map<number, messageListData[]>) =
                 dataSource={combineLists.get(id)}
                 renderItem={(msg) => (
                     <List.Item key={msg.msg_id}>
-                        {msg.sender + " " + msg.msg_body + " " + msg.msg_time}
+                        {msg.sender + ":  " + msg.msg_body + " " + msg.msg_time}
                     </List.Item>
                 )}
             />

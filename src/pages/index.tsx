@@ -1185,10 +1185,11 @@ const Screen = () => {
             arr.combine_list?.forEach(id => {
                 fetchMessage(id);
             });
-            let value = combineList;
-            const updateMap = new Map(combineLists);
-            updateMap.set(key, value);
+            let updateMap = new Map(combineLists);
+            updateMap.set(key, combineList);
             setCombineLists(updateMap);
+            console.log("combineLists", combineLists);
+            setCombineList([]);
         });
     };
 
@@ -1799,7 +1800,8 @@ const Screen = () => {
                                                         renderItem={(item) => (
                                                             <List.Item key={ item.msg_id }>
                                                                 { item.msg_body != "该消息已被撤回" ? (
-                                                                    <>
+                                                                    <div style={{flexDirection: "column"}}>
+                                                                        { item.msg_type === "reply" && typeof item.reply_id === "number" ? item.reply_id : null }
                                                                         <Popover trigger={"contextMenu"} placement={"top"} content={
                                                                             <Space direction={"horizontal"} size={"small"}>
                                                                                 <Button type={"text"} onClick={() => setForwardModal(true)}> 转发 </Button>
@@ -1934,8 +1936,7 @@ const Screen = () => {
                                                                                 </div>
                                                                             )}
                                                                         </Popover>
-                                                                        { item.msg_type === "reply" && typeof item.reply_id === "number" ? (showReply(item.reply_id)) : null}
-                                                                    </>
+                                                                    </div>
                                                                 ) : (
                                                                     <>
                                                                         { item.sender === window.username ? (
