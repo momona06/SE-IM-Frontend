@@ -51,11 +51,11 @@ interface roomInfoData {
 }
 
 // 整合转发
-const forwardCard = (id: number, combineLists: Map<number, messageListData[]>) => {
+const forwardCard = (combineList: messageListData[]) => {
     return (
         <Card title={"聊天记录"}>
             <List
-                dataSource={combineLists.get(id)}
+                dataSource={combineList}
                 renderItem={(msg) => (
                     <List.Item key={msg.msg_id}>
                         {msg.sender + ":  " + msg.msg_body + " " + msg.msg_time}
@@ -72,12 +72,12 @@ const isRead = (readList: boolean[], memberList: string[], isPrivate: boolean, u
         let res = readList[pos === 0 ? 1 : 0];
         if (res){
             return (
-                <Tag color={"cyan"}>已读</Tag>
+                <Tag color={"cyan"}>对方已读</Tag>
             );
         }
         else {
             return (
-                <Tag color={"cyan"}>未读</Tag>
+                <Tag color={"cyan"}>对方未读</Tag>
             );
         }
     }
@@ -89,12 +89,13 @@ const isRead = (readList: boolean[], memberList: string[], isPrivate: boolean, u
             }
         }
         return (
-            <Popover trigger={"click"} content={<List itemLayout={"vertical"} dataSource={isReadList} renderItem={(item) => (
+            <Popover trigger={"click"} content={
+                <List itemLayout={"vertical"} dataSource={isReadList} renderItem={(item) => (
                 <List.Item>
                     <List.Item.Meta title={item}/>
-                </List.Item>
-            )}/>}>
-                <Tag color={"cyan"}>已读列表</Tag>
+                </List.Item>)}/>
+            }>
+                <Tag color={"cyan"}>已读成员列表</Tag>
             </Popover>
         );
     }

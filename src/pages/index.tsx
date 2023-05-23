@@ -22,6 +22,7 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import InsertInvitationIcon from '@mui/icons-material/InsertInvitation';
 import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
 import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace';
+import AddIcon from '@mui/icons-material/Add';
 
 import React, {useEffect, useRef, useState } from "react";
 import * as STRINGS from "../constants/string";
@@ -390,7 +391,7 @@ const Screen = () => {
                 }
 
                 if (data.msg_type === "combine"){
-                    getAllCombine(messageList);
+                    getAllCombine(window.messageList);
                 }
 
                 let ACK = {
@@ -712,7 +713,6 @@ const Screen = () => {
                     chatroom_list: allRoomList,
                     refresh: ""
                 };
-                console.log("refresh",data);
                 window.ws.send(JSON.stringify(data));
                 setCurrentPage(CONS.LOGIN);
                 WSClose();
@@ -1181,23 +1181,18 @@ const Screen = () => {
     const getAllCombine = (List: messageListData[]) => {
         let combineMessages = List.filter(arr => arr.msg_type === "combine");
         combineMessages.forEach((arr) => {
-            let key = arr.msg_id;
             arr.combine_list?.forEach(id => {
-                fetchMessage(id);
+                fetchMessage(id, arr.msg_id);
             });
-            let updateMap = new Map(combineLists);
-            updateMap.set(key, combineList);
-            setCombineLists(updateMap);
-            console.log("combineLists", combineLists);
-            setCombineList([]);
         });
     };
 
     // 获取单个消息
-    const fetchMessage = (msg_id: number) => {
+    const fetchMessage = (child_id: number, father_id: number) => {
         let data = {
             "function": "fetch_message",
-            "msg_id": msg_id
+            "father_id": father_id,
+            "msg_id": child_id
         };
         window.ws.send(JSON.stringify(data));
     };
@@ -1343,13 +1338,15 @@ const Screen = () => {
     };
 
     const showReply = (id: number) => {
-        messageList.forEach(msg => {
+        let message: string = "";
+        window.messageList.forEach(msg => {
             if (msg.msg_id === id){
-                return (
-                    <div>{msg.msg_body}</div>
-                );
+               message = msg.msg_body;
             }
         });
+        return (
+            <div>{`回复： ${message}`}</div>
+        );
     };
 
     const filter = () => {
@@ -1545,11 +1542,17 @@ const Screen = () => {
                     )}
                 />
                 {/* 拉人进群 */}
-                <Button type={"default"} icon={<PlusOutlined />} size={"large"} onClick={() => {
+                {/*<Button type={"default"} icon={<PlusOutlined />} size={"large"} onClick={() => {*/}
+                {/*    setRoomInfoModal(false);*/}
+                {/*    setInviteModal(true);*/}
+                {/*}}/>*/}
+                <Popover trigger={"hover"} content={roomInfo.is_private ? "建立群聊" : "邀请进群"}>
+                <AddIcon
+                    onClick={() => {
                     setRoomInfoModal(false);
                     setInviteModal(true);
                 }}/>
-
+                </Popover>
                 {roomInfo.is_private ? null: (<h2>{`群聊名称   ${typeof window != "undefined" && typeof window.currentRoom != "undefined" ? window.currentRoom.roomname : null}`}</h2>)}
 
                 <Space direction={"horizontal"}>
@@ -1595,6 +1598,7 @@ const Screen = () => {
         </div>
     );
 
+    // @ts-ignore
     return (
         <div style={{
             width: "100%", height: "100%", position: "absolute", top: 0, left: 0, alignItems: "center",
@@ -1717,7 +1721,6 @@ const Screen = () => {
                             <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)} theme={"light"}>
                                 <Menu theme={"light"} defaultSelectedKeys={["1"]} mode="inline">
 
-
                                     <Menu.Item icon={<TelegramIcon />} key={"1"} onClick={()=> setMenuItem(CONS.CHATFRAME)}> 聊天 </Menu.Item>
 
                                     <Menu.Item icon={<PersonIcon />} key={"2"} onClick={()=> setMenuItem(CONS.ADDRESSBOOK)}> 通讯录 </Menu.Item>
@@ -1733,7 +1736,9 @@ const Screen = () => {
                                         <div style={{ padding: "0 24px", backgroundColor:"#FFFFFF",  width:"20%", minHeight:"100vh" }}>
                                             <div style={{height: "3vh", margin: "10px", flexDirection: "row"}}>
                                                 <Space direction={"horizontal"}>
+                                                    <Popover trigger={"hover"} content={"创建群聊"}>
                                                     <AddCircleIcon onClick={() => setCreateGroupModal(true) }/>
+                                                    </Popover>
                                                 </Space>
                                             </div>
                                             {roomListRefreshing ? (
@@ -1800,8 +1805,7 @@ const Screen = () => {
                                                         renderItem={(item) => (
                                                             <List.Item key={ item.msg_id }>
                                                                 { item.msg_body != "该消息已被撤回" ? (
-                                                                    <div style={{flexDirection: "column"}}>
-                                                                        { item.msg_type === "reply" && typeof item.reply_id === "number" ? item.reply_id : null }
+                                                                    <>
                                                                         <Popover trigger={"contextMenu"} placement={"top"} content={
                                                                             <Space direction={"horizontal"} size={"small"}>
                                                                                 <Button type={"text"} onClick={() => setForwardModal(true)}> 转发 </Button>
@@ -1821,17 +1825,26 @@ const Screen = () => {
                                                                             { item.sender === window.username ? (
                                                                                 <div style={{ display: "flex", flexDirection: "row-reverse", justifyContent: "flex-start", marginLeft: "auto"}}>
                                                                                     <div style={{display: "flex", flexDirection: "column"}}>
-                                                                                        <List.Item.Meta avatar={<Avatar  src={("/api"+item.avatar)}/>}/>
+                                                                                        <List.Item.Meta avatar={<Avatar src={("/api"+item.avatar)}/>}/>
                                                                                         <h6>{item.sender}</h6>
                                                                                     </div>
-                                                                                    <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#66B7FF"}}>
+                                                                                    <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#7FFFD4"}}>
+                                                                                        <span> { item.msg_time } </span>
+
                                                                                         {isRead(item.read_list, roomInfo.mem_list, roomInfo.is_private, window.username)}
+
+                                                                                        {item.msg_type === "reply" && typeof item.reply_id === "number" ? (
+                                                                                            showReply(item.reply_id)
+                                                                                        ): null}
+
                                                                                         {(item.msg_type != "combine" && item.msg_type != "image" && item.msg_type != "video" && item.msg_type != "file" && item.msg_type != "audio") ? (
                                                                                             str2addr(item.msg_body, item.read_list)
                                                                                         ): null}
+
                                                                                         {item.msg_type === "image" ? (
                                                                                             <Image width={"30vh"} src={("/api"+item.msg_body)}/>
                                                                                         ): null}
+
                                                                                         {(item.msg_type === "video") ? (
                                                                                             <div style={{width: "50vh"}}>
                                                                                                 <Player fluid={true} width={"50vh"}>
@@ -1847,6 +1860,7 @@ const Screen = () => {
                                                                                                 </Player>
                                                                                             </div>
                                                                                         ): null}
+
                                                                                         {(item.msg_type === "audio") ? (
                                                                                             <div style={{width: "50vh", height: "50px"}}>
                                                                                                 <Player fluid={false} width={"50vh"} height={"20px"}>
@@ -1862,6 +1876,7 @@ const Screen = () => {
                                                                                                 </Player>
                                                                                             </div>
                                                                                         ): null}
+
                                                                                         {item.msg_type === "file" ? (
                                                                                             <div>
                                                                                                 <h1> 文件消息 </h1>
@@ -1872,8 +1887,11 @@ const Screen = () => {
                                                                                                 </Button>
                                                                                             </div>
                                                                                         ): null}
-                                                                                        { item.msg_type === "combine" ? (forwardCard(item.msg_id, combineLists)) : null}
-                                                                                        <span> { item.msg_time } </span>
+
+                                                                                        { item.msg_type === "combine" ? (
+                                                                                            forwardCard(combineList)
+                                                                                        ) : null}
+
                                                                                     </div>
                                                                                 </div>
                                                                             ) : (
@@ -1884,6 +1902,7 @@ const Screen = () => {
                                                                                     </div>
                                                                                     <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF"}}>
                                                                                         {isRead(item.read_list, roomInfo.mem_list, roomInfo.is_private, window.username)}
+                                                                                        {item.msg_type === "reply" && typeof item.reply_id === "number" ? showReply(item.reply_id) : null}
                                                                                         {(item.msg_type != "combine" && item.msg_type != "image" && item.msg_type != "video" && item.msg_type != "file" && item.msg_type != "audio") ? (
                                                                                             str2addr(item.msg_body, item.read_list)
                                                                                         ): null}
@@ -1930,13 +1949,13 @@ const Screen = () => {
                                                                                                 </Button>
                                                                                             </div>
                                                                                         ): null}
-                                                                                        { item.msg_type === "combine" ? (forwardCard(item.msg_id, combineLists)) : null}
+                                                                                        { item.msg_type === "combine" ? (forwardCard(combineList)) : null}
                                                                                         <span> { item.msg_time } </span>
                                                                                     </div>
                                                                                 </div>
                                                                             )}
                                                                         </Popover>
-                                                                    </div>
+                                                                    </>
                                                                 ) : (
                                                                     <>
                                                                         { item.sender === window.username ? (
@@ -2101,6 +2120,7 @@ const Screen = () => {
                                         <div style={{ padding: "24px", backgroundColor:"#FFFFFF",  width:"80%", minHeight:"100vh" }}>
                                             {addressItem === CONS.NEWFRIEND ? (
                                                 <div>
+                                                    <h2>好友申请</h2>
                                                     {receiveRefreshing ? (
                                                         <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />}/>
                                                     ) : (
@@ -2283,13 +2303,22 @@ const Screen = () => {
                                             <h3>用户名：{ window.username }</h3>
                                             <div style={{height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
                                                 <Space size={50}>
+                                                     <Popover trigger={"hover"} content={"修改用户名"}>
                                                     <BadgeIcon onClick={() => ((changeUserInfo === CONS.REVISE_USERNAME) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.REVISE_USERNAME))}/>
+                                                     </Popover>
 
+                                                     <Popover trigger={"hover"} content={"修改密码"}>
                                                     <KeyIcon onClick={() => ((changeUserInfo === CONS.REVISE_PASSWORD) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.REVISE_PASSWORD))}/>
+                                                     </Popover>
 
+                                                    <Popover trigger={"hover"} content={"修改邮箱"}>
                                                     <EmailIcon onClick={() => ((changeUserInfo === CONS.REVISE_EMAIL) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.REVISE_EMAIL))}/>
+                                                    </Popover>
 
+                                                    <Popover trigger={"hover"} content={"设置头像"}>
                                                     <FaceIcon onClick={() => setAvatarModal(true)}/>
+                                                    </Popover>
+
                                                 </Space>
                                             </div>
 
@@ -2357,7 +2386,7 @@ const Screen = () => {
                                             {changeUserInfo === CONS.REVISE_EMAIL ? (
                                                 <div style={{margin: "5px", display: "flex", flexDirection: "column", alignItems: "center"}}>
                                                     <Input
-                                                        size={"middle"}
+                                                        size={"large"}
                                                         type="text"
                                                         prefix={<MailOutlined />}
                                                         placeholder="请填写邮箱"
@@ -2376,8 +2405,9 @@ const Screen = () => {
                                                         {/*<Button type="primary" onClick={() => sendEmail()}>*/}
                                                         {/*    发送验证码*/}
                                                         {/*</Button>*/}
+                                                        <Popover trigger={"hover"} content={"发送验证码"}>
                                                         <SendIcon onClick={()=>sendEmail()}/>
-
+                                                        </Popover>
                                                     </Space.Compact>
                                                     <br/>
                                                     <CheckIcon onClick={()=>verifySms()}/>
@@ -2402,9 +2432,13 @@ const Screen = () => {
                                             ) : null}
                                             <div style={{height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
                                                 <Space size={150}>
+                                                    <Popover trigger={"hover"} content={"登出"}>
                                                     <LogoutIcon onClick={()=>logout()}/>
+                                                    </Popover>
 
+                                                    <Popover trigger={"hover"} content={"注销"}>
                                                     <CancelIcon onClick={() => ((changeUserInfo === CONS.WRITE_OFF) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.WRITE_OFF))}/>
+                                                    </Popover>
                                                 </Space>
                                             </div>
                                         </div>
