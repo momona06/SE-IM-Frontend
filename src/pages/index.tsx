@@ -165,8 +165,8 @@ const Screen = () => {
     // 消息转发
     const [forwardModal, setForwardModal] = useState<boolean>(false);
     const [forwardList, setForwardList] = useState<number[]>([]);
-    const [combineList, setCombineList] = useState<messageListData[]>([]);
-    const [combineLists, setCombineLists] = useState<Map<number, messageListData[]>>(new Map());
+    // const [combineList, setCombineList] = useState<messageListData[]>([]);
+    // const [combineLists, setCombineLists] = useState<Map<number, messageListData[]>>(new Map());
     const [fatherId, setFatherId] = useState<number>(0);
 
     const [fetchedList, setFetchedList] = useState<combineData[]>([]);
@@ -278,16 +278,16 @@ const Screen = () => {
         window.memList = roomInfo.mem_list;
     }, [roomInfo]);
 
-    useEffect(() => {
-        let updateMap = new Map(combineLists);
-        updateMap.set(fatherId, combineList);
-        console.log(updateMap);
-        setCombineLists(updateMap);
-    }, [combineList])
+    // useEffect(() => {
+    //     let updateMap = new Map(combineLists);
+    //     updateMap.set(fatherId, combineList);
+    //     console.log(updateMap);
+    //     setCombineLists(updateMap);
+    // }, [combineList])
 
-    useEffect(() => {
-        setCombineList([]);
-    }, [fatherId])
+    // useEffect(() => {
+    //     setCombineList([]);
+    // }, [fatherId])
 
     const WSConnect = () => {
         let DEBUG = false;
@@ -354,8 +354,8 @@ const Screen = () => {
                     avatar: data.avatar,
                     is_delete: data.is_delete
                 };
-                setFatherId(data.father_id);
-                setCombineList(combineList => combineList.concat(info));
+                // setFatherId(data.father_id);
+                // setCombineList(combineList => combineList.concat(info));
                 // setCombineList(combineList => combineList.concat(info));
             }
             else if (data.function === "Ack2"){
@@ -1182,11 +1182,16 @@ const Screen = () => {
             "is_delete": false
         };
 
-        for (let room of roomList){
-            if (room.roomid === window.forwardRoomId){
-                room.message_list.push(newMessage as messageListData);
-            }
+
+        if(window.forwardRoomId === window.currentRoom.roomid)
+        {
+            setMessageList(messageList => messageList.concat(newMessage));
         }
+        // for (let room of roomList){
+        //     if (room.roomid === window.forwardRoomId){
+        //         room.message_list.push(newMessage as messageListData);
+        //     }
+        // }
         setForwardModal(false);
         window.forwardRoomId = 0;
     };
