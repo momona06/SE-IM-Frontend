@@ -42,7 +42,7 @@ import {
 import {
     ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined,
     ArrowLeftOutlined, MailOutlined, SearchOutlined,
-    CommentOutlined, UploadOutlined, LoadingOutlined, PlusOutlined,
+    CommentOutlined, UploadOutlined, LoadingOutlined,
     UserSwitchOutlined, IdcardOutlined, UserDeleteOutlined, RestOutlined, CaretRightOutlined
 } from "@ant-design/icons";
 
@@ -333,22 +333,8 @@ const Screen = () => {
             }
             // 获取combine消息的内容
             else if (data.function === "fetchmessage"){
-                let info = {
-                    msg_id: data.msg_id,
-                    msg_type: data.msg_type,
-                    msg_body: data.msg_body,
-                    msg_time: data.msg_time,
-                    sender: data.sender,
-                    combine_list: data.combine_list,
-                    read_list: data.read_list,
-                    avatar: data.avatar,
-                    is_delete: data.is_delete
-                };
-                if (fatherId != data.father_id){
-                    setFatherId(data.father_id);
-                    setCombineList([]);
-                }
-                setCombineList(combineList => combineList.concat(info));
+                setFatherId(data.father_id);
+                setCombineList(data.message_info_list);
             }
             else if (data.function === "Ack2"){
                 // 将消息id置为已发送
@@ -427,7 +413,7 @@ const Screen = () => {
                                    }
                                 });
                                 if (data.chatroom_id === window.currentRoom.roomid){
-                                    setMessageList(messageList => room.message_list);
+                                    setMessageList(room.message_list);
                                 }
                             }
                         });
@@ -566,8 +552,8 @@ const Screen = () => {
                     window.password = res.password;
                     setUsername(res.username);
                     setToken(res.token);
-                    getAccount(account => "");
-                    getPassword(password => "");
+                    getAccount("");
+                    getPassword("");
                     setCurrentPage(CONS.MAIN);
                 })
                 .catch((err) => {
@@ -588,9 +574,9 @@ const Screen = () => {
             .then(() => {
                 message.success(STRINGS.REGISTER_SUCCESS, 1);
                 setCurrentPage(CONS.LOGIN);
-                setUsername(username => "");
-                getPassword(password => "");
-                getVerification(verification => "");
+                setUsername("");
+                getPassword("");
+                getVerification("");
             })
             .catch((err) => message.error(err.message, 1));
     };
@@ -1192,17 +1178,16 @@ const Screen = () => {
         let combineMessages = List.filter(arr => arr.msg_type === "combine");
         combineMessages.forEach((arr) => {
             arr.combine_list?.forEach(id => {
-                fetchMessage(id, arr.msg_id);
+                fetchMessage(arr.msg_id);
             });
         });
     };
 
     // 获取单个消息
-    const fetchMessage = (child_id: number, father_id: number) => {
+    const fetchMessage = (father_id: number) => {
         let data = {
             "function": "fetch_message",
             "father_id": father_id,
-            "msg_id": child_id
         };
         window.ws.send(JSON.stringify(data));
     };
