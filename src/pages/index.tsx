@@ -197,6 +197,8 @@ const Screen = () => {
     const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
     const [roomApplyList, setRoomApplyList] = useState<messageListData[]>([]);
 
+    const [checkBoxChecked, setCheckBoxChecked] = useState<boolean>(true);
+
     const onDrawerClose = () => {
         setDrawerOpen(false);
     };
@@ -1137,37 +1139,43 @@ const Screen = () => {
 
     // 合并转发
     const forward = () => {
-        const data = {
-            function: "send_message",
-            msg_type: "combine",
-            msg_body: "",
-            combine_list: forwardList,
-            transroom_id: window.forwardRoomId
-        };
-        window.ws.send(JSON.stringify(data));
-        console.log(data);
+        if (typeof window.forwardRoomId != "undefined"){
+            const data = {
+                function: "send_message",
+                msg_type: "combine",
+                msg_body: "",
+                combine_list: forwardList,
+                transroom_id: window.forwardRoomId
+            };
+            window.ws.send(JSON.stringify(data));
+            console.log(data);
 
-        let date = new Date();
-        let newMessage = {
-            "msg_id": -1,
-            "msg_type": "combine",
-            "msg_body": "",
-            "msg_time": moment(date).format("YYYY-MM-DD HH:mm:ss"),
-            "sender": window.username,
-            "read_list": [],
-            "combine_list": forwardList,
-            "avatar": window.userAvatar,
-            "is_delete": false
-        };
+            let date = new Date();
+            let newMessage = {
+                "msg_id": -1,
+                "msg_type": "combine",
+                "msg_body": "",
+                "msg_time": moment(date).format("YYYY-MM-DD HH:mm:ss"),
+                "sender": window.username,
+                "read_list": [],
+                "combine_list": forwardList,
+                "avatar": window.userAvatar,
+                "is_delete": false
+            };
 
-        for (let room of roomList){
-            if (room.roomid === window.forwardRoomId){
-                room.message_list.push(newMessage as messageListData);
+            for (let room of roomList){
+                if (room.roomid === window.forwardRoomId){
+                    room.message_list.push(newMessage as messageListData);
+                }
             }
+            setForwardList([]);
+            setCheckBoxChecked(false);
+            setForwardModal(false);
+            window.forwardRoomId = 0;
         }
-        setForwardList([]);
-        setForwardModal(false);
-        window.forwardRoomId = 0;
+        else {
+            message.error("请选择会话", 1);
+        }
     };
 
     const onInviteChange = ({ target: { value } }: RadioChangeEvent) => {
@@ -1808,7 +1816,7 @@ const Screen = () => {
                                                                     <>
                                                                         <Popover trigger={"contextMenu"} placement={"top"} content={
                                                                             <Space direction={"horizontal"} size={"small"}>
-                                                                                <Button type={"text"} onClick={() => setForwardModal(true)}> 转发 </Button>
+                                                                                <Button type={"text"} onClick={() => {setForwardModal(true); setCheckBoxChecked(true);}}> 转发 </Button>
                                                                                 <Button type={"text"} onClick={() => deleteMessage(item.msg_id)}> 删除 </Button>
                                                                                 <Button type={"text"} onClick={() => {setReplying(true); setReplyMessageID(item.msg_id); setReplyMessageBody(item.msg_body);}}> 回复 </Button>
                                                                                 { item.msg_type === "text" ? (
@@ -2486,6 +2494,7 @@ const Screen = () => {
                 <Checkbox.Group
                     style={{display: "grid", height: "60vh", overflow: "scroll" }}
                     onChange={ onForwardChange }
+                    checked={checkBoxChecked}
                     options={ messageList.map((arr) => ({
                         label: arr.sender + ":  " + arr.msg_body,
                         value: arr.msg_id,
