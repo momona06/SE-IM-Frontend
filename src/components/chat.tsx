@@ -50,6 +50,15 @@ interface roomInfoData {
     is_private: boolean;
 }
 
+interface combineData {
+    msg_sender: string;
+    avatar: string;
+    msg_id: number;
+    msg_type: string;
+    msg_time: string;
+    msg_body: string;
+}
+
 // 整合转发
 const forwardCard = (combineLists: Map<number, messageListData[]>, id: number) => {
     console.log(combineLists);
@@ -103,4 +112,4 @@ const isRead = (readList: boolean[], memberList: string[], isPrivate: boolean, u
 };
 
 export {isRead, forwardCard};
-export type { friendListData, messageListData, roomListData, roomInfoData, userData, receiveData };
+export type { friendListData, messageListData, roomListData, roomInfoData, userData, receiveData, combineData };

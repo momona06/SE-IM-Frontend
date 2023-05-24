@@ -30,7 +30,7 @@ import * as CONS from "../constants/constants";
 import { request } from "../utils/network";
 import {
     isRead, forwardCard, messageListData, roomListData,
-    receiveData, friendListData, roomInfoData, userData
+    receiveData, friendListData, roomInfoData, userData, combineData
 } from "../components/chat";
 
 import {
@@ -168,6 +168,9 @@ const Screen = () => {
     const [combineList, setCombineList] = useState<messageListData[]>([]);
     const [combineLists, setCombineLists] = useState<Map<number, messageListData[]>>(new Map());
     const [fatherId, setFatherId] = useState<number>(0);
+
+    const [fetchedList, setFetchedList] = useState<combineData[]>([]);
+    const [combineModal, setCombineModal] = useState<boolean>(false);
 
     // 多媒体 及 特殊群聊
     const [avatarModal, setAvatarModal] = useState<boolean>(false);
@@ -1511,6 +1514,46 @@ const Screen = () => {
         });
     };
 
+    const handleCombine = (list?: number[]) => {
+        request(
+            "api/user/message",
+            "POST",
+            {
+                combine_list: list
+            },
+        )
+            .then((res) => {
+                console.log(res.msg_list);
+                setFetchedList(res.msg_list.map((val: any) => ({...val})));
+                setCombineModal(true);
+            })
+            .catch((err) => message.error(err.message, 1));
+    };
+
+    // const handleCombine2 = (list?: number[]) => {
+    //     if(list)
+    //     {
+    //         list.map((val, id) => {
+    //             request(
+    //                 "api/user/message",
+    //                 "POST",
+    //                 {
+    //                     msg_id: val
+    //                 },
+    //             )
+    //                 .then((res) => {
+    //                     console.log(res);
+    //                     setFetchedList((fetchedList) => fetchedList.concat([{msg_id: res.msg_id, msg_body: res.msg_body, msg_time: res.msg_time, msg_type: res.msg_type, sender: res.msg_sender, avatar: res.avatar}]));
+    //                     if(id === list.length - 1)
+    //                     {
+    //                         setCombineModal(true);
+    //                     }
+    //                 })
+    //                 .catch((err) => message.error(err.message, 1));
+    //         })
+    //     }
+    // };
+
     //会话具体信息
     const roomInfoPage = (
         <div style={{padding: "12px"}}>
@@ -1916,7 +1959,14 @@ const Screen = () => {
                                                                                         ): null}
 
                                                                                         { item.msg_type === "combine" ? (
-                                                                                            forwardCard(combineLists, item.msg_id)
+                                                                                            <div>
+                                                                                                <h1> 转发 </h1>
+                                                                                                <Button onClick={() => {
+                                                                                                    handleCombine(item.combine_list);
+                                                                                                }} type="default">
+                                                                                                    查看转发的消息
+                                                                                                </Button>
+                                                                                            </div>
                                                                                         ) : null}
 
                                                                                     </div>
@@ -1976,7 +2026,16 @@ const Screen = () => {
                                                                                                 </Button>
                                                                                             </div>
                                                                                         ): null}
-                                                                                        { item.msg_type === "combine" ? (forwardCard(combineLists, item.msg_id)) : null}
+                                                                                        { item.msg_type === "combine" ? (
+                                                                                            <div>
+                                                                                                <h1> 转发 </h1>
+                                                                                                <Button onClick={() => {
+                                                                                                    handleCombine(item.combine_list);
+                                                                                                }} type="default">
+                                                                                                    查看转发的消息
+                                                                                                </Button>
+                                                                                            </div>
+                                                                                        ) : null}
                                                                                         <span> { item.msg_time } </span>
                                                                                     </div>
                                                                                 </div>
@@ -2841,6 +2900,29 @@ const Screen = () => {
                         value: friend,
                         label: friend
                     }))}
+                />
+            </Modal>
+
+            <Modal title={"转发的消息"} open={combineModal} onOk={() => setCombineModal(false)} onCancel={() => setCombineModal(false)}>
+                <List
+                    dataSource={fetchedList}
+                    renderItem={(item) => (
+                        <List.Item>
+                            <div style={{ display: "flex", flexDirection: "row"}}>
+                                <div style={{display: "flex", flexDirection: "column"}}>
+                                    <List.Item.Meta avatar={<Avatar  src={("/api"+item.avatar)}/>}/>
+                                    <h6>{item.msg_sender}</h6>
+                                </div>
+                                <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF"}}>
+                                    <p>{item.msg_body }</p>
+                                    {item.msg_type === "combine" ? (
+                                        <p>该消息类型不可见</p>
+                                    ) : null}
+                                    <span>{ item.msg_time }</span>
+                                </div>
+                            </div>
+                        </List.Item>
+                    )}
                 />
             </Modal>
 
