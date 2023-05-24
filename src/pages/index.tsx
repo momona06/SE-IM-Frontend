@@ -1165,6 +1165,7 @@ const Screen = () => {
                 room.message_list.push(newMessage as messageListData);
             }
         }
+        setForwardList([]);
         setForwardModal(false);
         window.forwardRoomId = 0;
     };
@@ -1542,11 +1543,6 @@ const Screen = () => {
                         </List.Item>
                     )}
                 />
-                {/* 拉人进群 */}
-                {/*<Button type={"default"} icon={<PlusOutlined />} size={"large"} onClick={() => {*/}
-                {/*    setRoomInfoModal(false);*/}
-                {/*    setInviteModal(true);*/}
-                {/*}}/>*/}
                 <Popover trigger={"hover"} content={roomInfo.is_private ? "建立群聊" : "邀请进群"}>
                 <AddIcon
                     onClick={() => {
@@ -2020,7 +2016,7 @@ const Screen = () => {
                                                             <AlbumIcon onClick={() => setAudioModal(true)}/>
                                                             <OndemandVideoIcon onClick={() => setVideoModal(true)}/>
                                                             <InsertDriveFileIcon onClick={() => setFileModal(true)}/>
-                                                             {/*{VideoCall("audio_or_video_" + window.username, "audio_or_video_" + (typeof window.currentRoom != "undefined" ? window.currentRoom.roomname : ""))}*/}
+                                                            {VideoCall("audio_or_video_" + window.username, "audio_or_video_" + (typeof window.currentRoom != "undefined" ? window.currentRoom.roomname : ""))}
                                                             <AccessTimeIcon onClick={() => {
                                                                 setRoomInfoModal(false);
                                                                 setHistoryModal(true);
@@ -2231,7 +2227,6 @@ const Screen = () => {
                                                                                     查看用户界面
                                                                                 </Button>
                                                                             ]}>
-                                                                            <Avatar src={item.avatar}/>
                                                                             <div>{item.username}</div>
                                                                         </List.Item>
                                                                     )}
@@ -2248,7 +2243,6 @@ const Screen = () => {
                                                     paddingTop: "5px", paddingBottom: "25px", border: "1px solid transparent", borderRadius: "20px",
                                                     alignItems: "center", backgroundColor: "rgba(255,255,255,0.7)"
                                                 }}>
-                                                    <Avatar src={window.otherAvatar}/>
                                                     <h1>{ window.otherUsername }</h1>
                                                     {isFriend ? (
                                                         <div style={{height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
