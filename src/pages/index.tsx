@@ -167,6 +167,7 @@ const Screen = () => {
     const [forwardList, setForwardList] = useState<number[]>([]);
     const [combineList, setCombineList] = useState<messageListData[]>([]);
     const [combineLists, setCombineLists] = useState<Map<number, messageListData[]>>(new Map());
+    const [fatherId, setFatherId] = useState<number>(0);
 
     // 多媒体 及 特殊群聊
     const [avatarModal, setAvatarModal] = useState<boolean>(false);
@@ -202,6 +203,7 @@ const Screen = () => {
 
     const [form] = Form.useForm();
     const { Panel } = Collapse;
+
 
     // 切换页面时 获取roomlist friendlist roominvitelist
     useEffect(() => {
@@ -273,8 +275,19 @@ const Screen = () => {
         window.memList = roomInfo.mem_list;
     }, [roomInfo]);
 
+    useEffect(() => {
+        let updateMap = new Map(combineLists);
+        updateMap.set(fatherId, combineList);
+        console.log(updateMap);
+        setCombineLists(updateMap);
+    }, [combineList])
+
+    useEffect(() => {
+        setCombineList([]);
+    }, [fatherId])
+
     const WSConnect = () => {
-        let DEBUG = false;
+        let DEBUG = true;
         window.ws = new WebSocket(DEBUG ? "ws://localhost:8000/wsconnect" : "wss://se-im-backend-overflowlab.app.secoder.net/wsconnect");
         window.ws.onopen = function () {
             setMenuItem(CONS.CHATFRAME);
@@ -338,7 +351,9 @@ const Screen = () => {
                     avatar: data.avatar,
                     is_delete: data.is_delete
                 };
+                setFatherId(data.father_id);
                 setCombineList(combineList => combineList.concat(info));
+                // setCombineList(combineList => combineList.concat(info));
             }
             else if (data.function === "Ack2"){
                 // 将消息id置为已发送
@@ -417,7 +432,7 @@ const Screen = () => {
                                    }
                                 });
                                 if (data.chatroom_id === window.currentRoom.roomid){
-                                    setMessageList(room.message_list);
+                                    setMessageList(messageList => room.message_list);
                                 }
                             }
                         });
@@ -1238,12 +1253,21 @@ const Screen = () => {
         setCreateGroupModal(false);
     };
 
-    const recall = (id: number) => {
+    const recall = (id: number, is_private: boolean, is_admin: boolean) => {
         const data = {
             "function": "withdraw_message",
             "msg_id": id,
+            "is_private": is_private,
+            "is_admin": is_admin
         };
         window.ws.send(JSON.stringify(data));
+        for (let i = window.messageList.length - 1; i >= 0; i--){
+            if (window.messageList[i].msg_id === id){
+                window.messageList[i].msg_body = "该消息已被撤回";
+                break;
+            }
+        }
+        setMessageList(window.messageList);
     };
 
     const translateConfig = {
@@ -1429,9 +1453,6 @@ const Screen = () => {
     // 地址字符串特殊显示
     const str2addr = (text : string, readlist: boolean[]) => {
         const urlRegex = /(https?:\/\/[^\s]+)/g; // 匹配 URL 的正则表达式
-        const urlRegex2 = /((https?:\/\/)?([a-zA-Z0-9]+\.)+[a-zA-Z0-9]+)/g;
-        const urlRegex3 = /^(https?:\/\/)?(www\.)?[a-zA-Z0-9_-]+\.[a-zA-Z]{2,}([a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;=]+)?$/g;
-        const urlRegexn = /(https?:\/\/(www\.)?)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/;
         const atRegex = /(@[A-Za-z0-9]+)/g;
         const parts = text.split(urlRegex); // 使用正则表达式拆分字符串
         var partss: string[] = [];
@@ -1817,8 +1838,14 @@ const Screen = () => {
                                                                                 { item.msg_type === "audio" ? (
                                                                                     <Button type={"text"} onClick={() => audioToText(item.msg_body)}> 转文字 </Button>
                                                                                 ) : null }
-                                                                                { item.sender === window.username ? (
-                                                                                    <Button type={"text"} onClick={() => recall(item.msg_id)}> 撤回 </Button>
+                                                                                { item.sender === window.username && window.currentRoom.is_private ? (
+                                                                                    <Button type={"text"} onClick={() => recall(item.msg_id, true, false)}> 撤回 </Button>
+                                                                                ) : null }
+                                                                                { item.sender === window.username && !window.currentRoom.is_private ? (
+                                                                                    <Button type={"text"} onClick={() => recall(item.msg_id, false, false)}> 撤回 </Button>
+                                                                                ) : null }
+                                                                                { identity(window.username) > identity(item.sender) && !window.currentRoom.is_private ? (
+                                                                                    <Button type={"text"} onClick={() => recall(item.msg_id, false, true)}> 撤回 </Button>
                                                                                 ) : null }
                                                                             </Space>
                                                                         }>
@@ -1889,7 +1916,7 @@ const Screen = () => {
                                                                                         ): null}
 
                                                                                         { item.msg_type === "combine" ? (
-                                                                                            forwardCard(combineList)
+                                                                                            forwardCard(combineLists, item.msg_id)
                                                                                         ) : null}
 
                                                                                     </div>
@@ -1949,7 +1976,7 @@ const Screen = () => {
                                                                                                 </Button>
                                                                                             </div>
                                                                                         ): null}
-                                                                                        { item.msg_type === "combine" ? (forwardCard(combineList)) : null}
+                                                                                        { item.msg_type === "combine" ? (forwardCard(combineLists, item.msg_id)) : null}
                                                                                         <span> { item.msg_time } </span>
                                                                                     </div>
                                                                                 </div>
@@ -2010,7 +2037,7 @@ const Screen = () => {
                                                             <AlbumIcon onClick={() => setAudioModal(true)}/>
                                                             <OndemandVideoIcon onClick={() => setVideoModal(true)}/>
                                                             <InsertDriveFileIcon onClick={() => setFileModal(true)}/>
-                                                            {/*VideoCall("audio_or_video_" + window.username, "audio_or_video_" + (typeof window.currentRoom != "undefined" ? window.currentRoom.roomname : ""))*/}
+                                                            {VideoCall("audio_or_video_" + window.username, "audio_or_video_" + (typeof window.currentRoom != "undefined" ? window.currentRoom.roomname : ""))}
                                                             <AccessTimeIcon onClick={() => {
                                                                 setRoomInfoModal(false);
                                                                 setHistoryModal(true);
@@ -2300,6 +2327,7 @@ const Screen = () => {
                                             alignItems: "center",
                                             backgroundColor: "rgba(255,255,255,0.7)"
                                         }}>
+                                            <Avatar src={window.userAvatar}/>
                                             <h3>用户名：{ window.username }</h3>
                                             <div style={{height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
                                                 <Space size={50}>

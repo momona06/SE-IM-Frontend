@@ -20,6 +20,7 @@ declare global {
 
         memList: string[]
         messageList: messageListData[]
+        father_id: number
         roomList: roomListData[]
         forwardRoomId: number
     }

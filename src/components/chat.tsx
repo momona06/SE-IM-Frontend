@@ -51,11 +51,12 @@ interface roomInfoData {
 }
 
 // 整合转发
-const forwardCard = (combineList: messageListData[]) => {
+const forwardCard = (combineLists: Map<number, messageListData[]>, id: number) => {
+    console.log(combineLists);
     return (
         <Card title={"聊天记录"}>
             <List
-                dataSource={combineList}
+                dataSource={combineLists.get(id)}
                 renderItem={(msg) => (
                     <List.Item key={msg.msg_id}>
                         {msg.sender + ":  " + msg.msg_body + " " + msg.msg_time}

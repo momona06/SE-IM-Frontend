@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import HeadphonesIcon from '@mui/icons-material/Headphones';
 import VideocamIcon from '@mui/icons-material/Videocam';
 import CableIcon from '@mui/icons-material/Cable';
@@ -7,8 +7,8 @@ import {
     Button
 } from "antd";
 const VideoCall = (userName, userToCall) => {
-    let localVideo = document.querySelector('#localVideo');
-    let remoteVideo = document.querySelector('#remoteVideo');
+
+
     let iceCandidatesFromCaller = [];
     let callInProgress = false;
     let otherUser;
@@ -31,17 +31,21 @@ const VideoCall = (userName, userToCall) => {
         }]
     };
 
+
     // let sdpConstraints = {
     //     offerToReceiveAudio: true,
     //     offerToReceiveVideo: true
     // };
 
-     connectSocket();
+    let localVideo = document.querySelector('#localVideo');
+    let remoteVideo = document.querySelector('#remoteVideo');
+
+    connectSocket();
 
 
     function connectSocket() {
-        //callSocket = new WebSocket("wss://se-im-backend-test-overflowlab.app.secoder.net/ws/call/");
-        callSocket = new WebSocket("ws://localhost:8000/ws/call/");
+        // callSocket = new WebSocket("ws://localhost:8000/ws/call/");
+        callSocket = new WebSocket("wss://se-im-backend-overflowlab.app.secoder.net/ws/call/");
         console.log("Video Websocket Connect");
         callSocket.onopen = event => {
             callSocket.send(JSON.stringify({
