@@ -287,7 +287,7 @@ const Screen = () => {
     }, [fatherId])
 
     const WSConnect = () => {
-        let DEBUG = true;
+        let DEBUG = false;
         window.ws = new WebSocket(DEBUG ? "ws://localhost:8000/wsconnect" : "wss://se-im-backend-overflowlab.app.secoder.net/wsconnect");
         window.ws.onopen = function () {
             setMenuItem(CONS.CHATFRAME);
