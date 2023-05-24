@@ -11,7 +11,9 @@ declare global {
         username: string
         password: string
         userAvatar: string
+
         otherUsername: string
+        otherAvatar: string
 
         playVideoUrl: string
 

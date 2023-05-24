@@ -204,7 +204,6 @@ const Screen = () => {
     const [form] = Form.useForm();
     const { Panel } = Collapse;
 
-
     // 切换页面时 获取roomlist friendlist roominvitelist
     useEffect(() => {
         if(currentPage === CONS.MAIN) {
@@ -243,17 +242,13 @@ const Screen = () => {
             temp = temp.concat(room.roomid);
         });
         setAllRoomList(temp);
-        console.log("room changed");
     }, [roomList]);
 
     const scrollRef = useRef<HTMLDivElement>(null);
     // 当本地message更新
     useEffect(() => {
         window.messageList = messageList;
-        console.log("msg changed", messageList);
-
         Read();
-
         // 保持滚动条在底部
         if (scrollRef.current) {
             const scrollElement = scrollRef.current;
@@ -276,18 +271,16 @@ const Screen = () => {
     }, [roomInfo]);
 
     useEffect(() => {
-        let updateMap = new Map(combineLists);
-        updateMap.set(fatherId, combineList);
-        console.log(updateMap);
-        setCombineLists(updateMap);
-    }, [combineList])
-
-    useEffect(() => {
-        setCombineList([]);
-    }, [fatherId])
+        if (fatherId != 0 && combineList) {
+            let updateMap = new Map(combineLists);
+            updateMap.set(fatherId, combineList);
+            console.log(updateMap);
+            setCombineLists(updateMap);
+        }
+    }, [combineList]);
 
     const WSConnect = () => {
-        let DEBUG = true;
+        let DEBUG = false;
         window.ws = new WebSocket(DEBUG ? "ws://localhost:8000/wsconnect" : "wss://se-im-backend-overflowlab.app.secoder.net/wsconnect");
         window.ws.onopen = function () {
             setMenuItem(CONS.CHATFRAME);
@@ -351,9 +344,11 @@ const Screen = () => {
                     avatar: data.avatar,
                     is_delete: data.is_delete
                 };
-                setFatherId(data.father_id);
+                if (fatherId != data.father_id){
+                    setFatherId(data.father_id);
+                    setCombineList([]);
+                }
                 setCombineList(combineList => combineList.concat(info));
-                // setCombineList(combineList => combineList.concat(info));
             }
             else if (data.function === "Ack2"){
                 // 将消息id置为已发送
@@ -1455,7 +1450,7 @@ const Screen = () => {
         const urlRegex = /(https?:\/\/[^\s]+)/g; // 匹配 URL 的正则表达式
         const atRegex = /(@[A-Za-z0-9]+)/g;
         const parts = text.split(urlRegex); // 使用正则表达式拆分字符串
-        var partss: string[] = [];
+        let partss: string[] = [];
         parts.forEach((part) => {
             if(typeof part != undefined)
             {
@@ -1619,7 +1614,6 @@ const Screen = () => {
         </div>
     );
 
-    // @ts-ignore
     return (
         <div style={{
             width: "100%", height: "100%", position: "absolute", top: 0, left: 0, alignItems: "center",
@@ -1728,7 +1722,10 @@ const Screen = () => {
                             <br />
                             <Button
                                 type={"link"} icon={<ArrowLeftOutlined/>} size={"large"}
-                                onClick={() => {setCurrentPage(CONS.LOGIN); getPassword(password => "");}}>
+                                onClick={() => {
+                                    setCurrentPage(CONS.LOGIN);
+                                    getPassword( "");
+                                }}>
                                 返回登录
                             </Button>
                         </div>
@@ -1741,6 +1738,7 @@ const Screen = () => {
                         <Layout style={{ minHeight: "100vh" }} >
                             <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)} theme={"light"}>
                                 <Menu theme={"light"} defaultSelectedKeys={["1"]} mode="inline">
+
 
                                     <Menu.Item icon={<TelegramIcon />} key={"1"} onClick={()=> setMenuItem(CONS.CHATFRAME)}> 聊天 </Menu.Item>
 
@@ -1758,7 +1756,7 @@ const Screen = () => {
                                             <div style={{height: "3vh", margin: "10px", flexDirection: "row"}}>
                                                 <Space direction={"horizontal"}>
                                                     <Popover trigger={"hover"} content={"创建群聊"}>
-                                                    <AddCircleIcon onClick={() => setCreateGroupModal(true) }/>
+                                                        <AddCircleIcon onClick={() => setCreateGroupModal(true) }/>
                                                     </Popover>
                                                 </Space>
                                             </div>
@@ -2065,23 +2063,20 @@ const Screen = () => {
                                                                     value,
                                                                     label: value,
                                                                 }))}
-                                                                onPressEnter={() => {replying ? sendMessage(messageBody, "reply", replyMessageID) : sendMessage(messageBody, "text");
+                                                                onPressEnter={() => {replying ? sendMessage(messageBody, "reply", replyMessageID) :
+                                                                    sendMessage(messageBody, "text");
                                                                     setReplying(false);
                                                                 }}
                                                             />
                                                         </Form.Item>
 
                                                         <div style={{flexDirection: "row-reverse", display:"flex"}}>
-                                                            <SendIcon onClick={() => {replying ? sendMessage(messageBody, "reply", replyMessageID) : sendMessage(messageBody, "text");
+                                                            <SendIcon onClick={() => {replying ? sendMessage(messageBody, "reply", replyMessageID) :
+                                                                sendMessage(messageBody, "text");
                                                                 setReplying(false);
                                                             }}/>
                                                         </div>
-
                                                     </Form>
-
-
-
-
                                                 </div>
                                             </div>
                                         )}
@@ -2244,12 +2239,14 @@ const Screen = () => {
                                                                                     type="primary"
                                                                                     onClick={() => {
                                                                                         window.otherUsername = item.username;
+                                                                                        window.otherAvatar = item.avatar;
                                                                                         checkFriend();
                                                                                     }}
                                                                                 >
                                                                                     查看用户界面
                                                                                 </Button>
                                                                             ]}>
+                                                                            <Avatar src={item.avatar}/>
                                                                             <div>{item.username}</div>
                                                                         </List.Item>
                                                                     )}
@@ -2266,6 +2263,7 @@ const Screen = () => {
                                                     paddingTop: "5px", paddingBottom: "25px", border: "1px solid transparent", borderRadius: "20px",
                                                     alignItems: "center", backgroundColor: "rgba(255,255,255,0.7)"
                                                 }}>
+                                                    <Avatar src={window.otherAvatar}/>
                                                     <h1>{ window.otherUsername }</h1>
                                                     {isFriend ? (
                                                         <div style={{height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
@@ -2331,22 +2329,21 @@ const Screen = () => {
                                             <h3>用户名：{ window.username }</h3>
                                             <div style={{height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
                                                 <Space size={50}>
-                                                     <Popover trigger={"hover"} content={"修改用户名"}>
-                                                    <BadgeIcon onClick={() => ((changeUserInfo === CONS.REVISE_USERNAME) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.REVISE_USERNAME))}/>
-                                                     </Popover>
+                                                    <Popover trigger={"hover"} content={"修改用户名"}>
+                                                        <BadgeIcon onClick={() => ((changeUserInfo === CONS.REVISE_USERNAME) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.REVISE_USERNAME))}/>
+                                                    </Popover>
 
-                                                     <Popover trigger={"hover"} content={"修改密码"}>
-                                                    <KeyIcon onClick={() => ((changeUserInfo === CONS.REVISE_PASSWORD) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.REVISE_PASSWORD))}/>
-                                                     </Popover>
+                                                    <Popover trigger={"hover"} content={"修改密码"}>
+                                                        <KeyIcon onClick={() => ((changeUserInfo === CONS.REVISE_PASSWORD) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.REVISE_PASSWORD))}/>
+                                                    </Popover>
 
                                                     <Popover trigger={"hover"} content={"修改邮箱"}>
-                                                    <EmailIcon onClick={() => ((changeUserInfo === CONS.REVISE_EMAIL) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.REVISE_EMAIL))}/>
+                                                        <EmailIcon onClick={() => ((changeUserInfo === CONS.REVISE_EMAIL) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.REVISE_EMAIL))}/>
                                                     </Popover>
 
                                                     <Popover trigger={"hover"} content={"设置头像"}>
-                                                    <FaceIcon onClick={() => setAvatarModal(true)}/>
+                                                        <FaceIcon onClick={() => setAvatarModal(true)}/>
                                                     </Popover>
-
                                                 </Space>
                                             </div>
 
@@ -2430,11 +2427,8 @@ const Screen = () => {
                                                             value={sms}
                                                             onChange={(e) => setSms(e.target.value)}
                                                         />
-                                                        {/*<Button type="primary" onClick={() => sendEmail()}>*/}
-                                                        {/*    发送验证码*/}
-                                                        {/*</Button>*/}
                                                         <Popover trigger={"hover"} content={"发送验证码"}>
-                                                        <SendIcon onClick={()=>sendEmail()}/>
+                                                            <SendIcon onClick={()=>sendEmail()}/>
                                                         </Popover>
                                                     </Space.Compact>
                                                     <br/>
@@ -2461,11 +2455,11 @@ const Screen = () => {
                                             <div style={{height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
                                                 <Space size={150}>
                                                     <Popover trigger={"hover"} content={"登出"}>
-                                                    <LogoutIcon onClick={()=>logout()}/>
+                                                        <LogoutIcon onClick={()=>logout()}/>
                                                     </Popover>
 
                                                     <Popover trigger={"hover"} content={"注销"}>
-                                                    <CancelIcon onClick={() => ((changeUserInfo === CONS.WRITE_OFF) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.WRITE_OFF))}/>
+                                                        <CancelIcon onClick={() => ((changeUserInfo === CONS.WRITE_OFF) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.WRITE_OFF))}/>
                                                     </Popover>
                                                 </Space>
                                             </div>
@@ -2639,7 +2633,7 @@ const Screen = () => {
 
                     <form id="fileform" ref={audioF} action="/api/user/uploadfile" method="post" encType="multipart/form-data" target="loadera" onSubmit={() => {
                         if(audioF.current) {
-                            var fromdata = new FormData(audioF.current);
+                            let fromdata = new FormData(audioF.current);
                             axios.post("/api/user/uploadfile", fromdata , avatarconfig)
                                 .then((res) => {
                                     console.log(res.data.file_url);
@@ -2792,14 +2786,7 @@ const Screen = () => {
                             renderItem={(item) => (
                                 <List.Item
                                     actions={[
-                                        // <Button
-                                        //     key={item.msg_id}
-                                        //     size={"large"}
-                                        //     type="default"
-                                        //     onClick={() => {deleteMessage(item.msg_id); filter();}}>
-                                        //     删除该记录
-                                        // </Button>
-                                        <ClearIcon onClick={() => {deleteMessage(item.msg_id); filter();}}key={"delete"}/>
+                                        <ClearIcon onClick={() => {deleteMessage(item.msg_id); filter();}} key={"delete"}/>
                                     ]}
                                 >
                                     <div style={{ display: "flex", flexDirection: "row"}}>
