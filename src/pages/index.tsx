@@ -2020,7 +2020,7 @@ const Screen = () => {
                                                             <AlbumIcon onClick={() => setAudioModal(true)}/>
                                                             <OndemandVideoIcon onClick={() => setVideoModal(true)}/>
                                                             <InsertDriveFileIcon onClick={() => setFileModal(true)}/>
-                                                            {VideoCall("audio_or_video_" + window.username, "audio_or_video_" + (typeof window.currentRoom != "undefined" ? window.currentRoom.roomname : ""))}
+                                                             {/*{VideoCall("audio_or_video_" + window.username, "audio_or_video_" + (typeof window.currentRoom != "undefined" ? window.currentRoom.roomname : ""))}*/}
                                                             <AccessTimeIcon onClick={() => {
                                                                 setRoomInfoModal(false);
                                                                 setHistoryModal(true);
