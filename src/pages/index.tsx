@@ -42,7 +42,7 @@ import {
 import {
     ArrowRightOutlined, LockOutlined, LoginOutlined, UserOutlined, ContactsOutlined, UserAddOutlined,
     ArrowLeftOutlined, MailOutlined, SearchOutlined,
-    CommentOutlined, UploadOutlined, LoadingOutlined, PlusOutlined,
+    CommentOutlined, UploadOutlined, LoadingOutlined,
     UserSwitchOutlined, IdcardOutlined, UserDeleteOutlined, RestOutlined, CaretRightOutlined
 } from "@ant-design/icons";
 
@@ -200,13 +200,14 @@ const Screen = () => {
     const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
     const [roomApplyList, setRoomApplyList] = useState<messageListData[]>([]);
 
+    const [checkBoxChecked, setCheckBoxChecked] = useState<boolean>(true);
+
     const onDrawerClose = () => {
         setDrawerOpen(false);
     };
 
     const [form] = Form.useForm();
     const { Panel } = Collapse;
-
 
     // 切换页面时 获取roomlist friendlist roominvitelist
     useEffect(() => {
@@ -246,17 +247,13 @@ const Screen = () => {
             temp = temp.concat(room.roomid);
         });
         setAllRoomList(temp);
-        console.log("room changed");
     }, [roomList]);
 
     const scrollRef = useRef<HTMLDivElement>(null);
     // 当本地message更新
     useEffect(() => {
         window.messageList = messageList;
-        console.log("msg changed", messageList);
-
         Read();
-
         // 保持滚动条在底部
         if (scrollRef.current) {
             const scrollElement = scrollRef.current;
@@ -284,10 +281,6 @@ const Screen = () => {
     //     console.log(updateMap);
     //     setCombineLists(updateMap);
     // }, [combineList])
-
-    // useEffect(() => {
-    //     setCombineList([]);
-    // }, [fatherId])
 
     const WSConnect = () => {
         let DEBUG = false;
@@ -387,8 +380,10 @@ const Screen = () => {
                         setMessageList(window.messageList.concat(newMessage));
                     }
                     else {
+                        let position = window.memList.indexOf(window.username);
+                        newMessage.read_list[position] = true;
                         // A更新 read list
-                        window.messageList[window.messageList.length - 1].read_list = data.read_list;
+                        window.messageList[window.messageList.length - 1].read_list = newMessage.read_list;
                         setMessageList(window.messageList);
                     }
                 }
@@ -397,6 +392,7 @@ const Screen = () => {
                 if (data.sender != window.username){
                     fetchRoomList();
                 }
+
                 else {
                     // 更新 roomList
                     for (let room of window.roomList){
@@ -435,7 +431,7 @@ const Screen = () => {
                                    }
                                 });
                                 if (data.chatroom_id === window.currentRoom.roomid){
-                                    setMessageList(messageList => room.message_list);
+                                    setMessageList(room.message_list);
                                 }
                             }
                         });
@@ -574,8 +570,8 @@ const Screen = () => {
                     window.password = res.password;
                     setUsername(res.username);
                     setToken(res.token);
-                    getAccount(account => "");
-                    getPassword(password => "");
+                    getAccount("");
+                    getPassword("");
                     setCurrentPage(CONS.MAIN);
                 })
                 .catch((err) => {
@@ -596,9 +592,9 @@ const Screen = () => {
             .then(() => {
                 message.success(STRINGS.REGISTER_SUCCESS, 1);
                 setCurrentPage(CONS.LOGIN);
-                setUsername(username => "");
-                getPassword(password => "");
-                getVerification(verification => "");
+                setUsername("");
+                getPassword("");
+                getVerification("");
             })
             .catch((err) => message.error(err.message, 1));
     };
@@ -1159,40 +1155,48 @@ const Screen = () => {
 
     // 合并转发
     const forward = () => {
-        const data = {
-            function: "send_message",
-            msg_type: "combine",
-            msg_body: "",
-            combine_list: forwardList,
-            transroom_id: window.forwardRoomId
-        };
-        window.ws.send(JSON.stringify(data));
-        console.log(data);
+        if (typeof window.forwardRoomId != "undefined"){
+            const data = {
+                function: "send_message",
+                msg_type: "combine",
+                msg_body: "",
+                combine_list: forwardList,
+                transroom_id: window.forwardRoomId
+            };
+            window.ws.send(JSON.stringify(data));
+            console.log(data);
 
-        let date = new Date();
-        let newMessage = {
-            "msg_id": -1,
-            "msg_type": "combine",
-            "msg_body": "",
-            "msg_time": moment(date).format("YYYY-MM-DD HH:mm:ss"),
-            "sender": window.username,
-            "read_list": [],
-            "combine_list": forwardList,
-            "avatar": window.userAvatar,
-            "is_delete": false
-        };
+            let date = new Date();
+            let newMessage = {
+                "msg_id": -1,
+                "msg_type": "combine",
+                "msg_body": "",
+                "msg_time": moment(date).format("YYYY-MM-DD HH:mm:ss"),
+                "sender": window.username,
+                "read_list": [],
+                "combine_list": forwardList,
+                "avatar": window.userAvatar,
+                "is_delete": false
+            };
 
 
-        if(window.forwardRoomId === window.currentRoom.roomid)
-        {
-            setMessageList(messageList => messageList.concat(newMessage));
-        }
+            if(window.forwardRoomId === window.currentRoom.roomid)
+            {
+                setMessageList(messageList => messageList.concat(newMessage));
+            }
         // for (let room of roomList){
         //     if (room.roomid === window.forwardRoomId){
         //         room.message_list.push(newMessage as messageListData);
         //     }
         // }
-        setForwardModal(false);
+            setForwardList([]);
+            setCheckBoxChecked(false);
+            setForwardModal(false);
+        }
+        else {
+            message.error("请选择会话", 1);
+        }
+
         //window.forwardRoomId = 0;
     };
 
@@ -1202,20 +1206,20 @@ const Screen = () => {
 
     // 获取被转发的消息
     const getAllCombine = (List: messageListData[]) => {
+
         let combineMessages = List.filter(arr => arr.msg_type === "combine");
         combineMessages.forEach((arr) => {
             arr.combine_list?.forEach(id => {
-                fetchMessage(id, arr.msg_id);
+                fetchMessage(arr.msg_id);
             });
         });
     };
 
     // 获取单个消息
-    const fetchMessage = (child_id: number, father_id: number) => {
+    const fetchMessage = (father_id: number) => {
         let data = {
             "function": "fetch_message",
             "father_id": father_id,
-            "msg_id": child_id
         };
         window.ws.send(JSON.stringify(data));
     };
@@ -1463,7 +1467,7 @@ const Screen = () => {
         const urlRegex = /(https?:\/\/[^\s]+)/g; // 匹配 URL 的正则表达式
         const atRegex = /(@[A-Za-z0-9]+)/g;
         const parts = text.split(urlRegex); // 使用正则表达式拆分字符串
-        var partss: string[] = [];
+        let partss: string[] = [];
         parts.forEach((part) => {
             if(typeof part != undefined)
             {
@@ -1564,13 +1568,12 @@ const Screen = () => {
         <div style={{padding: "12px"}}>
             <Space direction={"vertical"}>
                 <List
-                    grid={{gutter: 16, column: 4, xs: 1, sm: 2, md: 4, lg: 4, xl: 6, xxl: 3,}}
+                    grid={{gutter: 8, column: 2}}
                     dataSource={roomInfo.mem_list}
                     renderItem={(item) => (
                         <List.Item>
                             <Card
-                                style={{width: 200, marginTop: 8}}
-                                bordered={false}
+                                style={{width: 200, margin: 8}}
                                 actions={[
                                     (item !== window.username ?
                                             <Popover trigger={"hover"} content={"添加好友"}>
@@ -1610,11 +1613,6 @@ const Screen = () => {
                         </List.Item>
                     )}
                 />
-                {/* 拉人进群 */}
-                {/*<Button type={"default"} icon={<PlusOutlined />} size={"large"} onClick={() => {*/}
-                {/*    setRoomInfoModal(false);*/}
-                {/*    setInviteModal(true);*/}
-                {/*}}/>*/}
                 <Popover trigger={"hover"} content={roomInfo.is_private ? "建立群聊" : "邀请进群"}>
                 <AddIcon
                     onClick={() => {
@@ -1667,7 +1665,6 @@ const Screen = () => {
         </div>
     );
 
-    // @ts-ignore
     return (
         <div style={{
             width: "100%", height: "100%", position: "absolute", top: 0, left: 0, alignItems: "center",
@@ -1776,7 +1773,10 @@ const Screen = () => {
                             <br />
                             <Button
                                 type={"link"} icon={<ArrowLeftOutlined/>} size={"large"}
-                                onClick={() => {setCurrentPage(CONS.LOGIN); getPassword(password => "");}}>
+                                onClick={() => {
+                                    setCurrentPage(CONS.LOGIN);
+                                    getPassword( "");
+                                }}>
                                 返回登录
                             </Button>
                         </div>
@@ -1789,6 +1789,7 @@ const Screen = () => {
                         <Layout style={{ minHeight: "100vh" }} >
                             <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)} theme={"light"}>
                                 <Menu theme={"light"} defaultSelectedKeys={["1"]} mode="inline">
+
 
                                     <Menu.Item icon={<TelegramIcon />} key={"1"} onClick={()=> setMenuItem(CONS.CHATFRAME)}> 聊天 </Menu.Item>
 
@@ -1806,7 +1807,7 @@ const Screen = () => {
                                             <div style={{height: "3vh", margin: "10px", flexDirection: "row"}}>
                                                 <Space direction={"horizontal"}>
                                                     <Popover trigger={"hover"} content={"创建群聊"}>
-                                                    <AddCircleIcon onClick={() => setCreateGroupModal(true) }/>
+                                                        <AddCircleIcon onClick={() => setCreateGroupModal(true) }/>
                                                     </Popover>
                                                 </Space>
                                             </div>
@@ -1869,7 +1870,7 @@ const Screen = () => {
                                                 <Divider type={"horizontal"}/>
                                                 <div style={{padding: "24px", position: "relative", height: "60vh", overflow: "auto"}} ref={scrollRef}>
                                                     <List
-                                                        dataSource={ messageList.filter((msg) => (msg.msg_type != "notice" && !msg.is_delete)) }
+                                                        dataSource={ messageList.filter((msg) => (msg.msg_type != "notice" && msg.msg_type != "invite" && !msg.is_delete)) }
                                                         split={ false }
                                                         renderItem={(item) => (
                                                             <List.Item key={ item.msg_id }>
@@ -1877,7 +1878,7 @@ const Screen = () => {
                                                                     <>
                                                                         <Popover trigger={"contextMenu"} placement={"top"} content={
                                                                             <Space direction={"horizontal"} size={"small"}>
-                                                                                <Button type={"text"} onClick={() => setForwardModal(true)}> 转发 </Button>
+                                                                                <Button type={"text"} onClick={() => {setForwardModal(true); setCheckBoxChecked(true);}}> 转发 </Button>
                                                                                 <Button type={"text"} onClick={() => deleteMessage(item.msg_id)}> 删除 </Button>
                                                                                 <Button type={"text"} onClick={() => {setReplying(true); setReplyMessageID(item.msg_id); setReplyMessageBody(item.msg_body);}}> 回复 </Button>
                                                                                 { item.msg_type === "text" ? (
@@ -1973,7 +1974,6 @@ const Screen = () => {
                                                                                                 </Button>
                                                                                             </div>
                                                                                         ) : null}
-
                                                                                     </div>
                                                                                 </div>
                                                                             ) : (
@@ -1984,13 +1984,17 @@ const Screen = () => {
                                                                                     </div>
                                                                                     <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF"}}>
                                                                                         {isRead(item.read_list, roomInfo.mem_list, roomInfo.is_private, window.username)}
+
                                                                                         {item.msg_type === "reply" && typeof item.reply_id === "number" ? showReply(item.reply_id) : null}
+
                                                                                         {(item.msg_type != "combine" && item.msg_type != "image" && item.msg_type != "video" && item.msg_type != "file" && item.msg_type != "audio") ? (
                                                                                             str2addr(item.msg_body, item.read_list)
                                                                                         ): null}
+
                                                                                         {item.msg_type === "image" ? (
                                                                                             <Image width={"30vh"} src={("/api"+item.msg_body)}/>
                                                                                         ): null}
+
                                                                                         {(item.msg_type === "video") ? (
                                                                                             <div style={{width: "50vh"}}>
                                                                                                 <Player fluid={true} width={"50vh"}>
@@ -2006,6 +2010,7 @@ const Screen = () => {
                                                                                                 </Player>
                                                                                             </div>
                                                                                         ): null}
+
                                                                                         {(item.msg_type === "audio") ? (
                                                                                             <div style={{width: "50vh", height: "50px"}}>
                                                                                                 <Player fluid={false} width={"50vh"} height={"20px"}>
@@ -2021,6 +2026,7 @@ const Screen = () => {
                                                                                                 </Player>
                                                                                             </div>
                                                                                         ): null}
+
                                                                                         {item.msg_type === "file" ? (
                                                                                             <div>
                                                                                                 <h1> 文件消息 </h1>
@@ -2101,7 +2107,7 @@ const Screen = () => {
                                                             <AlbumIcon onClick={() => setAudioModal(true)}/>
                                                             <OndemandVideoIcon onClick={() => setVideoModal(true)}/>
                                                             <InsertDriveFileIcon onClick={() => setFileModal(true)}/>
-                                                            {VideoCall("audio_or_video_" + window.username, "audio_or_video_" + (typeof window.currentRoom != "undefined" ? window.currentRoom.roomname : ""))}
+                                                            {/*{VideoCall("audio_or_video_" + window.username, "audio_or_video_" + (typeof window.currentRoom != "undefined" ? window.currentRoom.roomname : ""))}*/}
                                                             <AccessTimeIcon onClick={() => {
                                                                 setRoomInfoModal(false);
                                                                 setHistoryModal(true);
@@ -2129,23 +2135,20 @@ const Screen = () => {
                                                                     value,
                                                                     label: value,
                                                                 }))}
-                                                                onPressEnter={() => {replying ? sendMessage(messageBody, "reply", replyMessageID) : sendMessage(messageBody, "text");
+                                                                onPressEnter={() => {replying ? sendMessage(messageBody, "reply", replyMessageID) :
+                                                                    sendMessage(messageBody, "text");
                                                                     setReplying(false);
                                                                 }}
                                                             />
                                                         </Form.Item>
 
                                                         <div style={{flexDirection: "row-reverse", display:"flex"}}>
-                                                            <SendIcon onClick={() => {replying ? sendMessage(messageBody, "reply", replyMessageID) : sendMessage(messageBody, "text");
+                                                            <SendIcon onClick={() => {replying ? sendMessage(messageBody, "reply", replyMessageID) :
+                                                                sendMessage(messageBody, "text");
                                                                 setReplying(false);
                                                             }}/>
                                                         </div>
-
                                                     </Form>
-
-
-
-
                                                 </div>
                                             </div>
                                         )}
@@ -2314,6 +2317,7 @@ const Screen = () => {
                                                                                     查看用户界面
                                                                                 </Button>
                                                                             ]}>
+                                                                            {/*<Avatar src={item.avatar}/>*/}
                                                                             <div>{item.username}</div>
                                                                         </List.Item>
                                                                     )}
@@ -2395,22 +2399,21 @@ const Screen = () => {
                                             <h3>用户名：{ window.username }</h3>
                                             <div style={{height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
                                                 <Space size={50}>
-                                                     <Popover trigger={"hover"} content={"修改用户名"}>
-                                                    <BadgeIcon onClick={() => ((changeUserInfo === CONS.REVISE_USERNAME) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.REVISE_USERNAME))}/>
-                                                     </Popover>
+                                                    <Popover trigger={"hover"} content={"修改用户名"}>
+                                                        <BadgeIcon onClick={() => ((changeUserInfo === CONS.REVISE_USERNAME) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.REVISE_USERNAME))}/>
+                                                    </Popover>
 
-                                                     <Popover trigger={"hover"} content={"修改密码"}>
-                                                    <KeyIcon onClick={() => ((changeUserInfo === CONS.REVISE_PASSWORD) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.REVISE_PASSWORD))}/>
-                                                     </Popover>
+                                                    <Popover trigger={"hover"} content={"修改密码"}>
+                                                        <KeyIcon onClick={() => ((changeUserInfo === CONS.REVISE_PASSWORD) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.REVISE_PASSWORD))}/>
+                                                    </Popover>
 
                                                     <Popover trigger={"hover"} content={"修改邮箱"}>
-                                                    <EmailIcon onClick={() => ((changeUserInfo === CONS.REVISE_EMAIL) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.REVISE_EMAIL))}/>
+                                                        <EmailIcon onClick={() => ((changeUserInfo === CONS.REVISE_EMAIL) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.REVISE_EMAIL))}/>
                                                     </Popover>
 
                                                     <Popover trigger={"hover"} content={"设置头像"}>
-                                                    <FaceIcon onClick={() => setAvatarModal(true)}/>
+                                                        <FaceIcon onClick={() => setAvatarModal(true)}/>
                                                     </Popover>
-
                                                 </Space>
                                             </div>
 
@@ -2494,11 +2497,8 @@ const Screen = () => {
                                                             value={sms}
                                                             onChange={(e) => setSms(e.target.value)}
                                                         />
-                                                        {/*<Button type="primary" onClick={() => sendEmail()}>*/}
-                                                        {/*    发送验证码*/}
-                                                        {/*</Button>*/}
                                                         <Popover trigger={"hover"} content={"发送验证码"}>
-                                                        <SendIcon onClick={()=>sendEmail()}/>
+                                                            <SendIcon onClick={()=>sendEmail()}/>
                                                         </Popover>
                                                     </Space.Compact>
                                                     <br/>
@@ -2525,11 +2525,11 @@ const Screen = () => {
                                             <div style={{height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
                                                 <Space size={150}>
                                                     <Popover trigger={"hover"} content={"登出"}>
-                                                    <LogoutIcon onClick={()=>logout()}/>
+                                                        <LogoutIcon onClick={()=>logout()}/>
                                                     </Popover>
 
                                                     <Popover trigger={"hover"} content={"注销"}>
-                                                    <CancelIcon onClick={() => ((changeUserInfo === CONS.WRITE_OFF) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.WRITE_OFF))}/>
+                                                        <CancelIcon onClick={() => ((changeUserInfo === CONS.WRITE_OFF) ? setChangeUserInfo(CONS.NO_REVISE) : setChangeUserInfo(CONS.WRITE_OFF))}/>
                                                     </Popover>
                                                 </Space>
                                             </div>
@@ -2577,6 +2577,7 @@ const Screen = () => {
                 <Checkbox.Group
                     style={{display: "grid", height: "60vh", overflow: "scroll" }}
                     onChange={ onForwardChange }
+                    // checked={checkBoxChecked}
                     options={ messageList.map((arr) => ({
                         label: arr.sender + ":  " + arr.msg_body,
                         value: arr.msg_id,
@@ -2703,7 +2704,7 @@ const Screen = () => {
 
                     <form id="fileform" ref={audioF} action="/api/user/uploadfile" method="post" encType="multipart/form-data" target="loadera" onSubmit={() => {
                         if(audioF.current) {
-                            var fromdata = new FormData(audioF.current);
+                            let fromdata = new FormData(audioF.current);
                             axios.post("/api/user/uploadfile", fromdata , avatarconfig)
                                 .then((res) => {
                                     console.log(res.data.file_url);
@@ -2856,14 +2857,7 @@ const Screen = () => {
                             renderItem={(item) => (
                                 <List.Item
                                     actions={[
-                                        // <Button
-                                        //     key={item.msg_id}
-                                        //     size={"large"}
-                                        //     type="default"
-                                        //     onClick={() => {deleteMessage(item.msg_id); filter();}}>
-                                        //     删除该记录
-                                        // </Button>
-                                        <ClearIcon onClick={() => {deleteMessage(item.msg_id); filter();}}key={"delete"}/>
+                                        <ClearIcon onClick={() => {deleteMessage(item.msg_id); filter();}} key={"delete"}/>
                                     ]}
                                 >
                                     <div style={{ display: "flex", flexDirection: "row"}}>
