@@ -22,7 +22,7 @@ interface friendListData {
 
 interface userData {
     username: string;
-    //avatar: string
+    avatar: string
 }
 
 interface receiveData {

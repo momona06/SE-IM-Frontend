@@ -749,7 +749,7 @@ const Screen = () => {
                 }
             )
                 .then((res) => {
-                    setSearchList(res.search_user_list.map((val: any) =>({username: val})));
+                    setSearchList(res.search_user_list.map((val: any) =>({username: val.username, avatar: val.avatar})));
                     setSearchRefreshing(false);
                 })
                 .catch((err) => {
@@ -821,6 +821,7 @@ const Screen = () => {
             },
         )
             .then((res) => {
+                window.otherAvatar = res.avatar;
                 setIsFriend(res.is_friend);
                 setMenuItem(CONS.ADDRESSBOOK);
                 setAddressItem(CONS.PUBLICINFO);
@@ -2191,6 +2192,7 @@ const Screen = () => {
                                                                                         <List.Item>
                                                                                             <Card bordered={false} style={{ marginTop: 8 }} onClick={() => {
                                                                                                 window.otherUsername = subItem;
+                                                                                                
                                                                                                 checkFriend();
                                                                                             }}>
                                                                                                 <Meta
@@ -2311,13 +2313,14 @@ const Screen = () => {
                                                                                     type="primary"
                                                                                     onClick={() => {
                                                                                         window.otherUsername = item.username;
+                                                                                        
                                                                                         checkFriend();
                                                                                     }}
                                                                                 >
                                                                                     查看用户界面
                                                                                 </Button>
                                                                             ]}>
-                                                                            {/*<Avatar src={item.avatar}/>*/}
+                                                                            <Avatar src={("/api"+item.avatar)}/>
                                                                             <div>{item.username}</div>
                                                                         </List.Item>
                                                                     )}
@@ -2334,6 +2337,7 @@ const Screen = () => {
                                                     paddingTop: "5px", paddingBottom: "25px", border: "1px solid transparent", borderRadius: "20px",
                                                     alignItems: "center", backgroundColor: "rgba(255,255,255,0.7)"
                                                 }}>
+                                                    <Avatar size={64} src={("/api"+window.otherAvatar)}/>
                                                     <h1>{ window.otherUsername }</h1>
                                                     {isFriend ? (
                                                         <div style={{height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
@@ -2395,7 +2399,7 @@ const Screen = () => {
                                             alignItems: "center",
                                             backgroundColor: "rgba(255,255,255,0.7)"
                                         }}>
-                                            <Avatar src={window.userAvatar}/>
+                                            <Avatar src={("/api"+window.userAvatar)}/>
                                             <h3>用户名：{ window.username }</h3>
                                             <div style={{height: "50px", margin: "5px", display: "flex", flexDirection: "row"}}>
                                                 <Space size={50}>
