@@ -298,7 +298,6 @@ const Screen = () => {
         };
         window.ws.onmessage = async function (event) {
             const data = JSON.parse(event.data);
-            console.log(data);
             if (data.function === "heartbeatconfirm") {
                 WSHeartBeat();
             }
