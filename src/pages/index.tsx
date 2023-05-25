@@ -30,7 +30,7 @@ import * as CONS from "../constants/constants";
 import { request } from "../utils/network";
 import {
     isRead, forwardCard, messageListData, roomListData,
-    receiveData, friendListData, roomInfoData, userData
+    receiveData, friendListData, roomInfoData, userData, combineData
 } from "../components/chat";
 
 import {
@@ -166,9 +166,12 @@ const Screen = () => {
     // 消息转发
     const [forwardModal, setForwardModal] = useState<boolean>(false);
     const [forwardList, setForwardList] = useState<number[]>([]);
-    const [combineList, setCombineList] = useState<messageListData[]>([]);
-    const [combineLists, setCombineLists] = useState<Map<number, messageListData[]>>(new Map());
+    // const [combineList, setCombineList] = useState<messageListData[]>([]);
+    // const [combineLists, setCombineLists] = useState<Map<number, messageListData[]>>(new Map());
     const [fatherId, setFatherId] = useState<number>(0);
+
+    const [fetchedList, setFetchedList] = useState<combineData[]>([]);
+    const [combineModal, setCombineModal] = useState<boolean>(false);
 
     // 多媒体 及 特殊群聊
     const [avatarModal, setAvatarModal] = useState<boolean>(false);
@@ -273,14 +276,12 @@ const Screen = () => {
         window.memList = roomInfo.mem_list;
     }, [roomInfo]);
 
-    useEffect(() => {
-        if (fatherId != 0 && combineList) {
-            let updateMap = new Map(combineLists);
-            updateMap.set(fatherId, combineList);
-            console.log(updateMap);
-            setCombineLists(updateMap);
-        }
-    }, [combineList]);
+    // useEffect(() => {
+    //     let updateMap = new Map(combineLists);
+    //     updateMap.set(fatherId, combineList);
+    //     console.log(updateMap);
+    //     setCombineLists(updateMap);
+    // }, [combineList])
 
     const WSConnect = () => {
         let DEBUG = false;
@@ -336,8 +337,20 @@ const Screen = () => {
             }
             // 获取combine消息的内容
             else if (data.function === "fetchmessage"){
-                setFatherId(data.father_id);
-                setCombineList(data.message_info_list);
+                let info = {
+                    msg_id: data.msg_id,
+                    msg_type: data.msg_type,
+                    msg_body: data.msg_body,
+                    msg_time: data.msg_time,
+                    sender: data.sender,
+                    combine_list: data.combine_list,
+                    read_list: data.read_list,
+                    avatar: data.avatar,
+                    is_delete: data.is_delete
+                };
+                // setFatherId(data.father_id);
+                // setCombineList(combineList => combineList.concat(info));
+                // setCombineList(combineList => combineList.concat(info));
             }
             else if (data.function === "Ack2"){
                 // 将消息id置为已发送
@@ -1167,19 +1180,25 @@ const Screen = () => {
                 "is_delete": false
             };
 
-            for (let room of roomList){
-                if (room.roomid === window.forwardRoomId) {
-                    room.message_list.push(newMessage as messageListData);
-                }
+
+            if(window.forwardRoomId === window.currentRoom.roomid)
+            {
+                setMessageList(messageList => messageList.concat(newMessage));
             }
+        // for (let room of roomList){
+        //     if (room.roomid === window.forwardRoomId){
+        //         room.message_list.push(newMessage as messageListData);
+        //     }
+        // }
             setForwardList([]);
             setCheckBoxChecked(false);
             setForwardModal(false);
-            //window.forwardRoomId = 0;
         }
         else {
             message.error("请选择会话", 1);
         }
+
+        //window.forwardRoomId = 0;
     };
 
     const onInviteChange = ({ target: { value } }: RadioChangeEvent) => {
@@ -1502,6 +1521,46 @@ const Screen = () => {
             console.log("j", j);
         });
     };
+
+    const handleCombine = (list?: number[]) => {
+        request(
+            "api/user/message",
+            "POST",
+            {
+                combine_list: list
+            },
+        )
+            .then((res) => {
+                console.log(res.msg_list);
+                setFetchedList(res.msg_list.map((val: any) => ({...val})));
+                setCombineModal(true);
+            })
+            .catch((err) => message.error(err.message, 1));
+    };
+
+    // const handleCombine2 = (list?: number[]) => {
+    //     if(list)
+    //     {
+    //         list.map((val, id) => {
+    //             request(
+    //                 "api/user/message",
+    //                 "POST",
+    //                 {
+    //                     msg_id: val
+    //                 },
+    //             )
+    //                 .then((res) => {
+    //                     console.log(res);
+    //                     setFetchedList((fetchedList) => fetchedList.concat([{msg_id: res.msg_id, msg_body: res.msg_body, msg_time: res.msg_time, msg_type: res.msg_type, sender: res.msg_sender, avatar: res.avatar}]));
+    //                     if(id === list.length - 1)
+    //                     {
+    //                         setCombineModal(true);
+    //                     }
+    //                 })
+    //                 .catch((err) => message.error(err.message, 1));
+    //         })
+    //     }
+    // };
 
     //会话具体信息
     const roomInfoPage = (
@@ -1905,7 +1964,14 @@ const Screen = () => {
                                                                                         ): null}
 
                                                                                         { item.msg_type === "combine" ? (
-                                                                                            forwardCard(combineLists, item.msg_id)
+                                                                                            <div>
+                                                                                                <h1> 转发 </h1>
+                                                                                                <Button onClick={() => {
+                                                                                                    handleCombine(item.combine_list);
+                                                                                                }} type="default">
+                                                                                                    查看转发的消息
+                                                                                                </Button>
+                                                                                            </div>
                                                                                         ) : null}
                                                                                     </div>
                                                                                 </div>
@@ -1970,8 +2036,16 @@ const Screen = () => {
                                                                                                 </Button>
                                                                                             </div>
                                                                                         ): null}
-
-                                                                                        { item.msg_type === "combine" ? (forwardCard(combineLists, item.msg_id)) : null}
+                                                                                        { item.msg_type === "combine" ? (
+                                                                                            <div>
+                                                                                                <h1> 转发 </h1>
+                                                                                                <Button onClick={() => {
+                                                                                                    handleCombine(item.combine_list);
+                                                                                                }} type="default">
+                                                                                                    查看转发的消息
+                                                                                                </Button>
+                                                                                            </div>
+                                                                                        ) : null}
                                                                                         <span> { item.msg_time } </span>
                                                                                     </div>
                                                                                 </div>
@@ -2824,6 +2898,29 @@ const Screen = () => {
                         value: friend,
                         label: friend
                     }))}
+                />
+            </Modal>
+
+            <Modal title={"转发的消息"} open={combineModal} onOk={() => setCombineModal(false)} onCancel={() => setCombineModal(false)}>
+                <List
+                    dataSource={fetchedList}
+                    renderItem={(item) => (
+                        <List.Item>
+                            <div style={{ display: "flex", flexDirection: "row"}}>
+                                <div style={{display: "flex", flexDirection: "column"}}>
+                                    <List.Item.Meta avatar={<Avatar  src={("/api"+item.avatar)}/>}/>
+                                    <h6>{item.msg_sender}</h6>
+                                </div>
+                                <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF"}}>
+                                    <p>{item.msg_body }</p>
+                                    {item.msg_type === "combine" ? (
+                                        <p>该消息类型不可见</p>
+                                    ) : null}
+                                    <span>{ item.msg_time }</span>
+                                </div>
+                            </div>
+                        </List.Item>
+                    )}
                 />
             </Modal>
 
