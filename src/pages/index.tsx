@@ -1096,11 +1096,11 @@ const Screen = () => {
     const appendEmoji = (item: string) => {
         if (form.getFieldValue("box")){
             form.setFieldsValue({box: form.getFieldValue("box") + item});
-            setMessageBody(form.getFieldValue("box") + item);
+            setMessageBody(form.getFieldValue("box"));
         }
         else {
             form.setFieldsValue({box: item});
-            setMessageBody(form.getFieldValue("box") + item);
+            setMessageBody(form.getFieldValue("box"));
         }
     };
 
