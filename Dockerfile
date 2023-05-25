@@ -5,7 +5,7 @@ ENV FRONTEND=/opt/frontend
 
 WORKDIR $FRONTEND
 
-RUN yarn config set registry https://registry.npmmirror.com
+RUN yarn config set registry https://registry.npm.taobao.org
 
 COPY . .
 
@@ -14,8 +14,6 @@ RUN yarn install
 RUN yarn next build
 
 RUN yarn next export
-
-RUN yarn add antd@^4.24.2
 
 FROM nginx:1.22
 
