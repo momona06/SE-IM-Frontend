@@ -1191,10 +1191,8 @@ const Screen = () => {
 
         let combineMessages = List.filter(arr => arr.msg_type === "combine");
         combineMessages.forEach((arr) => {
-            arr.combine_list?.forEach(id => {
-                fetchMessage(arr.msg_id);
-            });
-        });
+            fetchMessage(arr.msg_id);
+        })
     };
 
     // 获取单个消息
