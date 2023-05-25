@@ -367,8 +367,10 @@ const Screen = () => {
                         setMessageList(window.messageList.concat(newMessage));
                     }
                     else {
+                        let position = window.memList.indexOf(window.username);
+                        newMessage.read_list[position] = true;
                         // A更新 read list
-                        window.messageList[window.messageList.length - 1].read_list = data.read_list;
+                        window.messageList[window.messageList.length - 1].read_list = newMessage.read_list;
                         setMessageList(window.messageList);
                     }
                 }
