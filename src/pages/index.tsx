@@ -2569,7 +2569,7 @@ const Screen = () => {
                         renderItem = {(item) => (
                             <List.Item>
                                 <List.Item.Meta
-                                    avatar = {<Avatar src={"https://xsgames.co/randomusers/avatar.php?g=pixel"} />}
+                                    avatar = {<Avatar src={("/api"+item.avatar)}/>}
                                     title = {item.sender}
                                     description={item.msg_time}
                                 />
