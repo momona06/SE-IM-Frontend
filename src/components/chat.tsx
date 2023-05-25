@@ -102,14 +102,21 @@ const isRead = (readList: boolean[], memberList: string[], isPrivate: boolean, u
         }
         return (
             <Popover trigger={"click"} content={
+                // <List
+                //     itemLayout={"vertical"}
+                //     dataSource={isReadList}
+                //     renderItem={(item) => (
+                //         <List.Item>
+                //             <List.Item.Meta title={item}/>
+                //         </List.Item>)
+                // }/>
                 <List
-                    itemLayout={"vertical"}
-                    dataSource={isReadList}
-                    renderItem={(item) => (
-                        <List.Item>
-                            <List.Item.Meta title={item}/>
-                        </List.Item>)
-                }/>
+                size="small"
+                     itemLayout={"vertical"}
+                     bordered
+                     dataSource={isReadList}
+                     renderItem={(item) => <List.Item>{item}</List.Item>}
+                />
             }>
                 <Tag color={"cyan"}>已读成员列表</Tag>
             </Popover>

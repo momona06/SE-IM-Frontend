@@ -1965,11 +1965,11 @@ const Screen = () => {
 
                                                                                         { item.msg_type === "combine" ? (
                                                                                             <div>
-                                                                                                <h1> 转发 </h1>
+                                                                                                <h4> 转发 </h4>
                                                                                                 <Button onClick={() => {
                                                                                                     handleCombine(item.combine_list);
                                                                                                 }} type="default">
-                                                                                                    查看转发的消息
+                                                                                                    转发消息
                                                                                                 </Button>
                                                                                             </div>
                                                                                         ) : null}
@@ -2901,7 +2901,7 @@ const Screen = () => {
                 />
             </Modal>
 
-            <Modal title={"转发的消息"} open={combineModal} onOk={() => setCombineModal(false)} onCancel={() => setCombineModal(false)}>
+            <Modal title={"转发消息"} open={combineModal} onOk={() => setCombineModal(false)} onCancel={() => setCombineModal(false)}>
                 <List
                     dataSource={fetchedList}
                     renderItem={(item) => (
