@@ -1,13 +1,13 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import HeadphonesIcon from '@mui/icons-material/Headphones';
 import VideocamIcon from '@mui/icons-material/Videocam';
 import CableIcon from '@mui/icons-material/Cable';
 import StopCircleIcon from '@mui/icons-material/StopCircle';
-import {
-    Button
-} from "antd";
-const VideoCall = (userName, userToCall) => {
+import GroupAddIcon from '@mui/icons-material/GroupAdd';
 
+const VideoCall = (userName, userToCall) => {
+    let localVideo = document.querySelector('#localVideo');
+    let remoteVideo = document.querySelector('#remoteVideo');
 
     let iceCandidatesFromCaller = [];
     let callInProgress = false;
@@ -37,16 +37,19 @@ const VideoCall = (userName, userToCall) => {
     //     offerToReceiveVideo: true
     // };
 
-    let localVideo = document.querySelector('#localVideo');
-    let remoteVideo = document.querySelector('#remoteVideo');
 
-    connectSocket();
+
+
+
+    function login() {
+        connectSocket();
+    }
 
 
     function connectSocket() {
         // callSocket = new WebSocket("ws://localhost:8000/ws/call/");
         callSocket = new WebSocket("wss://se-im-backend-overflowlab.app.secoder.net/ws/call/");
-        console.log("Video Websocket Connect");
+        console.log("Video Connect Send");
         callSocket.onopen = event => {
             callSocket.send(JSON.stringify({
                 type: 'login',
@@ -62,6 +65,7 @@ const VideoCall = (userName, userToCall) => {
 
             if(type == 'connection') {
                 console.log(response.data.message);
+                alert("Connected!");
             }
 
             else if(type == 'call_received') {
@@ -108,8 +112,8 @@ const VideoCall = (userName, userToCall) => {
             otherUser = data.caller;
             remoteRTCMessage = data.rtcMessage;
 
-            document.getElementById("audiocall").style.display = "none";
-            document.getElementById("videocall").style.display = "none";
+            // document.getElementById("audiocall").style.display = "none";
+            // document.getElementById("videocall").style.display = "none";
 
             document.getElementById("answer").style.display = "inline";
             document.getElementById("stop").style.display = "inline";
@@ -137,9 +141,7 @@ const VideoCall = (userName, userToCall) => {
 
             if (peerConnection) {
                 console.log("ICE candidate Added");
-                if(peerConnection != null) {
-                    peerConnection.addIceCandidate(candidate);
-                }
+                peerConnection.addIceCandidate(candidate);
             }
 
             else {
@@ -157,20 +159,22 @@ const VideoCall = (userName, userToCall) => {
         peerConnection = null;
         otherUser = null;
 
-        document.getElementById("audiocall").display = "inline";
-        document.getElementById("videocall").display = "inline";
+        document.getElementById("videos").style.display = "none";
 
         document.getElementById("answer").display = "none";
         document.getElementById("stop").display = "none";
 
-        document.getElementById("videos").style.display = "none";
+        document.getElementById("audiocall").display = "inline";
+        document.getElementById("videocall").display = "inline";
 
+        console.log("stop by myself");
         callSocket.send(JSON.stringify({
             type: 'stop_call',
             data: {
                 name: userToCall
             }
         }));
+
     }
 
 
@@ -182,37 +186,46 @@ const VideoCall = (userName, userToCall) => {
 
     function videoCall() {
         isVideo = true;
-        if(typeof callSocket == "undefined" || callSocket == null) {
-            connectSocket();
-        }
 
-        document.getElementById("audiocall").style.display = "none";
-        document.getElementById("videocall").style.display = "none";
+        // if(typeof callSocket == "undefined" || callSocket == null) {
+        //     connectSocket();
+        // }
+
+        // document.getElementById("audiocall").style.display = "none";
+        // document.getElementById("videocall").style.display = "none";
 
         document.getElementById("answer").style.display = "inline";
         document.getElementById("stop").style.display = "inline";
 
-        document.getElementById("videos").style.display="inline";
+        document.getElementById("videos").style.display="block";
 
         otherUser = userToCall;
-        setTimeout(preProcess, 4000);
+        // setTimeout(preProcess, 4000);
+        beReady()
+            .then(bool => {
+                processCall(userToCall)
+            })
     }
 
     function audioCall() {
         isVideo = false;
-        if(typeof callSocket == "undefined" || callSocket == null) {
-            connectSocket();
-        }
-        document.getElementById("audiocall").style.display = "none";
-        document.getElementById("videocall").style.display = "none";
+        // if(typeof callSocket == "undefined" || callSocket == null) {
+        //     connectSocket();
+        // }
+        // document.getElementById("audiocall").style.display = "none";
+        // document.getElementById("videocall").style.display = "none";
 
         document.getElementById("answer").style.display = "inline";
         document.getElementById("stop").style.display = "inline";
 
-        document.getElementById("videos").style.display="inline";
+        document.getElementById("videos").style.display="none";
 
         otherUser = userToCall;
-        setTimeout(preProcess, 4000);
+        // setTimeout(preProcess, 4000);
+        beReady()
+            .then(bool => {
+                processCall(userToCall)
+            })
     }
 
 
@@ -236,8 +249,8 @@ const VideoCall = (userName, userToCall) => {
             type: 'call',
             data
         }));
-        document.getElementById("audiocall").style.display = "none";
-        document.getElementById("videocall").style.display = "none";
+        // document.getElementById("audiocall").style.display = "none";
+        // document.getElementById("videocall").style.display = "none";
     }
 
     /**
@@ -384,7 +397,7 @@ const VideoCall = (userName, userToCall) => {
 
 
     function callProgress() {
-        document.getElementById("videos").style.display = "inline";
+        document.getElementById("videos").style.display = "block";
         callInProgress = true;
     }
 
@@ -400,6 +413,7 @@ const VideoCall = (userName, userToCall) => {
     return (
         <div direction={"horizontal"}>
             <div>
+                <GroupAddIcon id="login" onClick={login}/>
                 <HeadphonesIcon id="audiocall" onClick={audioCall}/>
                 <VideocamIcon id="videocall" onClick={videoCall}/>
                 <CableIcon style={{display: "none"}} id="answer" onClick={answer}/>

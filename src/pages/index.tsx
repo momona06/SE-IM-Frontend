@@ -90,6 +90,7 @@ const props: UploadProps = {
 
 //登录界面
 const Screen = () => {
+
     const [account, getAccount] = useState<string>("");
     const [username, setUsername] = useState<string>("");
     const [password, getPassword] = useState<string>("");
@@ -2033,7 +2034,7 @@ const Screen = () => {
                                                             <AlbumIcon onClick={() => setAudioModal(true)}/>
                                                             <OndemandVideoIcon onClick={() => setVideoModal(true)}/>
                                                             <InsertDriveFileIcon onClick={() => setFileModal(true)}/>
-                                                            {/*{VideoCall("audio_or_video_" + window.username, "audio_or_video_" + (typeof window.currentRoom != "undefined" ? window.currentRoom.roomname : ""))}*/}
+                                                            {VideoCall("audio_or_video_" + window.username, "audio_or_video_" + (typeof window.currentRoom != "undefined" ? window.currentRoom.roomname : ""))}
                                                             <AccessTimeIcon onClick={() => {
                                                                 setRoomInfoModal(false);
                                                                 setHistoryModal(true);
