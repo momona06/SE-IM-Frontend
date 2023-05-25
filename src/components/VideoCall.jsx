@@ -14,7 +14,7 @@ const VideoCall = (userName, userToCall) => {
     let otherUser;
     let remoteRTCMessage;
     let peerConnection;
-    let remoteStream;
+    let remoteStream = "default";
     let localStream;
     let callSocket;
     let isVideo;
@@ -31,12 +31,6 @@ const VideoCall = (userName, userToCall) => {
         }]
     };
 
-
-    // let sdpConstraints = {
-    //     offerToReceiveAudio: true,
-    //     offerToReceiveVideo: true
-    // };
-
     function login() {
         connectSocket();
     }
@@ -45,7 +39,6 @@ const VideoCall = (userName, userToCall) => {
     function connectSocket() {
         // callSocket = new WebSocket("ws://localhost:8000/ws/call/");
         callSocket = new WebSocket("wss://se-im-backend-overflowlab.app.secoder.net/ws/call/");
-        console.log("Video Connect Send");
         callSocket.onopen = event => {
             callSocket.send(JSON.stringify({
                 type: 'login',
@@ -90,7 +83,6 @@ const VideoCall = (userName, userToCall) => {
             }
             callInProgress = false;
             peerConnection = null;
-            //otherUser = null;
 
             document.getElementById("audiocall").style.display = "inline";
             document.getElementById("videocall").style.display = "inline";
@@ -100,16 +92,11 @@ const VideoCall = (userName, userToCall) => {
 
             document.getElementById("videos").style.display = "none";
 
-            console.log("STOP FROM OTHER");
         }
 
         const onNewCall = (data) => {
-            // when other called you
             otherUser = data.caller;
             remoteRTCMessage = data.rtcMessage;
-
-            // document.getElementById("audiocall").style.display = "none";
-            // document.getElementById("videocall").style.display = "none";
 
             document.getElementById("answer").style.display = "inline";
             document.getElementById("stop").style.display = "inline";
@@ -117,17 +104,14 @@ const VideoCall = (userName, userToCall) => {
 
 
         const onCallAnswered = (data) => {
-            // when other accept our call
             remoteRTCMessage = data.rtcMessage;
             if(typeof peerConnection != "undefined" && peerConnection != null) {
                 peerConnection.setRemoteDescription(new RTCSessionDescription(remoteRTCMessage));
             }
-            console.log("Call Started. They Answered");
             callProgress();
         };
 
         const onICECandidate = (data) => {
-            console.log("GOT ICE candidate");
             let message = data.rtcMessage;
 
             let candidate = new RTCIceCandidate({
@@ -136,12 +120,24 @@ const VideoCall = (userName, userToCall) => {
             });
 
             if (peerConnection) {
-                console.log("ICE candidate Added");
-                peerConnection.addIceCandidate(candidate);
+
+                try {
+                    if(peerConnection != null) {
+                        peerConnection.addIceCandidate(candidate)
+                            .then(done => {
+                            console.log(done);
+                        })
+                            .catch(error => {
+                            console.log(error);
+                        })
+                    }
+                }
+                catch (error) {
+                    console.log(error);
+                }
             }
 
             else {
-                console.log("ICE candidate Pushed");
                 iceCandidatesFromCaller.push(candidate);
             }
         };
@@ -183,20 +179,12 @@ const VideoCall = (userName, userToCall) => {
     function videoCall() {
         isVideo = true;
 
-        // if(typeof callSocket == "undefined" || callSocket == null) {
-        //     connectSocket();
-        // }
-
-        // document.getElementById("audiocall").style.display = "none";
-        // document.getElementById("videocall").style.display = "none";
-
         document.getElementById("answer").style.display = "inline";
         document.getElementById("stop").style.display = "inline";
 
         document.getElementById("videos").style.display="block";
 
         otherUser = userToCall;
-        // setTimeout(preProcess, 4000);
         beReady()
             .then(bool => {
                 processCall(userToCall)
@@ -205,11 +193,6 @@ const VideoCall = (userName, userToCall) => {
 
     function audioCall() {
         isVideo = false;
-        // if(typeof callSocket == "undefined" || callSocket == null) {
-        //     connectSocket();
-        // }
-        // document.getElementById("audiocall").style.display = "none";
-        // document.getElementById("videocall").style.display = "none";
 
         document.getElementById("answer").style.display = "inline";
         document.getElementById("stop").style.display = "inline";
@@ -217,7 +200,6 @@ const VideoCall = (userName, userToCall) => {
         document.getElementById("videos").style.display="none";
 
         otherUser = userToCall;
-        // setTimeout(preProcess, 4000);
         beReady()
             .then(bool => {
                 processCall(userToCall)
@@ -233,28 +215,14 @@ const VideoCall = (userName, userToCall) => {
     }
 
 
-    /**
-     *
-     * @param {Object} data
-     * @param {number} data.name - the name of the user to call
-     * @param {Object} data.rtcMessage - the rtc create offer object
-     */
     function sendCall(data) {
         // send a call
         callSocket.send(JSON.stringify({
             type: 'call',
             data
         }));
-        // document.getElementById("audiocall").style.display = "none";
-        // document.getElementById("videocall").style.display = "none";
     }
 
-    /**
-     *
-     * @param {Object} data
-     * @param {number} data.caller - the caller name
-     * @param {Object} data.rtcMessage - answer rtc sessionDescription object
-     */
     function answerCall(data) {
         callSocket.send(JSON.stringify({
             type: 'answer_call',
@@ -263,15 +231,7 @@ const VideoCall = (userName, userToCall) => {
         callProgress();
     }
 
-    /**
-     *
-     * @param {Object} data
-     * @param {number} data.user - the other user //either callee or caller
-     * @param {Object} data.rtcMessage - iceCandidate data
-     */
     function sendICEcandidate(data) {
-        // send only if we have caller, else no need to
-        console.log("Send ICE candidate");
         callSocket.send(JSON.stringify({
             type: 'ICEcandidate',
             data
@@ -305,18 +265,15 @@ const VideoCall = (userName, userToCall) => {
             peerConnection.onicecandidate = handleIceCandidate;
             peerConnection.onaddstream = handleRemoteStreamAdded;
             peerConnection.onremovestream = handleRemoteStreamRemoved;
-            console.log('Created RTCPeerConnection');
         }
         catch (e) {
             console.log('Failed to create PeerConnection, exception: ' + e.message);
-            alert('Cannot create RTCPeerConnection object.');
         }
     }
 
 
     function handleIceCandidate(event) {
         if (event.candidate) {
-            console.log("Local ICE candidate");
             sendICEcandidate({
                 user: otherUser,
                 rtcMessage: {
@@ -329,13 +286,11 @@ const VideoCall = (userName, userToCall) => {
     }
 
     function handleRemoteStreamAdded(event) {
-        console.log('Remote stream added.');
         remoteStream = event.stream;
         remoteVideo.srcObject = remoteStream;
     }
 
     function handleRemoteStreamRemoved(event) {
-        console.log('Remote stream removed. Event: ', event);
         remoteVideo.srcObject = null;
         localVideo.srcObject = null;
     }
@@ -360,7 +315,6 @@ const VideoCall = (userName, userToCall) => {
             if (iceCandidatesFromCaller.length > 0) {
                 for (let i = 0; i < iceCandidatesFromCaller.length; i++) {
                     let candidate = iceCandidatesFromCaller[i];
-                    console.log("ICE candidate Added From queue");
                     try {
                         if(peerConnection != null) {
                             peerConnection.addIceCandidate(candidate).then(done => {
@@ -375,10 +329,6 @@ const VideoCall = (userName, userToCall) => {
                     }
                 }
                 iceCandidatesFromCaller = [];
-                console.log("ICE candidate queue cleared");
-            }
-            else {
-                console.log("NO Ice candidate in queue");
             }
 
             answerCall({
@@ -401,7 +351,6 @@ const VideoCall = (userName, userToCall) => {
         if (callInProgress) {
             stop();
             callSocket.close();
-            console.log("Video Websocket Close");
         }
     };
 
