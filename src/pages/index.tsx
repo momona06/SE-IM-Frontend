@@ -287,6 +287,7 @@ const Screen = () => {
                 "username": window.username
             };
             window.ws.send(JSON.stringify(data));
+
             WSHeartBeat();
         };
         window.ws.onclose = function () {
@@ -297,6 +298,7 @@ const Screen = () => {
         };
         window.ws.onmessage = async function (event) {
             const data = JSON.parse(event.data);
+            console.log(data);
             if (data.function === "heartbeatconfirm") {
                 WSHeartBeat();
             }
@@ -959,6 +961,8 @@ const Screen = () => {
         return num;
     };
 
+
+
     const sendMessage = (Message: string, MessageType: string, reply_id?: number) => {
         if (Message != ""){
             let data = {
@@ -1262,12 +1266,14 @@ const Screen = () => {
             "is_admin": is_admin
         };
         window.ws.send(JSON.stringify(data));
-        for (let i = window.messageList.length - 1; i >= 0; i--){
-            if (window.messageList[i].msg_id === id){
+        for (let i = window.messageList.length-1; i >= 0; i--){
+            if (window.messageList[i].msg_id === data.msg_id) {
                 window.messageList[i].msg_body = "该消息已被撤回";
+                break;
             }
         }
         setMessageList(window.messageList);
+        message.success("撤回成功");
     };
 
     const translateConfig = {
@@ -1577,11 +1583,17 @@ const Screen = () => {
                     )}
                 />
                 <Popover trigger={"hover"} content={roomInfo.is_private ? "建立群聊" : "邀请进群"}>
-                <AddIcon
-                    onClick={() => {
-                    setRoomInfoModal(false);
-                    setInviteModal(true);
-                }}/>
+                    {roomInfo.is_private ? (
+                        <AddIcon onClick={() => {
+                            setRoomInfoModal(false);
+                            setInviteModal(true);
+                        }}/>
+                        ) : (
+                        <AddIcon onClick={() => {
+                            setRoomInfoModal(false);
+                            setInviteModal(true);
+                        }}/>
+                        )}
                 </Popover>
                 {roomInfo.is_private ? null: (<h2>{`群聊名称   ${typeof window != "undefined" && typeof window.currentRoom != "undefined" ? window.currentRoom.roomname : null}`}</h2>)}
 
@@ -2856,7 +2868,23 @@ const Screen = () => {
             </Modal>
 
             {/* 添加入群 */}
-            <Modal title={"选择联系人"} open={inviteModal} onOk={() => {sendMessage(inviteUser, "invite"); setInviteModal(false);}} onCancel={() => setInviteModal(false)}>
+            <Modal title={"选择联系人"} open={inviteModal}
+                   onOk={() => {
+                    if (roomInfo.is_private) {
+                        let data = {
+                            function: "create_group",
+                            member_list: [inviteUser, window.username],
+                            room_name: "default_group"
+                        };
+                        window.ws.send(JSON.stringify(data));
+                        setInviteModal(false);
+                    }
+                    else {
+                        sendMessage(inviteUser, "invite");
+                        setInviteModal(false);
+                    }
+                }}
+            onCancel={() => setInviteModal(false)}>
                 <Radio.Group
                     style={{display: "grid", height: "60vh", overflow: "scroll" }}
                     onChange={ onInviteChange }
