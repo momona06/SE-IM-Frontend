@@ -1582,17 +1582,10 @@ const Screen = () => {
                     )}
                 />
                 <Popover trigger={"hover"} content={roomInfo.is_private ? "建立群聊" : "邀请进群"}>
-                    {roomInfo.is_private ? (
-                        <AddIcon onClick={() => {
-                            setRoomInfoModal(false);
-                            setInviteModal(true);
-                        }}/>
-                        ) : (
-                        <AddIcon onClick={() => {
-                            setRoomInfoModal(false);
-                            setInviteModal(true);
-                        }}/>
-                        )}
+                    <AddIcon onClick={() => {
+                        setRoomInfoModal(false);
+                        setInviteModal(true);
+                    }}/>
                 </Popover>
                 {roomInfo.is_private ? null: (<h2>{`群聊名称   ${typeof window != "undefined" && typeof window.currentRoom != "undefined" ? window.currentRoom.roomname : null}`}</h2>)}
 
