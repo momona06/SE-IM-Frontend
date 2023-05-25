@@ -494,10 +494,11 @@ const Screen = () => {
     };
 
     const WSOnclose = () => {
-        if (window.heartBeat) {
-            console.log("close重接");
-            WSConnect();
-        }
+        // if (window.heartBeat) {
+        console.log("close重接");
+        alert("异常断开，请尽量慢些操作并重新连接");
+        WSConnect();
+        // }
     };
 
     const WSHeartBeat = () => {
@@ -1275,8 +1276,8 @@ const Screen = () => {
         window.ws.send(JSON.stringify(data));
         for (let i = window.messageList.length - 1; i >= 0; i--){
             if (window.messageList[i].msg_id === id){
+                console.log("id:", window.messageList[i]);
                 window.messageList[i].msg_body = "该消息已被撤回";
-                break;
             }
         }
         setMessageList(window.messageList);
@@ -2549,7 +2550,7 @@ const Screen = () => {
                 title={"群公告"} open={ boardModal } onCancel={() => setBoardModal(false)}
                 onOk={() => {
                     sendMessage(messageBody, "notice");
-                }} okButtonProps={{disabled: identity(username) == CONS.MANAGER}}>
+                }} okButtonProps={{disabled: identity(username) == CONS.MEMBER}}>
 
                 <div style={{height: "50vh", overflow: "scroll"}}>
                     <List

@@ -37,10 +37,6 @@ const VideoCall = (userName, userToCall) => {
     //     offerToReceiveVideo: true
     // };
 
-
-
-
-
     function login() {
         connectSocket();
     }
