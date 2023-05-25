@@ -1193,7 +1193,7 @@ const Screen = () => {
         //     }
         // }
         setForwardModal(false);
-        window.forwardRoomId = 0;
+        //window.forwardRoomId = 0;
     };
 
     const onInviteChange = ({ target: { value } }: RadioChangeEvent) => {
