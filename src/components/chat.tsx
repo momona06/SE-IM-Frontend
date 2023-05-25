@@ -44,7 +44,7 @@ interface roomListData {
 }
 
 interface roomInfoData {
-    mem_list: string[];
+    mem_list: userData[];
     manager_list: string[];
     master: string;
     mem_count: number;

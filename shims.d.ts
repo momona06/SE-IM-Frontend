@@ -1,4 +1,4 @@
-import {roomListData, messageListData} from "./src/components/chat";
+import {roomListData, messageListData, userData} from "./src/components/chat";
 
 declare global {
     interface Window {

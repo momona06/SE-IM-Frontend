@@ -273,7 +273,10 @@ const Screen = () => {
 
     // 更新memList
     useEffect(() => {
-        window.memList = roomInfo.mem_list;
+        window.memList = [];
+        roomInfo.mem_list.forEach(arr => {
+            window.memList.push(arr.username);
+        });
     }, [roomInfo]);
 
     // useEffect(() => {
@@ -494,11 +497,11 @@ const Screen = () => {
     };
 
     const WSOnclose = () => {
-        // if (window.heartBeat) {
+        if (window.heartBeat) {
         console.log("close重接");
         alert("异常断开，请尽量慢些操作并重新连接");
         WSConnect();
-        // }
+        }
     };
 
     const WSHeartBeat = () => {
@@ -1370,7 +1373,7 @@ const Screen = () => {
             "member_name": username
         };
         window.ws.send(JSON.stringify(data));
-        let pos = roomInfo.mem_list.indexOf(username);
+        let pos = window.memList.indexOf(username);
         roomInfo.mem_list.splice(pos, 1);
     };
 
@@ -1492,11 +1495,11 @@ const Screen = () => {
                             </a>
                         );
                     }
-                    else if (part.match(atRegex) && roomInfo.mem_list.lastIndexOf(part.substring(1)) != -1) {
+                    else if (part.match(atRegex) && window.memList.lastIndexOf(part.substring(1)) != -1) {
                         return (
                             <Popover trigger={"hover"} content={
                                 <Space direction={"horizontal"} size={"small"}>
-                                    <p>{part.substring(1)+(readlist[roomInfo.mem_list.lastIndexOf(part.substring(1))] ? "已读" : "未读")}</p>
+                                    <p>{part.substring(1)+(readlist[window.memList.lastIndexOf(part.substring(1))] ? "已读" : "未读")}</p>
                                 </Space>
                             } key = {i}>
                                 <span style={{color: "blue"}} onClick={() => {
@@ -1576,39 +1579,39 @@ const Screen = () => {
                             <Card
                                 style={{width: 200, margin: 8}}
                                 actions={[
-                                    (item !== window.username ?
+                                    (item.username !== window.username ?
                                             <Popover trigger={"hover"} content={"添加好友"}>
                                                 <UserAddOutlined key={"add_friend"} onClick={() => {
-                                                    addFriend(item);
+                                                    addFriend(item.username);
                                                 }}/>
                                             </Popover> : null
                                     ),
-                                    (identity(window.username) === CONS.MASTER && item !== window.username ?
-                                            <Popover trigger={"hover"} content={identity(item) === CONS.MEMBER ? "任命管理员" : "解除管理"}>
+                                    (identity(window.username) === CONS.MASTER && item.username !== window.username ?
+                                            <Popover trigger={"hover"} content={identity(item.username) === CONS.MEMBER ? "任命管理员" : "解除管理"}>
                                                 <UserSwitchOutlined key={"setManager"} onClick={() => {
-                                                    setManager(item);
+                                                    setManager(item.username);
                                                 }}/>
                                             </Popover> : null
                                     ),
-                                    (identity(window.username) === CONS.MASTER && item != window.username ?
+                                    (identity(window.username) === CONS.MASTER && item.username != window.username ?
                                             <Popover trigger={"hover"} content={"转让群主"}>
                                                 <IdcardOutlined key={"setMaster"} onClick={() => {
-                                                    setMaster(item);
+                                                    setMaster(item.username);
                                                 }}/>
                                             </Popover> : null
                                     ),
-                                    (identity(window.username) > identity(item) ?
+                                    (identity(window.username) > identity(item.username) ?
                                             <Popover trigger={"hover"} content={"踢出成员"}>
                                                 <UserDeleteOutlined key={"kick"} onClick={() => {
-                                                    removeMem(item);
+                                                    removeMem(item.username);
                                                 }}/>
                                             </Popover>: null
                                     )
                                 ]}>
                                 <Meta
-                                    avatar={<Avatar src="https://xsgames.co/randomusers/avatar.php?g=pixel"/>}
-                                    title={item}
-                                    description={!roomInfo.is_private ? id2str(identity(item)) : null}
+                                    avatar={<Avatar  src={("/api"+item.avatar)}/>}
+                                    title={item.username}
+                                    description={!roomInfo.is_private ? id2str(identity(item.username)) : null}
                                 />
                             </Card>
                         </List.Item>
@@ -1908,7 +1911,7 @@ const Screen = () => {
                                                                                     <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#7FFFD4"}}>
                                                                                         <span> { item.msg_time } </span>
 
-                                                                                        {isRead(item.read_list, roomInfo.mem_list, roomInfo.is_private, window.username)}
+                                                                                        {isRead(item.read_list, window.memList, roomInfo.is_private, window.username)}
 
                                                                                         {item.msg_type === "reply" && typeof item.reply_id === "number" ? (
                                                                                             showReply(item.reply_id)
@@ -1984,7 +1987,7 @@ const Screen = () => {
                                                                                         <h6>{item.sender}</h6>
                                                                                     </div>
                                                                                     <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF"}}>
-                                                                                        {isRead(item.read_list, roomInfo.mem_list, roomInfo.is_private, window.username)}
+                                                                                        {isRead(item.read_list, window.memList, roomInfo.is_private, window.username)}
 
                                                                                         {item.msg_type === "reply" && typeof item.reply_id === "number" ? showReply(item.reply_id) : null}
 
@@ -2131,7 +2134,7 @@ const Screen = () => {
                                                                 rows={4}
                                                                 onChange={onMsgChange}
                                                                 placement={"top"}
-                                                                options={(roomInfo.mem_list.filter(selfFilter)).map((value) => ({
+                                                                options={(window.memList.filter(selfFilter)).map((value) => ({
                                                                     key: value,
                                                                     value,
                                                                     label: value,
@@ -2813,11 +2816,11 @@ const Screen = () => {
                                     <List.Item
                                         actions={[
                                             <Button
-                                                key={item}
+                                                key={item.username}
                                                 size={"small"}
                                                 type="default"
-                                                onClick={() => {setSearchMember(item);}}>
-                                                {item}
+                                                onClick={() => {setSearchMember(item.username);}}>
+                                                {item.username}
                                             </Button>
                                         ]}
                                     >
