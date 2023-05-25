@@ -282,7 +282,7 @@ const Screen = () => {
     }, [combineList]);
 
     const WSConnect = () => {
-        let DEBUG = false;
+        let DEBUG = true;
         window.ws = new WebSocket(DEBUG ? "ws://localhost:8000/wsconnect" : "wss://se-im-backend-overflowlab.app.secoder.net/wsconnect");
         window.ws.onopen = function () {
             setMenuItem(CONS.CHATFRAME);
@@ -377,6 +377,7 @@ const Screen = () => {
                 if (data.sender != window.username){
                     fetchRoomList();
                 }
+
                 else {
                     // 更新 roomList
                     for (let room of window.roomList){
@@ -1164,14 +1165,14 @@ const Screen = () => {
             };
 
             for (let room of roomList){
-                if (room.roomid === window.forwardRoomId){
+                if (room.roomid === window.forwardRoomId) {
                     room.message_list.push(newMessage as messageListData);
                 }
             }
             setForwardList([]);
             setCheckBoxChecked(false);
             setForwardModal(false);
-            window.forwardRoomId = 0;
+            //window.forwardRoomId = 0;
         }
         else {
             message.error("请选择会话", 1);
@@ -1184,6 +1185,7 @@ const Screen = () => {
 
     // 获取被转发的消息
     const getAllCombine = (List: messageListData[]) => {
+
         let combineMessages = List.filter(arr => arr.msg_type === "combine");
         combineMessages.forEach((arr) => {
             arr.combine_list?.forEach(id => {
@@ -1808,7 +1810,7 @@ const Screen = () => {
                                                 <Divider type={"horizontal"}/>
                                                 <div style={{padding: "24px", position: "relative", height: "60vh", overflow: "auto"}} ref={scrollRef}>
                                                     <List
-                                                        dataSource={ messageList.filter((msg) => (msg.msg_type != "notice" && !msg.is_delete)) }
+                                                        dataSource={ messageList.filter((msg) => (msg.msg_type != "notice" && msg.msg_type != "invite" && !msg.is_delete)) }
                                                         split={ false }
                                                         renderItem={(item) => (
                                                             <List.Item key={ item.msg_id }>
@@ -1905,7 +1907,6 @@ const Screen = () => {
                                                                                         { item.msg_type === "combine" ? (
                                                                                             forwardCard(combineLists, item.msg_id)
                                                                                         ) : null}
-
                                                                                     </div>
                                                                                 </div>
                                                                             ) : (
@@ -1916,13 +1917,17 @@ const Screen = () => {
                                                                                     </div>
                                                                                     <div style={{ borderRadius: "24px", padding: "12px", display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF"}}>
                                                                                         {isRead(item.read_list, roomInfo.mem_list, roomInfo.is_private, window.username)}
+
                                                                                         {item.msg_type === "reply" && typeof item.reply_id === "number" ? showReply(item.reply_id) : null}
+
                                                                                         {(item.msg_type != "combine" && item.msg_type != "image" && item.msg_type != "video" && item.msg_type != "file" && item.msg_type != "audio") ? (
                                                                                             str2addr(item.msg_body, item.read_list)
                                                                                         ): null}
+
                                                                                         {item.msg_type === "image" ? (
                                                                                             <Image width={"30vh"} src={("/api"+item.msg_body)}/>
                                                                                         ): null}
+
                                                                                         {(item.msg_type === "video") ? (
                                                                                             <div style={{width: "50vh"}}>
                                                                                                 <Player fluid={true} width={"50vh"}>
@@ -1938,6 +1943,7 @@ const Screen = () => {
                                                                                                 </Player>
                                                                                             </div>
                                                                                         ): null}
+
                                                                                         {(item.msg_type === "audio") ? (
                                                                                             <div style={{width: "50vh", height: "50px"}}>
                                                                                                 <Player fluid={false} width={"50vh"} height={"20px"}>
@@ -1953,6 +1959,7 @@ const Screen = () => {
                                                                                                 </Player>
                                                                                             </div>
                                                                                         ): null}
+
                                                                                         {item.msg_type === "file" ? (
                                                                                             <div>
                                                                                                 <h1> 文件消息 </h1>
@@ -1963,6 +1970,7 @@ const Screen = () => {
                                                                                                 </Button>
                                                                                             </div>
                                                                                         ): null}
+
                                                                                         { item.msg_type === "combine" ? (forwardCard(combineLists, item.msg_id)) : null}
                                                                                         <span> { item.msg_time } </span>
                                                                                     </div>
@@ -2024,7 +2032,7 @@ const Screen = () => {
                                                             <AlbumIcon onClick={() => setAudioModal(true)}/>
                                                             <OndemandVideoIcon onClick={() => setVideoModal(true)}/>
                                                             <InsertDriveFileIcon onClick={() => setFileModal(true)}/>
-                                                            {VideoCall("audio_or_video_" + window.username, "audio_or_video_" + (typeof window.currentRoom != "undefined" ? window.currentRoom.roomname : ""))}
+                                                            {/*{VideoCall("audio_or_video_" + window.username, "audio_or_video_" + (typeof window.currentRoom != "undefined" ? window.currentRoom.roomname : ""))}*/}
                                                             <AccessTimeIcon onClick={() => {
                                                                 setRoomInfoModal(false);
                                                                 setHistoryModal(true);
@@ -2228,13 +2236,13 @@ const Screen = () => {
                                                                                     type="primary"
                                                                                     onClick={() => {
                                                                                         window.otherUsername = item.username;
-                                                                                        window.otherAvatar = item.avatar;
                                                                                         checkFriend();
                                                                                     }}
                                                                                 >
                                                                                     查看用户界面
                                                                                 </Button>
                                                                             ]}>
+                                                                            {/*<Avatar src={item.avatar}/>*/}
                                                                             <div>{item.username}</div>
                                                                         </List.Item>
                                                                     )}
@@ -2494,7 +2502,7 @@ const Screen = () => {
                 <Checkbox.Group
                     style={{display: "grid", height: "60vh", overflow: "scroll" }}
                     onChange={ onForwardChange }
-                    checked={checkBoxChecked}
+                    // checked={checkBoxChecked}
                     options={ messageList.map((arr) => ({
                         label: arr.sender + ":  " + arr.msg_body,
                         value: arr.msg_id,
