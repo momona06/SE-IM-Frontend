@@ -77,9 +77,6 @@ const props: UploadProps = {
         authorization: "authorization-text",
     },
     onChange(info) {
-        if(info.file.status !== "uploading") {
-            console.log("upload:", info.file, info.fileList);
-        }
         if(info.file.status === "done") {
             message.success(`${info.file.name} file uploaded successfully`);
         } else if (info.file.status === "error") {
@@ -279,12 +276,6 @@ const Screen = () => {
         });
     }, [roomInfo]);
 
-    // useEffect(() => {
-    //     let updateMap = new Map(combineLists);
-    //     updateMap.set(fatherId, combineList);
-    //     console.log(updateMap);
-    //     setCombineLists(updateMap);
-    // }, [combineList])
 
     const WSConnect = () => {
         let DEBUG = false;
@@ -306,7 +297,6 @@ const Screen = () => {
         };
         window.ws.onmessage = async function (event) {
             const data = JSON.parse(event.data);
-            console.log(JSON.stringify(data));
             if (data.function === "heartbeatconfirm") {
                 WSHeartBeat();
             }
@@ -498,7 +488,7 @@ const Screen = () => {
 
     const WSOnclose = () => {
         if (window.heartBeat) {
-        console.log("close重接");
+        console.log("重新连接中");
         alert("异常断开，请尽量慢些操作并重新连接");
         WSConnect();
         }
@@ -514,7 +504,6 @@ const Screen = () => {
             window.ws.send(JSON.stringify(data));
             window.serverTimeoutObj = setTimeout(() => {
                 window.heartBeat = true;
-                console.log("服务器宕机中");
                 window.ws.close();
             }, 2000);
         }, 10000);
@@ -522,7 +511,6 @@ const Screen = () => {
 
     const WSClose = () => {
         window.heartBeat = false;
-        console.log("关闭");
         if (window.ws) {
             window.ws.close();
         }
@@ -650,7 +638,6 @@ const Screen = () => {
                     refresh: newUsername
                 };
                 window.ws.send(JSON.stringify(data));
-                console.log(data);
                 message.success(STRINGS.USERNAME_CHANGE_SUCCESS, 1);
                 window.username = newUsername;
             })
@@ -942,7 +929,6 @@ const Screen = () => {
                 "chatroom_id": window.currentRoom.roomid
             };
             window.ws.send(JSON.stringify(data));
-            console.log(data);
 
             // 本地消息状态全部置为已读
             window.messageList.forEach(msg => {
@@ -1170,7 +1156,6 @@ const Screen = () => {
                 transroom_id: window.forwardRoomId
             };
             window.ws.send(JSON.stringify(data));
-            console.log(data);
 
             let date = new Date();
             let newMessage = {
@@ -1279,7 +1264,6 @@ const Screen = () => {
         window.ws.send(JSON.stringify(data));
         for (let i = window.messageList.length - 1; i >= 0; i--){
             if (window.messageList[i].msg_id === id){
-                console.log("id:", window.messageList[i]);
                 window.messageList[i].msg_body = "该消息已被撤回";
             }
         }
@@ -1446,7 +1430,6 @@ const Screen = () => {
     };
 
     const matchPassword = () => {
-        console.log(window.password);
         if(password === window.password)
         {
             message.success("密码正确", 1);
@@ -1523,7 +1506,6 @@ const Screen = () => {
         $("#loader").load(function() {
             const text = $("#loader").contents().find("body").text();
             const j = $.JSON.parse(text);
-            console.log("j", j);
         });
     };
 
@@ -1536,36 +1518,13 @@ const Screen = () => {
             },
         )
             .then((res) => {
-                console.log(res.msg_list);
+
                 setFetchedList(res.msg_list.map((val: any) => ({...val})));
                 setCombineModal(true);
             })
             .catch((err) => message.error(err.message, 1));
     };
 
-    // const handleCombine2 = (list?: number[]) => {
-    //     if(list)
-    //     {
-    //         list.map((val, id) => {
-    //             request(
-    //                 "api/user/message",
-    //                 "POST",
-    //                 {
-    //                     msg_id: val
-    //                 },
-    //             )
-    //                 .then((res) => {
-    //                     console.log(res);
-    //                     setFetchedList((fetchedList) => fetchedList.concat([{msg_id: res.msg_id, msg_body: res.msg_body, msg_time: res.msg_time, msg_type: res.msg_type, sender: res.msg_sender, avatar: res.avatar}]));
-    //                     if(id === list.length - 1)
-    //                     {
-    //                         setCombineModal(true);
-    //                     }
-    //                 })
-    //                 .catch((err) => message.error(err.message, 1));
-    //         })
-    //     }
-    // };
 
     //会话具体信息
     const roomInfoPage = (
@@ -2714,7 +2673,6 @@ const Screen = () => {
                             let fromdata = new FormData(audioF.current);
                             axios.post("/api/user/uploadfile", fromdata , avatarconfig)
                                 .then((res) => {
-                                    console.log(res.data.file_url);
                                     sendFile("audio", res.data.file_url);
                                 })
                                 .catch((err) => {
