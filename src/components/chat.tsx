@@ -57,6 +57,7 @@ const forwardCard = (combineLists: Map<number, messageListData[]>, id: number) =
     return (
         <Card title={"聊天记录"}>
             <List
+                size={"large"}
                 dataSource={combineLists.get(id)}
                 renderItem={(msg) => (
                     <List.Item key={msg.msg_id}>
@@ -92,10 +93,14 @@ const isRead = (readList: boolean[], memberList: string[], isPrivate: boolean, u
         }
         return (
             <Popover trigger={"click"} content={
-                <List itemLayout={"vertical"} dataSource={isReadList} renderItem={(item) => (
-                <List.Item>
-                    <List.Item.Meta title={item}/>
-                </List.Item>)}/>
+                <List
+                    itemLayout={"vertical"}
+                    dataSource={isReadList}
+                    renderItem={(item) => (
+                        <List.Item>
+                            <List.Item.Meta title={item}/>
+                        </List.Item>)
+                }/>
             }>
                 <Tag color={"cyan"}>已读成员列表</Tag>
             </Popover>

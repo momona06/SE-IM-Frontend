@@ -282,7 +282,7 @@ const Screen = () => {
     }, [combineList]);
 
     const WSConnect = () => {
-        let DEBUG = true;
+        let DEBUG = false;
         window.ws = new WebSocket(DEBUG ? "ws://localhost:8000/wsconnect" : "wss://se-im-backend-overflowlab.app.secoder.net/wsconnect");
         window.ws.onopen = function () {
             setMenuItem(CONS.CHATFRAME);
@@ -1507,13 +1507,12 @@ const Screen = () => {
         <div style={{padding: "12px"}}>
             <Space direction={"vertical"}>
                 <List
-                    grid={{gutter: 16, column: 4, xs: 1, sm: 2, md: 4, lg: 4, xl: 6, xxl: 3,}}
+                    grid={{gutter: 8, column: 2}}
                     dataSource={roomInfo.mem_list}
                     renderItem={(item) => (
                         <List.Item>
                             <Card
-                                style={{width: 200, marginTop: 8}}
-                                bordered={false}
+                                style={{width: 200, margin: 8}}
                                 actions={[
                                     (item !== window.username ?
                                             <Popover trigger={"hover"} content={"添加好友"}>
